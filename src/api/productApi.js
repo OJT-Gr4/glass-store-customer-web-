@@ -46,3 +46,4 @@ export const productApi = {
 };
 
 export default apiClient;
+
