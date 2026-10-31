@@ -16,7 +16,22 @@ Giao diện Web bán hàng và dịch vụ khách hàng trực tuyến, xây d�
 
 ---
 
-## 2. Cấu trúc thư mục mã nguồn
+## 2. Bảng Màu Chuẩn Của Hệ Thống (Design System & Color Palette)
+
+Toàn bộ giao diện được chuẩn hóa theo bảng màu nhận diện thương hiệu GlassStore:
+
+| Tên màu | Mã HEX | Giá trị RGB | Ứng dụng trong giao diện |
+| :--- | :---: | :---: | :--- |
+| **Primary Dark** | `#086288` | `rgb(8, 98, 136)` | Màu chủ đạo: Header, Nút chính (CTA), Icon thương hiệu, Tiêu đề nổi bật |
+| **Ocean Blue** | `#4D8DBA` | `rgb(77, 141, 186)` | Màu phụ: Hover buttons, đường viền active, icon phụ |
+| **Sky Accent** | `#97D7FF` | `rgb(151, 215, 255)` | Màu sáng: Tag, đường viền card, highlight văn bản, hiệu ứng glow |
+| **Warm Cream** | `#FFEFC4` | `rgb(255, 239, 196)` | Màu ấm: Badge thương hiệu, nhãn ưu đãi, background điểm nhấn |
+
+> **Cấu hình Tailwind (`tailwind.config.js`):** Sử dụng các class `bg-[#086288]`, `text-[#086288]`, `bg-[#FFEFC4]`, `text-[#4D8DBA]`, hoặc alias `bg-brand-dark`, `text-brand-blue`...
+
+---
+
+## 3. Cấu trúc thư mục mã nguồn
 
 ```text
 customer-web/

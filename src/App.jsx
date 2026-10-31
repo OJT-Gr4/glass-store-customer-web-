@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { productApi } from './api/productApi';
-import { ShoppingBag, Search, Eye, Filter, Sparkles, CheckCircle2 } from 'lucide-react';
+import { ShoppingBag, Search, Eye, Sparkles, Star } from 'lucide-react';
 
 export default function App() {
   const [products, setProducts] = useState([]);
@@ -19,8 +19,7 @@ export default function App() {
       const data = await productApi.getAllProducts(params);
       setProducts(data || []);
     } catch (err) {
-      console.warn('API Gateway chưa bật hoặc chưa có kết nối, hiển thị dữ liệu mẫu.');
-      // Dữ liệu mẫu dự phòng hiển thị giao diện khi chưa bật backend
+      console.warn('Sử dụng dữ liệu mẫu chuẩn bảng màu.');
       setProducts([
         {
           id: 1,
@@ -28,7 +27,7 @@ export default function App() {
           categoryName: 'Gọng Kính',
           brandName: 'Bolon',
           productType: 'FRAME',
-          description: 'Gọng kính Titanium siêu nhẹ cao cấp, chống ăn mòn, thiết kế mắt vuông nam tính',
+          description: 'Gọng Titanium siêu nhẹ cao cấp, chống ăn mòn, thiết kế mắt vuông nam tính',
           variants: [
             {
               id: 1,
@@ -66,7 +65,7 @@ export default function App() {
           categoryName: 'Tròng Kính',
           brandName: 'Chemi',
           productType: 'LENS',
-          description: 'Chiết suất 1.60 mỏng nhẹ, lớp phủ Crystal U2 chống trầy xước, ngăn ánh sáng xanh màn hình',
+          description: 'Chiết suất 1.60 mỏng nhẹ, phủ Crystal U2 chống trầy xước, ngăn ánh sáng xanh',
           variants: [
             {
               id: 6,
@@ -74,7 +73,7 @@ export default function App() {
               price: 650000,
               lensIndex: '1.60',
               stockQuantity: 100,
-              imageUrl: 'https://images.unsplash.com/photo-1582142839970-2b9da988941f?w=500'
+              imageUrl: 'https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=500'
             }
           ]
         },
@@ -112,16 +111,16 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur shadow-sm border-b border-slate-200">
+      <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="bg-primary-600 text-white p-2 rounded-xl shadow-md">
-              <Eye className="w-6 h-6" />
+          <div className="flex items-center gap-2.5">
+            <div className="bg-[#086288] text-white p-2 rounded-xl shadow-md">
+              <Eye className="w-5 h-5 text-[#97D7FF]" />
             </div>
             <div>
-              <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent">
+              <span className="text-xl font-bold tracking-tight text-[#086288]">
                 GlassStore
               </span>
               <span className="hidden sm:inline-block ml-2 text-xs text-slate-500 uppercase tracking-widest border-l border-slate-300 pl-2">
@@ -132,37 +131,40 @@ export default function App() {
 
           {/* Search bar */}
           <div className="hidden md:flex items-center flex-1 max-w-md mx-8 relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5" />
             <input
               type="text"
-              placeholder="Tìm kiếm gọng kính, tròng kính, thương hiệu..."
+              placeholder="Tìm kiếm gọng kính, tròng mắt, thương hiệu..."
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
-              className="w-full bg-slate-100 text-sm pl-9 pr-4 py-2 rounded-full border-none focus:ring-2 focus:ring-primary-500 transition-all outline-none"
+              className="w-full bg-slate-100/80 text-sm pl-10 pr-4 py-2 rounded-full border border-transparent focus:border-[#4D8DBA] focus:bg-white focus:ring-2 focus:ring-[#97D7FF]/50 transition-all outline-none"
             />
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-primary-600 transition-colors">
-              <ShoppingBag className="w-5 h-5" />
+            <button className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-[#086288] transition-colors">
+              <ShoppingBag className="w-5 h-5 text-[#086288]" />
               <span className="hidden sm:inline">Giỏ hàng</span>
-              <span className="bg-primary-600 text-white text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+              <span className="bg-[#FFEFC4] text-[#086288] border border-[#086288]/20 text-xs px-2 py-0.5 rounded-full font-bold">
+                0
+              </span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* Hero Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary-500/20 text-primary-300 border border-primary-500/30 mb-4">
-            <Sparkles className="w-3.5 h-3.5" /> Chuỗi bán lẻ kính mắt công nghệ mới
+      {/* Hero Banner với chuẩn bảng màu */}
+      <div className="bg-gradient-to-br from-[#086288] via-[#064e6d] to-[#043347] text-white py-14 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <div className="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-[#97D7FF]/10 blur-3xl pointer-events-none"></div>
+        <div className="max-w-7xl mx-auto text-center relative z-10">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#FFEFC4] text-[#086288] shadow-sm mb-4">
+            <Sparkles className="w-3.5 h-3.5 text-[#086288]" /> Hệ thống bán lẻ & đo mắt chuẩn nhãn khoa
           </span>
           <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4">
-            Khám phá Bộ sưu tập Kính Mắt Cao Cấp
+            Khám phá Bộ Sưu Tập Kính Mắt Cao Cấp
           </h1>
-          <p className="max-w-2xl mx-auto text-slate-300 text-sm sm:text-base">
-            Gọng Titanium siêu nhẹ, tròng chống ánh sáng xanh Chemi, đổi màu Essilor. Đo thị lực khúc xạ chuẩn xác tại hệ thống cửa hàng.
+          <p className="max-w-2xl mx-auto text-[#97D7FF] text-sm sm:text-base opacity-95">
+            Gọng Titanium siêu nhẹ, tròng chống ánh sáng xanh Chemi, đổi màu Essilor chính hãng. Đo khúc xạ chuẩn xác tại cửa hàng.
           </p>
         </div>
       </div>
@@ -183,7 +185,7 @@ export default function App() {
                 onClick={() => setSelectedType(tab.value)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                   selectedType === tab.value
-                    ? 'bg-primary-600 text-white shadow-md shadow-primary-500/20'
+                    ? 'bg-[#086288] text-white shadow-md shadow-[#086288]/20'
                     : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
                 }`}
               >
@@ -193,14 +195,14 @@ export default function App() {
           </div>
 
           <div className="text-xs text-slate-500 font-medium">
-            Hiển thị <span className="font-bold text-slate-800">{filteredProducts.length}</span> sản phẩm
+            Hiển thị <span className="font-bold text-[#086288]">{filteredProducts.length}</span> sản phẩm
           </div>
         </div>
 
         {/* Product Grid */}
         {loading ? (
           <div className="py-20 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-primary-600 border-t-transparent"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#086288] border-t-transparent"></div>
             <p className="text-sm text-slate-500 mt-2">Đang tải danh sách kính...</p>
           </div>
         ) : (
@@ -210,7 +212,7 @@ export default function App() {
               return (
                 <div
                   key={product.id}
-                  className="bg-white rounded-2xl overflow-hidden border border-slate-200/80 shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col justify-between"
+                  className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl hover:border-[#4D8DBA]/50 transition-all duration-300 group flex flex-col justify-between"
                 >
                   <div className="relative aspect-square overflow-hidden bg-slate-100">
                     <img
@@ -219,7 +221,7 @@ export default function App() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     {product.brandName && (
-                      <span className="absolute top-3 left-3 bg-white/90 backdrop-blur text-slate-800 text-xs px-2.5 py-1 rounded-full font-semibold shadow-sm">
+                      <span className="absolute top-3 left-3 bg-[#FFEFC4] text-[#086288] border border-[#086288]/10 text-xs px-2.5 py-1 rounded-full font-bold shadow-sm">
                         {product.brandName}
                       </span>
                     )}
@@ -227,15 +229,15 @@ export default function App() {
 
                   <div className="p-5 flex-1 flex flex-col justify-between">
                     <div>
-                      <span className="text-xs uppercase tracking-wider text-primary-600 font-bold">
+                      <span className="text-xs uppercase tracking-wider text-[#086288] font-bold">
                         {product.categoryName || product.productType}
                       </span>
-                      <h3 className="font-semibold text-slate-800 text-base mt-1 line-clamp-2 group-hover:text-primary-600 transition-colors">
+                      <h3 className="font-semibold text-slate-800 text-base mt-1 line-clamp-2 group-hover:text-[#086288] transition-colors">
                         {product.name}
                       </h3>
                       {primaryVariant.material && (
                         <p className="text-xs text-slate-500 mt-1">
-                          Chất liệu: {primaryVariant.material}
+                          Chất liệu: <span className="font-medium text-slate-700">{primaryVariant.material}</span>
                         </p>
                       )}
                     </div>
@@ -243,11 +245,11 @@ export default function App() {
                     <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
                       <div>
                         <div className="text-xs text-slate-400">Giá niêm yết</div>
-                        <div className="text-lg font-bold text-slate-900">
+                        <div className="text-lg font-bold text-[#086288]">
                           {formatPrice(primaryVariant.price || 0)}
                         </div>
                       </div>
-                      <button className="bg-slate-900 hover:bg-primary-600 text-white p-2.5 rounded-xl transition-colors shadow-sm">
+                      <button className="bg-[#086288] hover:bg-[#4D8DBA] text-white p-2.5 rounded-xl transition-colors shadow-sm">
                         <ShoppingBag className="w-4 h-4" />
                       </button>
                     </div>
