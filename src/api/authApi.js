@@ -41,6 +41,31 @@ export const authApi = {
     return data;
   },
 
+  async sendOtp(payload) {
+    const data = await request('otp/send', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+    });
+    if (!data?.challengeId) throw new Error('Máy chủ chưa khởi tạo được phiên xác thực OTP.');
+    return data;
+  },
+
+  async verifyPhoneOtp(payload) {
+    const data = await request('otp/verify', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+    });
+    if (!data?.verified) throw new Error('Xác thực OTP chưa thành công.');
+    return data;
+  },
+
+  async resetPassword(payload) {
+    const data = await request('password/reset', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+    });
+    if (!data?.verified) throw new Error('Đặt lại mật khẩu chưa thành công.');
+    authApi.logout();
+    return data;
+  },
+
   async getMe() {
     const token = authApi.getToken();
     if (!token || token.split('.').length !== 3) { authApi.logout(); return null; }

@@ -17,6 +17,9 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [otpChallenge, setOtpChallenge] = useState(null);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpPurpose, setOtpPurpose] = useState('PASSWORD_RESET');
 
   if (!isOpen) return null;
 
@@ -24,6 +27,31 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
     setAuthMode(mode);
     setErrorMessage('');
     setSuccessMessage('');
+    setOtpChallenge(null);
+    setOtpCode('');
+  };
+
+  const handleSendOtp = async () => {
+    if (!email.trim() && !phoneNumber.trim()) {
+      setErrorMessage('Vui lòng nhập email hoặc số điện thoại đã đăng ký để nhận mã OTP!');
+      return;
+    }
+    setLoading(true);
+    setErrorMessage('');
+    setSuccessMessage('');
+    try {
+      const challenge = await authApi.sendOtp({
+        identifier: email.trim() || phoneNumber.trim(),
+        phoneNumber: phoneNumber.trim() || undefined,
+        purpose: otpPurpose,
+      });
+      setOtpChallenge(challenge);
+      setSuccessMessage(`Đã gửi mã OTP (hiệu lực ${challenge.expiresInSeconds || 300}s) tới SĐT ${challenge.maskedPhone}.`);
+    } catch (err) {
+      setErrorMessage(err.message || 'Không thể gửi mã OTP. Vui lòng kiểm tra cấu hình cổng SMS hoặc thông tin tài khoản.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -65,6 +93,51 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
         setConfirmPassword('');
       } catch (err) {
         setErrorMessage(err.message || 'Đăng ký không thành công. Vui lòng kiểm tra lại thông tin!');
+      } finally {
+        setLoading(false);
+      }
+    } else if (authMode === 'otp') {
+      if (!otpChallenge?.challengeId) {
+        await handleSendOtp();
+        return;
+      }
+      if (!/^\d{6}$/.test(otpCode.trim())) {
+        setErrorMessage('Vui lòng nhập đúng 6 chữ số mã OTP!');
+        return;
+      }
+      setLoading(true);
+      try {
+        if (otpPurpose === 'PHONE_VERIFICATION') {
+          await authApi.verifyPhoneOtp({
+            challengeId: otpChallenge.challengeId,
+            otpCode: otpCode.trim(),
+          });
+          setSuccessMessage('Xác thực số điện thoại thành công!');
+        } else {
+          if (password.length < 6) {
+            setErrorMessage('Mật khẩu mới phải có tối thiểu 6 ký tự!');
+            setLoading(false);
+            return;
+          }
+          if (password !== confirmPassword) {
+            setErrorMessage('Mật khẩu xác nhận không khớp!');
+            setLoading(false);
+            return;
+          }
+          await authApi.resetPassword({
+            challengeId: otpChallenge.challengeId,
+            otpCode: otpCode.trim(),
+            newPassword: password,
+          });
+          setSuccessMessage('Đặt lại mật khẩu thành công! Vui lòng đăng nhập với mật khẩu mới.');
+        }
+        setOtpChallenge(null);
+        setOtpCode('');
+        setPassword('');
+        setConfirmPassword('');
+        setAuthMode('login');
+      } catch (err) {
+        setErrorMessage(err.message || 'Xác thực OTP thất bại. Vui lòng kiểm tra lại!');
       } finally {
         setLoading(false);
       }
@@ -221,6 +294,17 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
                   >
                     Đăng Ký Tài Khoản
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => handleModeChange('otp')}
+                    className={`text-sm font-extrabold pb-3 -mb-3 transition border-b-2 ${
+                      authMode === 'otp'
+                        ? 'text-[#063c59] border-[#063c59]'
+                        : 'text-slate-400 border-transparent hover:text-slate-600'
+                    }`}
+                  >
+                    OTP & Quên Mật Khẩu
+                  </button>
                 </div>
               </div>
 
@@ -291,11 +375,11 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
                   </div>
                 </div>
 
-                {/* Phone Number (Optional for Register) */}
-                {authMode === 'register' && (
+                {/* Phone Number (Optional for Register / OTP) */}
+                {(authMode === 'register' || authMode === 'otp') && (
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Số điện thoại (tùy chọn)
+                      {authMode === 'otp' ? 'Số điện thoại nhận OTP' : 'Số điện thoại (tùy chọn)'}
                     </label>
                     <input
                       type="tel"
@@ -307,10 +391,50 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
                   </div>
                 )}
 
+                {authMode === 'otp' && (
+                  <div className="space-y-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                    <div className="flex items-center justify-between gap-2">
+                      <select
+                        value={otpPurpose}
+                        onChange={(e) => { setOtpPurpose(e.target.value); setOtpChallenge(null); }}
+                        className="text-xs font-semibold bg-white border border-slate-200 rounded-lg px-2.5 py-2 text-slate-700"
+                      >
+                        <option value="PASSWORD_RESET">Đặt lại mật khẩu qua OTP</option>
+                        <option value="PHONE_VERIFICATION">Xác thực số điện thoại</option>
+                      </select>
+                      <button
+                        type="button"
+                        onClick={handleSendOtp}
+                        disabled={loading}
+                        className="px-3 py-2 rounded-lg text-xs font-bold bg-[#063c59] text-white hover:bg-[#08486b]"
+                      >
+                        {otpChallenge ? 'Gửi lại OTP' : 'Nhận mã OTP'}
+                      </button>
+                    </div>
+                    {otpChallenge && (
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          Mã OTP 6 chữ số (gửi tới {otpChallenge.maskedPhone}) <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          maxLength={6}
+                          placeholder="Nhập 6 chữ số OTP"
+                          value={otpCode}
+                          onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                          required
+                          className="w-full text-xs font-mono tracking-widest bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-slate-900"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Password Field */}
+                {(authMode !== 'otp' || (otpChallenge && otpPurpose === 'PASSWORD_RESET')) && (
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Mật khẩu <span className="text-red-500">*</span>
+                    {authMode === 'otp' ? 'Mật khẩu mới' : 'Mật khẩu'} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
@@ -331,9 +455,10 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
                     </button>
                   </div>
                 </div>
+                )}
 
-                {/* Confirm Password (Register only) */}
-                {authMode === 'register' && (
+                {/* Confirm Password (Register or Password Reset) */}
+                {(authMode === 'register' || (authMode === 'otp' && otpChallenge && otpPurpose === 'PASSWORD_RESET')) && (
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">
                       Xác nhận mật khẩu <span className="text-red-500">*</span>

@@ -18,38 +18,74 @@ import VoucherLoyaltyPage from './components/VoucherLoyaltyPage';
 import AuthModal from './components/AuthModal';
 import CartDrawer from './components/CartDrawer';
 import CheckoutModal from './components/CheckoutModal';
-import OrderConfirmation from './components/OrderConfirmation';
 import { addSelection } from './components/purchaseUtils';
 import { authApi } from './api/authApi';
+import { useCustomerCart } from './components/useCustomerCart.js';
+import { orderRoute } from './components/customerOrderUtils.js';
+import { claimGuestCart } from './components/customerCartStore.js';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('home'); 
+  const initialRoute = useRef(orderRoute(window.location.hash)).current;
+  const [activeTab, updateActiveTab] = useState(initialRoute?.tab || 'home');
+  const [selectedOrderId, setSelectedOrderId] = useState(initialRoute?.id || null);
+  const setActiveTab = tab => {
+    updateActiveTab(tab);
+    if (tab === 'orders') window.location.hash = 'orders';
+    else if (tab !== 'order-hub' && window.location.hash) window.history.replaceState(null, '', window.location.pathname + window.location.search);
+  };
+  const openOrder = id => {
+    setSelectedOrderId(id);
+    updateActiveTab('order-hub');
+    window.location.hash = `orders/${id}`;
+  };
+  useEffect(() => {
+    const navigate = () => {
+      const route = orderRoute(window.location.hash);
+      if (route) { updateActiveTab(route.tab); setSelectedOrderId(route.id); }
+    };
+    window.addEventListener('hashchange', navigate);
+    return () => window.removeEventListener('hashchange', navigate);
+  }, []);
   // 'home' | 'products' | 'product-detail' | 'booking' | 'records' | 'warranty' | 'claim-warranty' | 'policy' | 'orders' | 'order-hub' | 'review'
   
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedProductDetail, setSelectedProductDetail] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const authGeneration = useRef(0);
   useEffect(() => {
     let active = true;
-    authApi.getMe().then(user => { if (active) setCurrentUser(user); })
-      .catch(() => { if (active) setCurrentUser(null); });
+    const run = ++authGeneration.current;
+    authApi.getMe().then(user => { if (active && authGeneration.current === run) setCurrentUser(user); })
+      .catch(() => { if (active && authGeneration.current === run) setCurrentUser(null); });
     return () => { active = false; };
   }, []);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [lastPlacedOrder, setLastPlacedOrder] = useState(null);
   const checkoutRequest = useRef(null);
+  const activeCustomerId = useRef(null);
+  activeCustomerId.current = currentUser?.id;
+  const [cart, setCart, cartError] = useCustomerCart(currentUser?.id);
+  const [cartNotice, setCartNotice] = useState('');
+  useEffect(() => {
+    checkoutRequest.current = null;
+    setCheckoutOpen(false); setIsCartOpen(false);
+  }, [currentUser?.id]);
 
   const handleLogout = () => {
+    authGeneration.current++;
+    activeCustomerId.current = null;
     authApi.logout();
     setCurrentUser(null);
+    setCheckoutOpen(false);
+    checkoutRequest.current = null;
   };
 
-  const [cart, setCart] = useState([]);
   const handleAddToCart = selection => {
     if (!selection.items && !selection.productType) { handleViewDetail(selection); return; }
-    setCart(addSelection(cart, selection));
-    setIsCartOpen(true);
+    try {
+      setCart(previous => addSelection(previous, selection));
+      setCartNotice(''); setIsCartOpen(true);
+    } catch (error) { setCartNotice(error.message); }
   };
   const handleViewDetail = (product) => {
     setSelectedProductDetail(product);
@@ -58,8 +94,8 @@ export default function App() {
   };
 
   const updateCartQty = (sku, delta) => {
-    setCart(
-      cart
+    setCart(previous =>
+      previous
         .map((item) => {
           if (item.sku === sku) {
             const newQty = item.quantity + delta;
@@ -72,7 +108,7 @@ export default function App() {
   };
 
   const removeFromCart = (sku) => {
-    setCart(cart.filter((item) => item.sku !== sku));
+    setCart(previous => previous.filter((item) => item.sku !== sku));
   };
 
   const handleCheckout = () => {
@@ -95,6 +131,7 @@ export default function App() {
 
       {/* 2. Main Content Screens */}
       <main className="flex-1 w-full">
+        {(cartError || cartNotice) && <p role="alert" className="purchase-page purchase-error">{cartNotice || cartError}</p>}
         {/* Screen 1: Trang Chủ */}
         {activeTab === 'home' && (
           <HomePage
@@ -168,13 +205,19 @@ export default function App() {
         {activeTab === 'orders' && (
           <OrdersPage
             setActiveTab={setActiveTab}
+            currentUser={currentUser}
+            openAuth={() => setIsAuthOpen(true)}
+            onOpenOrder={openOrder}
           />
         )}
 
         {/* Screen 10: Phiếu Xác Nhận Đơn Hàng, Mã QR Check-in & Tiến Độ Lab Delta 200 */}
-        {activeTab === 'order-hub' && !lastPlacedOrder && (
+        {activeTab === 'order-hub' && (
           <OrderDetailHubPage
             setActiveTab={setActiveTab}
+            currentUser={currentUser}
+            openAuth={() => setIsAuthOpen(true)}
+            orderId={selectedOrderId}
           />
         )}
 
@@ -207,10 +250,13 @@ export default function App() {
         )}
       </main>
 
-      {activeTab === 'order-hub' && lastPlacedOrder && <OrderConfirmation order={lastPlacedOrder} onContinue={() => setActiveTab('products')} />}
-      {checkoutOpen && <CheckoutModal cart={cart} user={currentUser} requestRef={checkoutRequest} onClose={() => setCheckoutOpen(false)} onSuccess={order => {
+      {checkoutOpen && currentUser && <CheckoutModal key={currentUser.id} cart={cart} user={currentUser} requestRef={checkoutRequest} onClose={() => setCheckoutOpen(false)} onSuccess={order => {
+        if (Number(order.customerId) !== Number(currentUser.id)) throw new Error('Không xác minh được chủ đơn hàng. Giỏ hàng được giữ nguyên.');
+        // setCart belongs to the owner who submitted, even if another account has since logged in.
+        setCart([]);
+        if (activeCustomerId.current !== currentUser.id) return;
         checkoutRequest.current = null;
-        setLastPlacedOrder(order); setCheckoutOpen(false); setCart([]); setActiveTab('order-hub'); window.scrollTo({top:0});
+        setCheckoutOpen(false); openOrder(order.id); window.scrollTo({top:0});
       }} />}
       {/* 3. Footer Chuẩn Nhãn Khoa */}
       <Footer />
@@ -230,6 +276,9 @@ export default function App() {
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         onLoginSuccess={(user) => {
+          authGeneration.current++;
+          activeCustomerId.current = user.id;
+          if (!currentUser?.id) setCartNotice(claimGuestCart(user.id, addSelection));
           setCurrentUser(user);
         }}
       />
