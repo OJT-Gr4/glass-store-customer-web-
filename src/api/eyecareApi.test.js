@@ -10,7 +10,7 @@ test('booking persists using the authenticated API and the returned ticket', asy
     sent = { url, options };
     return response(200, { id: 42, ticketCode: 'EP-42', status: 'WAITING' });
   });
-  const payload = { ticketType: 'ONLINE', scheduledTime: '2026-11-09T09:00:00+07:00', notes: '' };
+  const payload = { locationCode: 'BRANCH_01', ticketType: 'ONLINE', scheduledTime: '2026-11-09T09:00:00+07:00', notes: '' };
   assert.equal((await eyecareApi.createAppointment(payload)).ticketCode, 'EP-42');
   assert.equal(sent.url, '/api/appointments');
   assert.equal(sent.options.method, 'POST');
