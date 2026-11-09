@@ -117,7 +117,7 @@ export default function App() {
     setCheckoutOpen(true);
   };
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col justify-between selection:bg-[#074768] selection:text-white">
+    <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d] font-sans flex flex-col justify-between selection:bg-[#e7eeff] selection:text-[#004967]">
       {/* 1. Header Navigation Bar */}
       <Navbar
         activeTab={activeTab}
@@ -184,6 +184,7 @@ export default function App() {
         {activeTab === 'warranty' && (
           <WarrantyCenterPage
             setActiveTab={setActiveTab}
+            currentUser={currentUser}
           />
         )}
 
@@ -191,6 +192,8 @@ export default function App() {
         {activeTab === 'claim-warranty' && (
           <ClaimWarrantyPage
             setActiveTab={setActiveTab}
+            currentUser={currentUser}
+            openAuth={() => setIsAuthOpen(true)}
           />
         )}
 
@@ -225,6 +228,8 @@ export default function App() {
         {activeTab === 'review' && (
           <ReviewFeedbackPage
             setActiveTab={setActiveTab}
+            currentUser={currentUser}
+            orderId={selectedOrderId}
           />
         )}
 
@@ -239,6 +244,7 @@ export default function App() {
         {activeTab === 'notifications' && (
           <NotificationCenterPage
             setActiveTab={setActiveTab}
+            currentUser={currentUser}
           />
         )}
 
@@ -246,6 +252,7 @@ export default function App() {
         {activeTab === 'vouchers' && (
           <VoucherLoyaltyPage
             setActiveTab={setActiveTab}
+            currentUser={currentUser}
           />
         )}
       </main>

@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { X, ShieldCheck, FileText, AlertCircle, ShoppingBag, Check } from 'lucide-react';
 import { checkoutApi } from '../api/checkoutApi';
 import { checkoutPayload, money } from './purchaseUtils';
 import './purchase.css';
@@ -13,11 +14,13 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
   const request = requestRef || localRequest;
   const locked = useRef(false);
   const rx = cart.find(item => item.prescription)?.prescription;
+
   async function submit(event) {
     event.preventDefault();
     if (locked.current) return;
     locked.current = true;
-    setSaving(true); setError('');
+    setSaving(true); 
+    setError('');
     try {
       const payload = checkoutPayload(cart, contact, user);
       if (priceChange && acceptPriceChange) payload.acceptPriceChange = true;
@@ -27,20 +30,151 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
       onSuccess(order);
     } catch (err) {
       setError(err.message);
-      if (err.code === 'ORDER_PRICE_CHANGED') { setPriceChange(err.details); setAcceptPriceChange(false); }
+      if (err.code === 'ORDER_PRICE_CHANGED') { 
+        setPriceChange(err.details); 
+        setAcceptPriceChange(false); 
+      }
+    } finally { 
+      locked.current = false; 
+      setSaving(false); 
     }
-    finally { locked.current = false; setSaving(false); }
   }
-  return <div className="purchase-overlay"><section role="dialog" aria-modal="true" aria-labelledby="checkout-title" className="purchase-modal">
-    <h2 id="checkout-title">Xác nhận đặt hàng</h2>
-    <form onSubmit={submit}><fieldset disabled={saving}>
-      <div className="purchase-fields">{[['name', 'Họ tên'], ['phone', 'Số điện thoại'], ['address', 'Địa chỉ nhận hàng']].map(([field, label]) => <label key={field}>{label}<input required maxLength={field === 'address' ? 500 : field === 'name' ? 120 : 30} type={field === 'phone' ? 'tel' : 'text'} value={contact[field]} onChange={event => setContact({ ...contact, [field]: event.target.value })} /></label>)}</div>
-      <div className="purchase-summary">{cart.map(item => <p key={item.sku}><span>{item.name} × {item.quantity}</span><strong>{money(item.price * item.quantity)}</strong></p>)}<p><span>Tạm tính</span><strong>{money(cart.reduce((sum, item) => sum + item.price * item.quantity, 0))}</strong></p></div>
-      {rx && <div className="purchase-rx-summary"><strong>Thông số khách cung cấp</strong><p>OD: SPH {rx.odSph} / CYL {rx.odCyl} / AXIS {rx.odAxis}°</p><p>OS: SPH {rx.osSph} / CYL {rx.osCyl} / AXIS {rx.osAxis}° · PD {rx.pd} mm</p><p>Nhân viên sẽ kiểm tra trước khi xác nhận gia công.</p></div>}
-      <p className="purchase-muted">Thanh toán chuyển khoản, chờ xác nhận. Số tiền cuối cùng được tính lại theo danh mục khi đặt hàng.</p>
-      {priceChange && <div className="purchase-rx-summary"><strong>Tổng tiền cập nhật: {money(priceChange.newTotal)}</strong><label className="purchase-check"><input type="checkbox" required checked={acceptPriceChange} onChange={event => setAcceptPriceChange(event.target.checked)} />Tôi đồng ý với số tiền cập nhật trước khi đặt hàng.</label></div>}
-      {error && <p role="alert" className="purchase-error">{error}</p>}
-      <div className="purchase-actions"><button type="button" onClick={onClose}>Quay lại</button><button type="submit" className="purchase-primary">{saving ? 'Đang đặt hàng…' : 'Xác nhận đặt hàng'}</button></div>
-    </fieldset></form>
-  </section></div>;
+
+  const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  return (
+    <div className="purchase-overlay">
+      <section 
+        role="dialog" 
+        aria-modal="true" 
+        aria-labelledby="checkout-title" 
+        className="purchase-modal bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 relative animate-in zoom-in-95 duration-150"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[#086288] text-white flex items-center justify-center">
+              <ShoppingBag className="w-4 h-4 text-[#97D7FF]" />
+            </div>
+            <h2 id="checkout-title" className="text-xl font-black text-slate-900 tracking-tight m-0">
+              Xác Nhận Đặt Hàng
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition"
+            aria-label="Đóng"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={submit}>
+          <fieldset disabled={saving} className="space-y-5">
+            {/* Contact Info Fields */}
+            <div className="purchase-fields space-y-3">
+              {[
+                ['name', 'Họ và tên người nhận'],
+                ['phone', 'Số điện thoại liên hệ'],
+                ['address', 'Địa chỉ giao hàng chi tiết']
+              ].map(([field, label]) => (
+                <label key={field} className="flex flex-col gap-1.5 text-xs font-bold text-slate-700">
+                  <span>{label} <span className="text-red-500">*</span></span>
+                  <input 
+                    required 
+                    maxLength={field === 'address' ? 500 : field === 'name' ? 120 : 30} 
+                    type={field === 'phone' ? 'tel' : 'text'} 
+                    value={contact[field]} 
+                    onChange={event => setContact({ ...contact, [field]: event.target.value })} 
+                    className="p-2.5 rounded-xl border border-slate-300 text-sm focus:border-[#086288] focus:ring-2 focus:ring-[#086288]/15 outline-none transition"
+                    placeholder={`Nhập ${label.toLowerCase()}...`}
+                  />
+                </label>
+              ))}
+            </div>
+
+            {/* Cart Summary */}
+            <div className="purchase-summary bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2 text-xs">
+              <div className="font-bold text-slate-900 uppercase tracking-wider text-[11px] mb-2">
+                Chi tiết sản phẩm
+              </div>
+              {cart.map(item => (
+                <p key={item.sku} className="flex justify-between items-center text-slate-600 m-0">
+                  <span className="line-clamp-1">{item.name} × {item.quantity}</span>
+                  <strong className="text-slate-900 font-bold ml-2">{money(item.price * item.quantity)}</strong>
+                </p>
+              ))}
+              <div className="border-t border-slate-200 pt-2 flex justify-between items-center text-sm font-bold text-slate-900 mt-2">
+                <span>Tạm tính</span>
+                <strong className="text-base font-black text-[#086288]">{money(totalAmount)}</strong>
+              </div>
+            </div>
+
+            {/* Prescription Snapshot Callout */}
+            {rx && (
+              <div className="purchase-rx-summary p-4 bg-[#f0f9ff] border border-[#97D7FF] rounded-2xl space-y-1.5 text-xs text-[#0369a1]">
+                <strong className="text-xs font-bold text-[#086288] flex items-center gap-1.5">
+                  <FileText className="w-4 h-4 text-[#086288]" /> Thông số khách cung cấp
+                </strong>
+                <p className="m-0">OD: SPH {rx.odSph} / CYL {rx.odCyl} / AXIS {rx.odAxis}°</p>
+                <p className="m-0">OS: SPH {rx.osSph} / CYL {rx.osCyl} / AXIS {rx.osAxis}° · PD {rx.pd} mm</p>
+                <p className="text-[11px] text-sky-600 pt-1 m-0">
+                  Nhân viên khúc xạ sẽ kiểm tra tính tương thích trước khi xác nhận gia công.
+                </p>
+              </div>
+            )}
+
+            <p className="purchase-muted text-xs text-slate-500 m-0 leading-relaxed">
+              Thanh toán chuyển khoản, chờ xác nhận. Số tiền cuối cùng được tính lại theo danh mục khi đặt hàng.
+            </p>
+
+            {/* Price Change Warning */}
+            {priceChange && (
+              <div className="purchase-rx-summary bg-amber-50 border border-amber-200 text-amber-800 p-3.5 rounded-xl space-y-2">
+                <strong className="text-xs font-bold text-amber-900">
+                  Tổng tiền cập nhật: {money(priceChange.newTotal)}
+                </strong>
+                <label className="purchase-check flex items-start gap-2 text-xs cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    required 
+                    checked={acceptPriceChange} 
+                    onChange={event => setAcceptPriceChange(event.target.checked)} 
+                    className="accent-[#086288] mt-0.5"
+                  />
+                  <span>Tôi đồng ý với số tiền cập nhật trước khi đặt hàng.</span>
+                </label>
+              </div>
+            )}
+
+            {/* Error Message */}
+            {error && (
+              <div role="alert" className="purchase-error bg-red-50 border border-red-200 text-red-700 p-3.5 rounded-xl text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="purchase-actions pt-2 flex items-center justify-end gap-3">
+              <button 
+                type="button" 
+                onClick={onClose}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition"
+              >
+                Quay lại
+              </button>
+              <button 
+                type="submit" 
+                className="purchase-primary px-6 py-2.5 rounded-xl text-xs font-bold bg-[#086288] hover:bg-[#064e6d] text-white shadow-sm transition active:scale-95"
+              >
+                {saving ? 'Đang đặt hàng…' : 'Xác nhận đặt hàng'}
+              </button>
+            </div>
+          </fieldset>
+        </form>
+      </section>
+    </div>
+  );
 }
