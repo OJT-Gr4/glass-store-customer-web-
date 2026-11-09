@@ -1,71 +1,147 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Bell, CheckCircle2, Clock, Calendar, ShieldCheck, 
-  Tag, Download, ArrowRight, Settings, Phone, Wrench, Sparkles, Truck 
+  Tag, ArrowRight, Settings, Phone, Wrench, Sparkles, Truck, Package 
 } from 'lucide-react';
+import { customerOrdersApi } from '../api/customerOrdersApi';
+import { eyecareApi } from '../api/eyecareApi';
+import { warrantyApi } from '../api/warrantyApi';
+import { orderDate, orderStatusLabels } from './customerOrderUtils';
+import { appointmentDate, appointmentStatus } from './eyecareUtils';
 
-export default function NotificationCenterPage({ setActiveTab }) {
+export default function NotificationCenterPage({ setActiveTab, currentUser }) {
   const [selectedFilter, setSelectedFilter] = useState('ALL');
-  const [webNotify, setWebNotify] = useState(true);
-  const [smsNotify, setSmsNotify] = useState(true);
-  const [zaloNotify, setZaloNotify] = useState(true);
-  const [emailNotify, setEmailNotify] = useState(true);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // Generate real notifications from real database tables: Orders, Appointments, Warranties
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+
+    const promises = [];
+
+    // 1. Orders
+    if (currentUser?.id) {
+      promises.push(
+        customerOrdersApi.list(currentUser.id)
+          .then((orders) => {
+            if (!Array.isArray(orders)) return [];
+            return orders.map((o) => ({
+              id: `ORD-${o.id}`,
+              type: 'LAB',
+              title: `Đơn hàng #${o.orderCode} · ${orderStatusLabels[o.status] || o.status}`,
+              desc: `Sản phẩm: ${o.items?.map(i => `${i.productName || i.skuId} (x${i.quantity})`).join(', ') || 'Kính mắt'}. Tổng tiền: ${Number(o.finalAmount).toLocaleString('vi-VN')} đ`,
+              time: orderDate(o.createdAt),
+              rawDate: new Date(o.createdAt || Date.now()).getTime(),
+              isNew: o.status === 'SHIPPING' || o.status === 'PROCESSING' || o.status === 'PENDING',
+              actionTab: 'orders'
+            }));
+          })
+          .catch(() => [])
+      );
+
+      // 2. Appointments
+      promises.push(
+        eyecareApi.getAppointments()
+          .then((appts) => {
+            if (!Array.isArray(appts)) return [];
+            return appts.map((a) => ({
+              id: `APT-${a.id}`,
+              type: 'REMIND',
+              title: `Lịch hẹn đo mắt #${a.ticketCode || a.id} · ${appointmentStatus[a.status] || a.status}`,
+              desc: `Thời gian hẹn: ${appointmentDate(a.scheduledTime)}. Chi nhánh: ${a.locationCode || 'Chưa chọn'}${a.roomName ? ` · Phòng: ${a.roomName}` : ''}`,
+              time: appointmentDate(a.scheduledTime),
+              rawDate: new Date(a.scheduledTime || Date.now()).getTime(),
+              isNew: a.status === 'WAITING' || a.status === 'CONFIRMED',
+              actionTab: 'booking'
+            }));
+          })
+          .catch(() => [])
+      );
+
+      // 3. Warranties
+      promises.push(
+        warrantyApi.getAllWarranties()
+          .then((warrs) => {
+            if (!Array.isArray(warrs)) return [];
+            return warrs.map((w) => ({
+              id: `WAR-${w.id || w.warrantyCode}`,
+              type: 'WARRANTY',
+              title: `Phiếu bảo hành #${w.warrantyCode} · ${w.statusLabel || w.status || 'Hiệu lực'}`,
+              desc: `Sản phẩm: ${w.productName}. Chính sách: ${w.policyRef || 'Bảo hành chính hãng 12 tháng'}`,
+              time: w.timeLabel || 'Đang hiệu lực',
+              rawDate: Date.now() - 3600000,
+              isNew: false,
+              actionTab: 'warranty'
+            }));
+          })
+          .catch(() => [])
+      );
+    }
+
+    Promise.all(promises)
+      .then((results) => {
+        if (!active) return;
+        const all = results.flat().sort((a, b) => (b.rawDate || 0) - (a.rawDate || 0));
+        setNotifications(all);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => { active = false; };
+  }, [currentUser?.id]);
+
+  const filtered = notifications.filter((n) => {
+    if (selectedFilter === 'ALL') return true;
+    return n.type === selectedFilter;
+  });
+
+  const unreadCount = notifications.filter(n => n.isNew).length;
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* 1. Header Breadcrumb & Controls (Ảnh 2 chuẩn xác) */}
-      <div>
-        <nav className="text-xs text-slate-400 flex items-center gap-1.5 mb-2">
-          <span onClick={() => setActiveTab('home')} className="hover:text-[#074768] cursor-pointer">
-            Trang Chủ
-          </span>
-          <span>/</span>
-          <span className="text-slate-500">Tài Khoản & Trung Tâm Hỗ Trợ</span>
-          <span>/</span>
-          <span className="text-[#074768] font-bold">Trung Tâm Thông Báo Hệ Thống</span>
-        </nav>
-
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Trung Tâm Thông Báo & Cập Nhật Hệ Thống
-            </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Theo dõi thông báo thời gian thực về tiến độ gia công mài lắp kính, biến động vận chuyển, lịch nhắc đo mắt và các ưu đãi thành viên OptiVision.
-            </p>
+    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 space-y-6">
+      {/* 1. Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#dee8ff]">
+        <div>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#e7eeff] text-[#004967] text-[11px] font-semibold mb-1">
+            <Bell className="w-3 h-3 text-[#086288]" />
+            Dữ liệu đồng bộ trực tiếp từ CSDL đơn hàng &amp; phòng khám
           </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-[#111c2d] tracking-tight">
+            Trung Tâm Thông Báo &amp; Tiến Độ Hệ Thống
+          </h1>
+          <p className="text-xs text-[#40484e] mt-0.5">
+            Cập nhật tự động tiến độ gia công mài lắp kính tại xưởng Lab, lịch khám khúc xạ và phiếu bảo hành.
+          </p>
+        </div>
 
-          <div className="flex items-center gap-3 shrink-0 self-start sm:self-auto text-xs">
-            <span className="bg-sky-50 text-[#0369a1] border border-sky-200 px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#0284c7] animate-pulse"></span>
-              3 thông báo mới chưa đọc
+        <div className="flex items-center gap-2">
+          {unreadCount > 0 && (
+            <span className="bg-[#e7eeff] text-[#004967] text-xs font-semibold px-3 py-1.5 rounded-xl border border-[#dee8ff] flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#086288] animate-pulse"></span>
+              {unreadCount} cập nhật mới
             </span>
-            <button
-              onClick={() => alert('Đã đánh dấu tất cả thông báo là đã đọc!')}
-              className="text-slate-500 hover:text-[#074768] font-semibold underline"
-            >
-              ✓ Đánh dấu tất cả là đã đọc
-            </button>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* 2. Filter tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-200 text-xs font-bold no-scrollbar">
+      {/* 2. Filter switcher pill */}
+      <div className="flex bg-[#f0f3ff] p-1 rounded-xl border border-[#dee8ff]/60 text-xs w-fit">
         {[
-          { id: 'ALL', label: 'Tất Cả (8)' },
-          { id: 'LAB', label: 'Tiến Độ Gia Công Lab (4)' },
-          { id: 'REMIND', label: 'Lịch Nhắc Đo Khám Mắt (2)' },
-          { id: 'WARRANTY', label: 'Bảo Hành & Hậu Mãi (2)' },
-          { id: 'PROMO', label: 'Khuyến Mãi & Quà' },
+          { id: 'ALL', label: `Tất cả (${notifications.length})` },
+          { id: 'LAB', label: 'Đơn hàng & Lab' },
+          { id: 'REMIND', label: 'Lịch đo khám mắt' },
+          { id: 'WARRANTY', label: 'Bảo hành' },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setSelectedFilter(tab.id)}
-            className={`px-4 py-2 rounded-xl whitespace-nowrap transition ${
+            className={`px-3 py-1 text-xs font-semibold rounded-lg transition cursor-pointer ${
               selectedFilter === tab.id
-                ? 'bg-[#074768] text-white shadow-xs'
-                : 'text-slate-600 hover:bg-slate-100 bg-white border border-slate-200'
+                ? 'bg-[#086288] text-white font-bold shadow-xs'
+                : 'text-[#40484e] hover:text-[#111c2d]'
             }`}
           >
             {tab.label}
@@ -73,315 +149,66 @@ export default function NotificationCenterPage({ setActiveTab }) {
         ))}
       </div>
 
-      {/* 3. Main 2-Columns Body: Timeline (Left) + Live Widget & Switches (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left: Notification Timeline (Ảnh 2 chuẩn xác) */}
-        <div className="lg:col-span-8 space-y-8">
-          {/* GROUP 1: HÔM NAY (3 thông báo mới) */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                HÔM NAY • Cập nhật thời gian thực
-              </span>
-              <span className="text-[11px] text-[#0284c7] font-semibold">3 mới</span>
-            </div>
-
-            {/* Notification 1: Tiến độ Lab Delta 200 */}
-            <div className="p-5 rounded-3xl bg-white border-2 border-sky-300 shadow-xs space-y-3 relative overflow-hidden">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-2.5 text-[11px] font-mono text-slate-400">
-                  <span className="w-6 h-6 rounded-lg bg-sky-100 text-[#0284c7] flex items-center justify-center font-bold">
-                    <Wrench className="w-3.5 h-3.5" />
-                  </span>
-                  <span>Tiến Độ Lab & Vận Chuyển • 15 phút trước</span>
-                  <span>• #OPT-8842-SG</span>
-                </div>
-                <span className="w-2 h-2 rounded-full bg-sky-500"></span>
-              </div>
-
-              <div>
-                <h3 className="font-extrabold text-sm text-slate-900">
-                  Đã hoàn tất mài lắp tự động Essilor Delta 200 & Kiểm định QC quang học
-                </h3>
-                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  Kính đã vượt qua tiêu chuẩn quang tâm sai số &lt; 0.05mm. Hiện đang được đóng gói khử khuẩn chống sốc tiêu chuẩn y khoa và bàn giao cho đối tác GrabExpress hỏa tốc 2H.
-                </p>
-              </div>
-
-              <div className="p-3 bg-sky-50 rounded-2xl border border-sky-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                <span className="flex items-center gap-1.5 text-slate-700">
-                  <Truck className="w-3.5 h-3.5 text-[#0284c7]" />
-                  Giao hàng hỏa tốc nội thành: <strong>Dự kiến nhận lúc 16:45 hôm nay</strong>
-                </span>
-                <button
-                  onClick={() => setActiveTab('order-hub')}
-                  className="bg-[#074768] hover:bg-[#09577f] text-white px-3.5 py-1.5 rounded-xl font-bold text-[11px] flex items-center gap-1 transition self-end sm:self-auto shrink-0"
-                >
-                  <span>Theo dõi đơn hàng</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
-              </div>
-            </div>
-
-            {/* Notification 2: Lịch Hẹn Khám Khúc Xạ */}
-            <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-2.5 text-[11px] font-mono text-slate-400">
-                  <span className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
-                    <Calendar className="w-3.5 h-3.5" />
-                  </span>
-                  <span>Lịch Hẹn Đo Mắt 12 Bước • 2 giờ trước</span>
-                  <span>• #LICH-2026-889</span>
-                </div>
-                <span className="w-2 h-2 rounded-full bg-sky-500"></span>
-              </div>
-
-              <div>
-                <h3 className="font-extrabold text-sm text-slate-900">
-                  Nhắc lịch hẹn khám khúc xạ cùng Kỹ Thuật Viên Lâm Hoàng Phúc
-                </h3>
-                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  Lịch khám 12 bước của quý khách sẽ diễn ra vào lúc <strong>09:30 Thứ Bảy ngày mai</strong> tại Flagship Quận 1 (85 Lê Thánh Tôn). Quý khách lưu ý ngưng đeo kính áp tròng trước 24h để kết quả khúc xạ chính xác nhất.
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
-                <span className="text-[11px] text-slate-500">📍 Phòng Khúc Xạ Y Khoa Tầng 2, Flagship Q.1</span>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setActiveTab('booking')}
-                    className="text-slate-600 hover:text-slate-900 font-bold text-[11px] px-3 py-1"
-                  >
-                    Đổi giờ hẹn
-                  </button>
-                  <button
-                    onClick={() => alert('Đang mở thẻ e-Pass check-in phòng khám QR...')}
-                    className="bg-[#074768] hover:bg-[#09577f] text-white px-3.5 py-1.5 rounded-xl font-bold text-[11px]"
-                  >
-                    Xem thẻ hẹn e-Pass
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Notification 3: Thưởng Đánh Giá Dịch Vụ */}
-            <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-2.5 text-[11px] font-mono text-slate-400">
-                  <span className="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-                    <Sparkles className="w-3.5 h-3.5" />
-                  </span>
-                  <span>Thưởng Đánh Giá Dịch Vụ • 4 giờ trước</span>
-                  <span>• #REVIEW50K</span>
-                </div>
-                <span className="w-2 h-2 rounded-full bg-sky-500"></span>
-              </div>
-
-              <div>
-                <h3 className="font-extrabold text-sm text-slate-900">
-                  Đã tặng Voucher 50.000đ vào ví quà tặng VIP của quý khách
-                </h3>
-                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  Cảm ơn quý khách đã gửi phản hồi chi tiết về độ êm của gọng Bolon & trải nghiệm đo khám chuyên sâu. Mã giảm giá đã tự động kích hoạt, áp dụng cho mọi phụ kiện & dung dịch lau tròng nano.
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
-                <span className="text-[11px] text-emerald-700 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full">
-                  Hạn dùng: 30 ngày
-                </span>
-                <button
-                  onClick={() => setActiveTab('vouchers')}
-                  className="text-xs font-bold text-[#074768] hover:text-[#0284c7] flex items-center gap-1"
-                >
-                  <span>Xem ví voucher</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* GROUP 2: HÔM QUA (2 thông báo) */}
-          <div className="space-y-4">
-            <span className="font-extrabold text-xs text-slate-400 uppercase tracking-wider block">
-              HÔM QUA • 2 thông báo
-            </span>
-
-            {/* Notification 4 */}
-            <div className="p-4 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-2 text-xs">
-              <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
-                <span>Thanh Toán Trực Tuyến • 14:35 Hôm qua</span>
-                <span>#VNPAY-QR-99201</span>
-              </div>
-              <h4 className="font-bold text-slate-900 text-xs">
-                Xác nhận giao dịch 6.330.000đ cho đơn hàng #OPT-8842-SG
-              </h4>
-              <p className="text-[11px] text-slate-500">
-                Giao dịch thành công qua cổng VNPay-QR. Hóa đơn điện tử VAT (e-Invoice) đã gửi kèm bản ký y tế vào hộp thư email cá nhân của quý khách.
-              </p>
-              <button
-                onClick={() => alert('Đang tải hóa đơn VAT điện tử...')}
-                className="text-[11px] font-bold text-[#074768] hover:underline flex items-center gap-1 pt-1"
-              >
-                <Download className="w-3 h-3" /> Tải e-Invoice (PDF)
-              </button>
-            </div>
-
-            {/* Notification 5 */}
-            <div className="p-4 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-2 text-xs">
-              <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
-                <span>Bảo Hành Điện Tử • 14:36 Hôm qua</span>
-              </div>
-              <h4 className="font-bold text-slate-900 text-xs">
-                Kích hoạt e-Warranty: Gọng Bolon Graceful & Tròng Crizal Sapphire HR
-              </h4>
-              <p className="text-[11px] text-slate-500">
-                Hệ thống đám mây đã ghi nhận serial chống hàng giả toàn cầu. Thời hạn bảo hành lớp phủ váng tròng chống chói & lỗi gọng kính là 365 ngày kể từ ngày kích hoạt.
-              </p>
-              <button
-                onClick={() => setActiveTab('warranty')}
-                className="text-[11px] font-bold text-[#074768] hover:underline flex items-center gap-1 pt-1"
-              >
-                <ShieldCheck className="w-3 h-3" /> Tra cứu sổ bảo hành
-              </button>
-            </div>
-          </div>
+      {/* 3. Notifications List */}
+      {loading ? (
+        <div className="py-16 text-center text-xs text-[#40484e]">
+          Đang tổng hợp thông báo từ cơ sở dữ liệu…
         </div>
-
-        {/* Right Column: Live Order Widget & Notification Switches (Ảnh 2) */}
-        <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
-          {/* Card: Đơn Hàng Đang Gia Công (LIVE) */}
-          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <span className="font-extrabold text-xs text-slate-900 flex items-center gap-1.5">
-                <Wrench className="w-4 h-4 text-[#074768]" />
-                Đơn Hàng Đang Gia Công
-              </span>
-              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                ● LIVE
-              </span>
-            </div>
-
-            <div>
-              <div className="flex justify-between items-baseline mb-1">
-                <span className="font-mono font-bold text-xs text-[#074768]">#OPT-8842-SG</span>
-                <span className="font-black text-sm text-[#074768]">90%</span>
-              </div>
-
-              {/* Progress bar */}
-              <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden mb-2">
-                <div className="bg-[#074768] h-2 rounded-full" style={{ width: '90%' }}></div>
-              </div>
-
-              <div className="grid grid-cols-4 text-center text-[9px] font-semibold text-slate-400">
-                <span className="text-emerald-700 font-bold">Tiếp nhận</span>
-                <span className="text-emerald-700 font-bold">Đo tâm 3D</span>
-                <span className="text-[#074768] font-bold">Mài Lab</span>
-                <span>Giao hàng</span>
-              </div>
-            </div>
-
-            <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-[11px] text-slate-600 space-y-1">
-              <div>KTV Phụ trách: <strong>Trần Minh Anh</strong></div>
-              <div className="text-[10px] text-slate-400">Chứng chỉ Khúc Xạ Quốc Tế WCO AWN-882</div>
-            </div>
-          </div>
-
-          {/* Card: Cài Đặt Nhận Thông Báo (Ảnh 2) */}
-          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4 text-xs">
-            <div>
-              <h4 className="font-black text-sm text-slate-900">Cài Đặt Nhận Thông Báo</h4>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Lựa chọn đa kênh (Omnichannel) để không bỏ lỡ tiến độ mài kính và thời gian khám mắt.
-              </p>
-            </div>
-
-            <div className="space-y-3 pt-1">
-              {/* Switch 1 */}
-              <div className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition">
-                <div>
-                  <strong className="block text-slate-800 text-xs">Thông báo trên Web</strong>
-                  <span className="text-[10px] text-slate-400">Cảnh báo tức thời trên trình duyệt Chrome/Safari</span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={webNotify}
-                  onChange={(e) => setWebNotify(e.target.checked)}
-                  className="w-4 h-4 rounded text-[#074768]"
-                />
-              </div>
-
-              {/* Switch 2 */}
-              <div className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition">
-                <div>
-                  <strong className="block text-slate-800 text-xs">SMS Tự Động & OTP</strong>
-                  <span className="text-[10px] text-slate-400">Mã xác nhận đơn hàng & link check-in đo mắt</span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={smsNotify}
-                  onChange={(e) => setSmsNotify(e.target.checked)}
-                  className="w-4 h-4 rounded text-[#074768]"
-                />
-              </div>
-
-              {/* Switch 3 */}
-              <div className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition">
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <strong className="text-slate-800 text-xs">Zalo ZNS Tiện Ích</strong>
-                    <span className="text-[9px] bg-sky-100 text-[#0369a1] font-bold px-1.5 rounded">Ưu tiên</span>
-                  </div>
-                  <span className="text-[10px] text-slate-400">Nhắc lịch hẹn khám 12 bước & thẻ e-Pass có mã QR</span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={zaloNotify}
-                  onChange={(e) => setZaloNotify(e.target.checked)}
-                  className="w-4 h-4 rounded text-[#074768]"
-                />
-              </div>
-
-              {/* Switch 4 */}
-              <div className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition">
-                <div>
-                  <strong className="block text-slate-800 text-xs">Email Báo Cáo Khúc Xạ</strong>
-                  <span className="text-[10px] text-slate-400">Bản PDF đơn thuốc kính & hóa đơn VAT e-Invoice</span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={emailNotify}
-                  onChange={(e) => setEmailNotify(e.target.checked)}
-                  className="w-4 h-4 rounded text-[#074768]"
-                />
-              </div>
-            </div>
-
-            <button
-              onClick={() => alert('Đã lưu thiết lập cấu hình kênh nhận thông báo!')}
-              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl font-bold text-xs transition"
+      ) : filtered.length === 0 ? (
+        <div className="py-16 text-center text-xs text-[#40484e] bg-white rounded-xl border border-[#dee8ff] p-8 space-y-2">
+          <Bell className="w-8 h-8 text-[#40484e] mx-auto opacity-40" />
+          <p className="font-semibold text-[#111c2d]">Chưa có thông báo nào</p>
+          <p>
+            {currentUser 
+              ? 'Các cập nhật đơn hàng và lịch đo mắt của bạn sẽ hiển thị tại đây.'
+              : 'Đăng nhập tài khoản để theo dõi thông báo cá nhân hóa.'}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map((item) => (
+            <div
+              key={item.id}
+              className={`p-4 rounded-xl border transition flex items-start justify-between gap-4 bg-white shadow-xs ${
+                item.isNew ? 'border-[#086288]' : 'border-[#dee8ff]'
+              }`}
             >
-              Lưu Thiết Lập Kênh Nhận
-            </button>
-          </div>
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-[#e7eeff] text-[#086288] flex items-center justify-center shrink-0 mt-0.5">
+                  {item.type === 'LAB' ? (
+                    <Package className="w-4 h-4" />
+                  ) : item.type === 'REMIND' ? (
+                    <Calendar className="w-4 h-4" />
+                  ) : (
+                    <ShieldCheck className="w-4 h-4" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="font-bold text-xs text-[#111c2d]">
+                    {item.title}
+                  </h3>
+                  <p className="text-xs text-[#40484e] mt-0.5 leading-relaxed">
+                    {item.desc}
+                  </p>
+                  <span className="text-[10px] text-[#40484e] flex items-center gap-1 mt-1">
+                    <Clock className="w-3 h-3 text-[#086288]" />
+                    {item.time}
+                  </span>
+                </div>
+              </div>
 
-          {/* Card: Cần Hỗ Trợ Đơn Gấp */}
-          <div className="bg-[#053752] text-white p-5 rounded-3xl space-y-2 text-xs">
-            <span className="text-[10px] font-bold text-sky-300 uppercase tracking-wider block">
-              CẦN HỖ TRỢ ĐƠN GẤP?
-            </span>
-            <p className="text-[11px] text-slate-200 leading-relaxed font-normal">
-              Nếu cần điều chỉnh thông số độ cận, khoảng cách đồng tử (PD) hoặc chuyển địa chỉ nhận kính, hãy gọi ngay chuyên viên chăm sóc khách hàng:
-            </p>
-            <div className="pt-1 flex items-baseline justify-between">
-              <span className="text-lg font-black text-white">1900 6868</span>
-              <span className="text-[10px] text-sky-200 font-semibold">Nhánh 2 (Khúc Xạ)</span>
+              {item.actionTab && (
+                <button
+                  onClick={() => setActiveTab(item.actionTab)}
+                  className="px-3 py-1.5 rounded-lg bg-[#e7eeff] hover:bg-[#dee8ff] text-[#004967] text-xs font-bold transition shrink-0 cursor-pointer"
+                >
+                  Xem chi tiết
+                </button>
+              )}
             </div>
-          </div>
+          ))}
         </div>
-      </div>
+      )}
     </div>
   );
 }
-

@@ -47,3 +47,24 @@ test('registration requires a persisted ID and reports duplicate email without a
   globalThis.fetch = async () => response({ message: 'Duplicate email' }, 409);
   await assert.rejects(authApi.register({}), /Duplicate email/);
 });
+
+test('OTP send, phone verify and password reset require server-confirmed challenge and clear session on reset', async () => {
+  globalThis.fetch = async (url, options) => {
+    assert.equal(url, '/api/v1/auth/otp/send');
+    const body = JSON.parse(options.body);
+    assert.equal(body.purpose, 'PASSWORD_RESET');
+    return response({ code: 200, data: { challengeId: 'chg-1', maskedPhone: '******6789', expiresInSeconds: 300 } });
+  };
+  const chg = await authApi.sendOtp({ identifier: 'customer@example.test', purpose: 'PASSWORD_RESET' });
+  assert.equal(chg.challengeId, 'chg-1');
+  assert.equal(chg.maskedPhone, '******6789');
+
+  memory.set('optivision_customer_token', profile.token);
+  globalThis.fetch = async (url) => {
+    assert.equal(url, '/api/v1/auth/password/reset');
+    return response({ code: 200, data: { verified: true, purpose: 'PASSWORD_RESET' } });
+  };
+  const res = await authApi.resetPassword({ challengeId: 'chg-1', otpCode: '123456', newPassword: 'NewPassword123!' });
+  assert.equal(res.verified, true);
+  assert.equal(authApi.getToken(), null);
+});

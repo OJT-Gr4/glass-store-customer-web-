@@ -32,7 +32,7 @@ export default function PolicyPage({ setActiveTab }) {
       {/* 1. Header Banner (Ảnh 5 chuẩn xác) */}
       <div className="bg-gradient-to-r from-sky-50 via-white to-indigo-50/40 rounded-3xl border border-sky-200 p-6 sm:p-10 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div className="space-y-4 max-w-2xl">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-[#074768] text-white">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-[#086288] text-white">
             TIÊU CHUẨN LÂM SÀNG BẢO PHỦ WAR & BR-365 / 00
           </span>
           <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
@@ -44,7 +44,7 @@ export default function PolicyPage({ setActiveTab }) {
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <button
               onClick={() => setActiveTab('warranty')}
-              className="bg-[#074768] hover:bg-[#09577f] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-sm active:scale-95 flex items-center gap-1.5"
+              className="bg-[#086288] hover:bg-[#064e6d] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-sm active:scale-95 flex items-center gap-1.5"
             >
               <span>Tra Cứu Bảo Hành Điện Tử</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -66,7 +66,7 @@ export default function PolicyPage({ setActiveTab }) {
           <span className="text-[10px] font-bold text-sky-700 bg-sky-50 px-3 py-1 rounded-full uppercase tracking-wider block">
             E-WAR ACTIVE
           </span>
-          <div className="text-3xl font-black text-[#074768]">100% Số Hóa</div>
+          <div className="text-3xl font-black text-[#086288]">100% Số Hóa</div>
           <p className="text-[11px] text-slate-400 max-w-[200px] leading-relaxed">
             Liên kết tự động hồ sơ bệnh án & đơn hàng theo số điện thoại (FR-CRM).
           </p>
@@ -79,7 +79,7 @@ export default function PolicyPage({ setActiveTab }) {
       {/* 2. 4 Đặc Quyền Vàng Dành Riêng Khách Hàng (Ảnh 5) */}
       <section className="space-y-6">
         <div>
-          <span className="text-[10px] font-bold text-[#0284c7] uppercase tracking-wider block">
+          <span className="text-[10px] font-bold text-[#4D8DBA] uppercase tracking-wider block">
             CAM KẾT ĐỘC QUYỀN
           </span>
           <h2 className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5">
@@ -92,9 +92,9 @@ export default function PolicyPage({ setActiveTab }) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* 1. 180 NGÀY */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-[#0284c7] transition space-y-3 flex flex-col justify-between">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-[#4D8DBA] transition space-y-3 flex flex-col justify-between">
             <div>
-              <span className="bg-sky-100 text-[#0369a1] text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase">
+              <span className="bg-sky-100 text-[#086288] text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase">
                 180 NGÀY
               </span>
               <h3 className="font-extrabold text-sm text-slate-900 mt-2">
@@ -106,7 +106,7 @@ export default function PolicyPage({ setActiveTab }) {
             </div>
             <button
               onClick={() => setActiveTab('claim-warranty')}
-              className="text-xs font-bold text-[#074768] hover:text-[#0284c7] flex items-center gap-1 pt-2"
+              className="text-xs font-bold text-[#086288] hover:text-[#4D8DBA] flex items-center gap-1 pt-2"
             >
               <span>Áp dụng mọi loại tròng đơn/đa tròng</span>
               <ArrowRight className="w-3 h-3" />
@@ -114,9 +114,9 @@ export default function PolicyPage({ setActiveTab }) {
           </div>
 
           {/* 2. 365 NGÀY */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-[#0284c7] transition space-y-3 flex flex-col justify-between">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-[#4D8DBA] transition space-y-3 flex flex-col justify-between">
             <div>
-              <span className="bg-sky-100 text-[#0369a1] text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase">
+              <span className="bg-sky-100 text-[#086288] text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase">
                 365 NGÀY
               </span>
               <h3 className="font-extrabold text-sm text-slate-900 mt-2">
@@ -128,7 +128,7 @@ export default function PolicyPage({ setActiveTab }) {
             </div>
             <button
               onClick={() => setActiveTab('claim-warranty')}
-              className="text-xs font-bold text-[#074768] hover:text-[#0284c7] flex items-center gap-1 pt-2"
+              className="text-xs font-bold text-[#086288] hover:text-[#4D8DBA] flex items-center gap-1 pt-2"
             >
               <span>Tiêu chuẩn phụ kiện chính hãng</span>
               <ArrowRight className="w-3 h-3" />
@@ -136,9 +136,9 @@ export default function PolicyPage({ setActiveTab }) {
           </div>
 
           {/* 3. 07 NGÀY */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-[#0284c7] transition space-y-3 flex flex-col justify-between">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-[#4D8DBA] transition space-y-3 flex flex-col justify-between">
             <div>
-              <span className="bg-sky-100 text-[#0369a1] text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase">
+              <span className="bg-sky-100 text-[#086288] text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase">
                 07 NGÀY
               </span>
               <h3 className="font-extrabold text-sm text-slate-900 mt-2">
@@ -150,7 +150,7 @@ export default function PolicyPage({ setActiveTab }) {
             </div>
             <button
               onClick={() => setActiveTab('claim-warranty')}
-              className="text-xs font-bold text-[#074768] hover:text-[#0284c7] flex items-center gap-1 pt-2"
+              className="text-xs font-bold text-[#086288] hover:text-[#4D8DBA] flex items-center gap-1 pt-2"
             >
               <span>Không thu phụ phí thẩm định</span>
               <ArrowRight className="w-3 h-3" />
@@ -158,9 +158,9 @@ export default function PolicyPage({ setActiveTab }) {
           </div>
 
           {/* 4. TRỌN ĐỜI */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-[#0284c7] transition space-y-3 flex flex-col justify-between">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-[#4D8DBA] transition space-y-3 flex flex-col justify-between">
             <div>
-              <span className="bg-sky-100 text-[#0369a1] text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase">
+              <span className="bg-sky-100 text-[#086288] text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase">
                 TRỌN ĐỜI
               </span>
               <h3 className="font-extrabold text-sm text-slate-900 mt-2">
@@ -172,7 +172,7 @@ export default function PolicyPage({ setActiveTab }) {
             </div>
             <button
               onClick={() => setActiveTab('booking')}
-              className="text-xs font-bold text-[#074768] hover:text-[#0284c7] flex items-center gap-1 pt-2"
+              className="text-xs font-bold text-[#086288] hover:text-[#4D8DBA] flex items-center gap-1 pt-2"
             >
               <span>Áp dụng không giới hạn lượt dùng</span>
               <ArrowRight className="w-3 h-3" />
@@ -226,7 +226,7 @@ export default function PolicyPage({ setActiveTab }) {
       <section className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
           <div>
-            <span className="text-[10px] font-bold text-[#0284c7] uppercase tracking-wider block">
+            <span className="text-[10px] font-bold text-[#4D8DBA] uppercase tracking-wider block">
               NỘI DUNG QUY ĐỊNH
             </span>
             <h3 className="text-lg font-black text-slate-900 mt-0.5">
@@ -245,7 +245,7 @@ export default function PolicyPage({ setActiveTab }) {
                 key={tab.id}
                 onClick={() => setActiveTabTerm(tab.id)}
                 className={`px-3 py-1.5 rounded-lg transition ${activeTabTerm === tab.id
-                    ? 'bg-[#074768] text-white shadow-xs'
+                    ? 'bg-[#086288] text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                   }`}
               >
@@ -288,7 +288,7 @@ export default function PolicyPage({ setActiveTab }) {
       {/* 5. Câu Hỏi Thường Gặp Về Bảo Hành Kính Mắt (Accordion - Ảnh 5) */}
       <section id="faq-section" className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-xs">
         <div>
-          <span className="text-[10px] font-bold text-[#0284c7] uppercase tracking-wider block">
+          <span className="text-[10px] font-bold text-[#4D8DBA] uppercase tracking-wider block">
             GIẢI ĐÁP THẮC MẮC
           </span>
           <h3 className="text-xl font-black text-slate-900 mt-0.5">
@@ -313,7 +313,7 @@ export default function PolicyPage({ setActiveTab }) {
                   className="w-full p-4 text-left font-bold text-xs sm:text-sm text-slate-800 flex items-center justify-between hover:bg-slate-50"
                 >
                   <span>{faq.q}</span>
-                  {isOpen ? <ChevronUp className="w-4 h-4 text-[#074768]" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                  {isOpen ? <ChevronUp className="w-4 h-4 text-[#086288]" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
                 </button>
                 {isOpen && (
                   <div className="p-4 pt-0 text-xs text-slate-600 leading-relaxed border-t border-slate-100 bg-slate-50/50">

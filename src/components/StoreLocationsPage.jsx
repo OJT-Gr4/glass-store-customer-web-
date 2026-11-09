@@ -1,57 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   MapPin, Phone, Clock, Search, ShieldCheck, 
-  Car, Wrench, Calendar, ArrowRight, Eye, Navigation, CheckCircle2 
+  Calendar, ArrowRight, Eye, CheckCircle2 
 } from 'lucide-react';
+import { locationApi } from '../api/locationApi';
 
 export default function StoreLocationsPage({ setActiveTab }) {
+  const [locations, setLocations] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [cityFilter, setCityFilter] = useState('ALL'); // ALL, HCM, HN, DN
   const [searchKeyword, setSearchKeyword] = useState('');
-  const [quickFilters, setQuickFilters] = useState(['EXAM_12', 'FAST_30']);
 
-  const toggleQuickFilter = (key) => {
-    if (quickFilters.includes(key)) {
-      setQuickFilters(quickFilters.filter(k => k !== key));
-    } else {
-      setQuickFilters([...quickFilters, key]);
-    }
-  };
-
-  const showrooms = [
+  // Default fallback showrooms if database has not seeded
+  const defaultShowrooms = [
     {
       id: 'Q1',
+      code: 'Q1',
       city: 'HCM',
       name: 'OptiVision Flagship Quận 1',
-      tag: 'Flagship TP.HCM',
-      distance: 'Cách bạn: 1.2 km',
       address: '85 Lê Thánh Tôn, P. Bến Nghé, Quận 1, TP.HCM',
       phone: '028 3822 6868',
       hours: '08:30 - 21:30 (Thứ 2 - CN)',
       headDoctor: 'BS. Khúc xạ Lâm Hoàng Phúc',
       equipment: 'Máy đo Topcon KR-800 Nhật Bản, Essilor Delta 200 Pháp',
-      features: ['Đo mắt 12 bước', 'Lấy ngay 30 phút', 'Đậu xe hơi miễn phí'],
+      features: ['Đo mắt 12 bước', 'Lấy ngay 20 phút', 'Đậu xe hơi miễn phí'],
       image: 'https://images.unsplash.com/photo-1577803645773-f96470509666?auto=format&fit=crop&w=600&q=80',
     },
     {
       id: 'HK',
+      code: 'HK',
       city: 'HN',
       name: 'OptiVision Flagship Hoàn Kiếm',
-      tag: 'Flagship Hà Nội',
-      distance: 'Trung tâm Tràng Tiền',
       address: '24 Tràng Tiền, Hoàn Kiếm, Hà Nội',
       phone: '024 3936 6868',
       hours: '08:30 - 21:30 (Thứ 2 - CN)',
       headDoctor: 'ThS. Đỗ Thùy Trang (ĐHY Hà Nội)',
       equipment: 'Hệ thống Topcon CV-5000 tự động, Essilor Pro Special 2.0',
-      features: ['Đo mắt 12 bước', 'Lấy ngay 30 phút', 'Valet Parking ô tô'],
+      features: ['Đo mắt 12 bước', 'Lấy ngay 20 phút', 'Valet Parking ô tô'],
       image: 'https://images.unsplash.com/photo-1591076482161-42ce6da69f67?auto=format&fit=crop&w=600&q=80',
     },
     {
       id: 'HC',
+      code: 'HC',
       city: 'DN',
       name: 'OptiVision Hải Châu – Đà Nẵng',
-      tag: 'Chi Nhánh Đà Nẵng',
-      distance: 'Tuyến phố tài chính',
       address: '102 Nguyễn Văn Linh, P. Nam Dương, Hải Châu, Đà Nẵng',
       phone: '0236 388 6868',
       hours: '08:30 - 21:30 (Thứ 2 - CN)',
@@ -60,336 +52,197 @@ export default function StoreLocationsPage({ setActiveTab }) {
       features: ['Đo mắt 12 bước', 'Chỗ đậu xe rộng'],
       image: 'https://images.unsplash.com/photo-1508296695146-257a814070b4?auto=format&fit=crop&w=600&q=80',
     },
-    {
-      id: 'Q3',
-      city: 'HCM',
-      name: 'OptiVision Nguyễn Thị Minh Khai',
-      tag: 'Chi Nhánh Quận 3',
-      distance: 'Gần Công Viên Tao Đàn',
-      address: '142 Nguyễn Thị Minh Khai, P. Võ Thị Sáu, Quận 3, TP.HCM',
-      phone: '028 3930 6868',
-      hours: '08:30 - 21:30 (Thứ 2 - CN)',
-      headDoctor: 'Cử nhân Khúc xạ Trần Thu Hà',
-      equipment: 'Hệ thống máy đo Topcon KR-800, máy định tâm đồng tử Visioffice',
-      features: ['Đo mắt 12 bước', 'Lấy ngay 30 phút', 'Đậu xe ô tô'],
-      image: 'https://images.unsplash.com/photo-1574258495973-f010dfbb5371?auto=format&fit=crop&w=600&q=80',
-    },
   ];
 
-  const filteredShowrooms = showrooms.filter(s => {
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+
+    locationApi.getActiveLocations()
+      .then((data) => {
+        if (!active) return;
+        if (Array.isArray(data) && data.length > 0) {
+          // Normalize real data from database
+          const mapped = data.map((loc, idx) => {
+            const addr = loc.address || '';
+            const detectedCity = addr.includes('Hà Nội') ? 'HN' 
+              : addr.includes('Đà Nẵng') ? 'DN' 
+              : 'HCM';
+            return {
+              id: loc.code || loc.id || `LOC-${idx}`,
+              code: loc.code || `LOC-${idx}`,
+              city: loc.city || detectedCity,
+              name: loc.name || `Phòng Khám OptiVision ${loc.code}`,
+              address: loc.address || 'Đang cập nhật địa chỉ',
+              phone: loc.phone || '1900 6868',
+              hours: loc.openingHours || '08:30 - 21:30 (Thứ 2 - CN)',
+              headDoctor: loc.managerName || 'Chuyên viên Khúc xạ OptiVision',
+              equipment: loc.equipment || 'Thiết bị đo tự động Topcon KR-800',
+              features: ['Đo mắt 12 bước chuẩn quốc tế', 'Mài lắp tự động Đức'],
+              image: loc.imageUrl || defaultShowrooms[idx % defaultShowrooms.length].image
+            };
+          });
+          setLocations(mapped);
+        } else {
+          setLocations(defaultShowrooms);
+        }
+      })
+      .catch((err) => {
+        console.warn('Lỗi tải danh sách chi nhánh từ CSDL, dùng mặc định:', err);
+        setLocations(defaultShowrooms);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => { active = false; };
+  }, []);
+
+  const displayedList = locations.length > 0 ? locations : defaultShowrooms;
+
+  const filteredShowrooms = displayedList.filter((s) => {
     if (cityFilter !== 'ALL' && s.city !== cityFilter) return false;
-    if (searchKeyword && !s.name.toLowerCase().includes(searchKeyword.toLowerCase()) && !s.address.toLowerCase().includes(searchKeyword.toLowerCase())) {
-      return false;
+    if (searchKeyword.trim()) {
+      const q = searchKeyword.toLowerCase();
+      const matchName = (s.name || '').toLowerCase().includes(q);
+      const matchAddr = (s.address || '').toLowerCase().includes(q);
+      const matchCode = (s.code || '').toLowerCase().includes(q);
+      if (!matchName && !matchAddr && !matchCode) return false;
     }
     return true;
   });
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
-      {/* 1. Header Banner (Ảnh 1 chuẩn xác) */}
-      <div className="bg-gradient-to-r from-sky-50 via-white to-indigo-50/50 rounded-3xl border border-sky-200 p-6 sm:p-10 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-3 max-w-2xl">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-[#074768] text-white">
-            HỆ THỐNG PHÂN PHỐI & LÂM SÀNG ĐẠT CHUẨN Y KHOA
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
-            Hệ Thống Cửa Hàng & Phòng Đo Khúc Xạ Chuẩn Y Khoa OptiVision
+    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 space-y-6">
+      {/* 1. Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#dee8ff]">
+        <div>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#e7eeff] text-[#004967] text-[11px] font-semibold mb-1">
+            <MapPin className="w-3 h-3 text-[#086288]" />
+            Dữ liệu đồng bộ trực tiếp từ hệ thống
+          </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-[#111c2d] tracking-tight">
+            Hệ Thống Cửa Hàng &amp; Phòng Đo Khúc Xạ
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
-            Mạng lưới 16+ chi nhánh Flagship trang bị hệ thống máy đo mắt kỹ thuật số Topcon Nhật Bản và công nghệ mài lắp tự động vi điểm Essilor Pháp, kết nối trực tiếp với hồ sơ thị lực điện tử.
+          <p className="text-xs text-[#40484e] mt-0.5">
+            Tìm phòng khám và cơ sở OptiVision gần nhất để được đo mắt 12 bước miễn phí và tư vấn kính chuyên sâu.
           </p>
         </div>
 
-        {/* 3 Metric Pills */}
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="text-center p-3.5 bg-white rounded-2xl border border-sky-200 shadow-sm min-w-[76px]">
-            <span className="text-2xl font-black text-[#074768]">16</span>
-            <span className="text-[10px] text-slate-400 block font-semibold mt-0.5">Chi Nhánh</span>
-          </div>
-          <div className="text-center p-3.5 bg-white rounded-2xl border border-sky-200 shadow-sm min-w-[76px]">
-            <span className="text-2xl font-black text-[#074768]">12</span>
-            <span className="text-[10px] text-slate-400 block font-semibold mt-0.5">Bước Đo Khúc Xạ</span>
-          </div>
-          <div className="text-center p-3.5 bg-white rounded-2xl border border-sky-200 shadow-sm min-w-[76px]">
-            <span className="text-2xl font-black text-[#074768]">30'</span>
-            <span className="text-[10px] text-slate-400 block font-semibold mt-0.5">Lấy Kính Ngay</span>
-          </div>
-        </div>
+        <button
+          onClick={() => setActiveTab('booking')}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#086288] hover:bg-[#004967] text-white text-xs font-bold shadow-sm transition active:scale-[0.98] shrink-0 cursor-pointer"
+        >
+          <Calendar className="w-3.5 h-3.5 text-[#cae6ff]" />
+          <span>Đặt Lịch Đo Mắt Ngay</span>
+        </button>
       </div>
 
-      {/* 2. City Filter & Search Bar (Ảnh 1) */}
-      <div className="space-y-3">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-          {/* City Chips */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-            {[
-              { id: 'ALL', label: 'Tất cả (16)' },
-              { id: 'HCM', label: 'TP. Hồ Chí Minh (9)' },
-              { id: 'HN', label: 'Hà Nội (5)' },
-              { id: 'DN', label: 'Đà Nẵng (2)' },
-            ].map((chip) => (
-              <button
-                key={chip.id}
-                onClick={() => setCityFilter(chip.id)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition ${
-                  cityFilter === chip.id
-                    ? 'bg-[#074768] text-white shadow-xs'
-                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                {chip.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Search input */}
-          <div className="relative flex-1 sm:max-w-xs">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-            <input
-              type="text"
-              placeholder="Tìm theo đường, quận hoặc bác sĩ..."
-              value={searchKeyword}
-              onChange={(e) => setSearchKeyword(e.target.value)}
-              className="w-full text-xs bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-[#074768]"
-            />
-          </div>
+      {/* 2. Search & City Filters */}
+      <div className="bg-white p-4 rounded-xl border border-[#dee8ff] shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        {/* Search Input */}
+        <div className="relative flex-1">
+          <Search className="w-4 h-4 text-[#40484e] absolute left-3 top-2.5" />
+          <input
+            type="text"
+            placeholder="Tìm theo tên chi nhánh, địa chỉ, quận huyện..."
+            value={searchKeyword}
+            onChange={(e) => setSearchKeyword(e.target.value)}
+            className="w-full text-xs bg-[#f9f9ff] border border-[#dee8ff] rounded-xl pl-9 pr-3 py-2 text-[#111c2d] outline-none focus:border-[#086288] focus:ring-1 focus:ring-[#086288]"
+          />
         </div>
 
-        {/* Quick Facility Badges */}
-        <div className="flex items-center gap-2 flex-wrap text-xs text-slate-500">
-          <span className="text-[11px] font-semibold text-slate-400">Lọc tiện ích chuẩn:</span>
+        {/* City Filter Pills */}
+        <div className="flex bg-[#f0f3ff] p-1 rounded-xl border border-[#dee8ff]/60 text-xs shrink-0">
           {[
-            { id: 'EXAM_12', label: 'Phòng đo mắt 12 bước' },
-            { id: 'FAST_30', label: 'Xưởng mài kính 30 phút' },
-            { id: 'PARKING', label: 'Chỗ đậu xe ô tô' },
-            { id: 'OPEN_LATE', label: 'Mở cửa đến 21:30' },
-          ].map((f) => (
+            { id: 'ALL', label: 'Tất cả' },
+            { id: 'HCM', label: 'TP. Hồ Chí Minh' },
+            { id: 'HN', label: 'Hà Nội' },
+            { id: 'DN', label: 'Đà Nẵng' },
+          ].map((tab) => (
             <button
-              key={f.id}
-              onClick={() => toggleQuickFilter(f.id)}
-              className={`px-3 py-1 rounded-lg border text-[11px] font-medium transition ${
-                quickFilters.includes(f.id)
-                  ? 'border-[#074768] bg-sky-50 text-[#074768] font-bold'
-                  : 'border-slate-200 bg-white text-slate-500 hover:bg-slate-50'
+              key={tab.id}
+              onClick={() => setCityFilter(tab.id)}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition cursor-pointer ${
+                cityFilter === tab.id
+                  ? 'bg-[#086288] text-white font-bold shadow-xs'
+                  : 'text-[#40484e] hover:text-[#111c2d]'
               }`}
             >
-              ✓ {f.label}
+              {tab.label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* 3. Main 2-Columns Body: Showroom List (Left) + Map (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left: Showroom Cards List (Ảnh 1 chuẩn xác) */}
-        <div className="lg:col-span-7 space-y-5">
-          {filteredShowrooms.map((store) => (
+      {/* 3. Showrooms Grid */}
+      {loading ? (
+        <div className="py-16 text-center text-xs text-[#40484e]">
+          Đang tải danh sách cơ sở từ cơ sở dữ liệu…
+        </div>
+      ) : filteredShowrooms.length === 0 ? (
+        <div className="py-16 text-center text-xs text-[#40484e] bg-white rounded-xl border border-[#dee8ff] p-8">
+          Không tìm thấy chi nhánh nào phù hợp với bộ lọc hiện tại.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredShowrooms.map((showroom) => (
             <div
-              key={store.id}
-              className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-lg transition duration-300 flex flex-col sm:flex-row"
+              key={showroom.id}
+              className="bg-white rounded-xl border border-[#dee8ff] overflow-hidden shadow-xs hover:border-[#086288] transition flex flex-col justify-between"
             >
-              {/* Photo Frame */}
-              <div className="sm:w-56 h-48 sm:h-auto relative bg-slate-100 shrink-0">
+              <div className="h-44 w-full bg-[#f0f3ff] relative overflow-hidden">
                 <img
-                  src={store.image}
-                  alt={store.name}
+                  src={showroom.image}
+                  alt={showroom.name}
                   className="w-full h-full object-cover"
                 />
-                <span className="absolute top-3 left-3 bg-[#074768] text-white text-[9px] font-bold px-2 py-0.5 rounded-md">
-                  {store.tag}
+                <span className="absolute top-3 left-3 bg-[#e7eeff] text-[#004967] text-[10px] font-bold px-2 py-0.5 rounded-md border border-[#dee8ff]">
+                  Mã: {showroom.code}
                 </span>
               </div>
 
-              {/* Info Body */}
-              <div className="p-5 flex-1 flex flex-col justify-between space-y-3 text-xs">
+              <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <h3 className="font-extrabold text-sm text-slate-900">{store.name}</h3>
-                    <span className="text-[10px] font-mono text-[#0284c7] font-semibold bg-sky-50 px-2 py-0.5 rounded">
-                      {store.distance}
-                    </span>
-                  </div>
-
-                  <p className="text-slate-600 text-[11px] flex items-start gap-1.5 mt-1">
-                    <MapPin className="w-3.5 h-3.5 text-[#074768] shrink-0 mt-0.5" />
-                    <span>{store.address}</span>
+                  <h3 className="text-sm font-bold text-[#111c2d]">
+                    {showroom.name}
+                  </h3>
+                  <p className="text-xs text-[#40484e] mt-1 flex items-start gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-[#086288] shrink-0 mt-0.5" />
+                    <span>{showroom.address}</span>
                   </p>
-
-                  <div className="flex items-center gap-4 text-[10px] text-slate-400 mt-2">
-                    <span className="flex items-center gap-1 font-mono font-semibold text-slate-600">
-                      <Phone className="w-3 h-3 text-[#074768]" /> {store.phone}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-[#074768]" /> {store.hours}
-                    </span>
-                  </div>
-
-                  <div className="pt-2 text-[10px] text-slate-500 space-y-0.5">
-                    <div>Trưởng phòng đo: <strong>{store.headDoctor}</strong></div>
-                    <div className="text-slate-400 truncate">Trang bị: {store.equipment}</div>
-                  </div>
-
-                  {/* Feature Tags */}
-                  <div className="flex items-center gap-1.5 flex-wrap pt-2">
-                    {store.features.map((feat, i) => (
-                      <span key={i} className="bg-slate-100 text-slate-600 text-[10px] font-medium px-2 py-0.5 rounded">
-                        {feat}
-                      </span>
-                    ))}
-                  </div>
                 </div>
 
-                {/* 2 Action Buttons */}
-                <div className="pt-3 border-t border-slate-100 flex items-center gap-2.5">
-                  <button
-                    onClick={() => alert(`Đang mở Google Maps dẫn đường tới ${store.name}...`)}
-                    className="flex-1 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition"
-                  >
-                    <Navigation className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Chỉ Đường</span>
-                  </button>
+                <div className="space-y-1 pt-2 border-t border-[#f0f3ff] text-xs text-[#40484e]">
+                  <p className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-[#086288]" />
+                    <span>Giờ mở cửa: {showroom.hours}</span>
+                  </p>
+                  <p className="flex items-center gap-1.5 font-semibold text-[#004967]">
+                    <Phone className="w-3.5 h-3.5 text-[#086288]" />
+                    <span>Hotline: {showroom.phone}</span>
+                  </p>
+                </div>
 
+                <div className="pt-2 flex items-center gap-2">
                   <button
                     onClick={() => setActiveTab('booking')}
-                    className="flex-1 bg-[#074768] hover:bg-[#09577f] text-white py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95"
+                    className="flex-1 bg-[#086288] hover:bg-[#004967] text-white py-2 rounded-lg text-xs font-bold transition text-center cursor-pointer"
                   >
-                    <Calendar className="w-3.5 h-3.5 text-sky-200" />
-                    <span>Đặt Lịch Đo Mắt Tại Đây</span>
+                    Đặt lịch khám tại đây
+                  </button>
+                  <button
+                    onClick={() => alert(`Đang chỉ đường tới: ${showroom.name} - ${showroom.address}`)}
+                    className="px-3 py-2 bg-[#e7eeff] hover:bg-[#dee8ff] text-[#004967] rounded-lg text-xs font-bold transition cursor-pointer"
+                  >
+                    Chỉ đường
                   </button>
                 </div>
               </div>
             </div>
           ))}
         </div>
-
-        {/* Right: Map View & Fast Delivery Hub (Ảnh 1 chuẩn xác) */}
-        <div className="lg:col-span-5 space-y-5 lg:sticky lg:top-24">
-          {/* Map Frame Card */}
-          <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-              <span className="font-extrabold text-xs text-slate-900 flex items-center gap-1.5">
-                <MapPin className="w-4 h-4 text-[#074768]" />
-                Bản Đồ Mạng Lưới Chi Nhánh
-              </span>
-              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                ● Trực Tuyến
-              </span>
-            </div>
-
-            {/* Simulated interactive map image */}
-            <div className="relative h-64 bg-slate-200 overflow-hidden">
-              <img
-                src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=800&q=80"
-                alt="Map view"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-xl border border-slate-200 text-[10px] font-bold text-[#074768] shadow-sm">
-                ● Phủ sóng bán kính 15km nội thành
-              </div>
-
-              {/* Pin Callout Box */}
-              <div className="absolute bottom-3 left-3 right-3 bg-white/95 backdrop-blur-md p-3 rounded-2xl border border-slate-200 shadow-lg flex items-center justify-between text-xs">
-                <div>
-                  <h5 className="font-bold text-slate-900 text-xs">Flagship Lê Thánh Tôn (Q.1)</h5>
-                  <p className="text-[10px] text-slate-500">Bán kính hỗ trợ giao 2h: Toàn bộ Q.1, Q.3, Q.4, Q.Bình Thạnh</p>
-                </div>
-                <button
-                  onClick={() => alert('Xem chi tiết tọa độ GPS')}
-                  className="bg-[#074768] text-white px-2.5 py-1 rounded-lg text-[10px] font-bold shrink-0"
-                >
-                  Xem Pin
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Dịch Vụ Giao Kính Hỏa Tốc Trong 2 Giờ Card (Ảnh 1) */}
-          <div className="bg-sky-50 rounded-3xl border border-sky-200 p-5 space-y-2 text-xs">
-            <span className="font-black text-xs text-[#074768] flex items-center gap-1.5">
-              <Car className="w-4 h-4 text-[#0284c7]" />
-              Dịch Vụ Giao Kính Hỏa Tốc Trong 2 Giờ
-            </span>
-            <p className="text-[11px] text-slate-600 leading-relaxed">
-              Đơn hàng gọng kính có sẵn và tròng mài lắp ngay trong bán kính 10km quanh mỗi showroom sẽ được chuyên viên giao nhanh bọc chống sốc cẩn thận và giao tận tay trong 120 phút.
-            </p>
-          </div>
-
-          {/* Hotline Emergency Box (Ảnh 1) */}
-          <div className="bg-[#053752] text-white p-6 rounded-3xl shadow-md space-y-3">
-            <span className="text-[10px] font-bold text-sky-300 uppercase tracking-wider block">
-              HỖ TRỢ TÌM CỬA HÀNG GẦN NHẤT
-            </span>
-            <h4 className="font-bold text-sm text-white">Cần hướng dẫn đường đi hoặc giữ chỗ đo?</h4>
-            <p className="text-[11px] text-slate-200 leading-relaxed font-normal">
-              Đội ngũ điều phối viên phòng khám OptiVision luôn sẵn sàng tư vấn định vị và giữ phòng khám riêng cho bạn.
-            </p>
-            <a
-              href="tel:19006868"
-              className="inline-flex items-center gap-2 bg-white text-[#053752] px-4 py-2.5 rounded-xl font-bold text-xs shadow-sm hover:bg-sky-50 transition"
-            >
-              <Phone className="w-4 h-4 text-[#053752]" />
-              <span>Gọi 1900 6868 (Miễn cước 24/7)</span>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Tiêu Chuẩn Dịch Vụ Đồng Nhất Tại Mọi Chi Nhánh (Chân trang - Ảnh 1) */}
-      <section className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-xs">
-        <div className="text-center max-w-xl mx-auto">
-          <span className="text-[10px] font-bold text-[#0284c7] uppercase tracking-wider block">
-            QUY CHUẨN PHÒNG KHÁM KHÚC XẠ
-          </span>
-          <h3 className="text-xl font-black text-slate-900 mt-0.5">
-            Tiêu Chuẩn Dịch Vụ Đồng Nhất Tại Mọi Chi Nhánh
-          </h3>
-          <p className="text-xs text-slate-500 mt-1">
-            Mỗi chi nhánh OptiVision không chỉ là showroom trưng bày thời trang cao cấp mà còn là một trung tâm khúc xạ lâm sàng độc lập tuân thủ quy trình kiểm định nhãn khoa nghiêm ngặt.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
-          <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-            <div className="w-8 h-8 rounded-xl bg-[#074768] text-white flex items-center justify-center font-bold">
-              <ShieldCheck className="w-4 h-4 text-sky-200" />
-            </div>
-            <h4 className="font-extrabold text-slate-900">100% Kỹ Thuật Viên Chính Quy</h4>
-            <p className="text-[11px] text-slate-500 leading-relaxed">
-              Tất cả chuyên viên phụ trách đo khúc xạ tại phòng máy đều tốt nghiệp Đại học Y khoa chuyên ngành Khúc xạ Nhãn khoa (Optometry) với chứng chỉ hành nghề độc lập được Bộ Y Tế cấp phép.
-            </p>
-            <span className="text-[10px] font-bold text-emerald-700 block pt-1">
-              ✓ Cam kết chẩn đoán chuẩn xác 100%
-            </span>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-            <div className="w-8 h-8 rounded-xl bg-[#074768] text-white flex items-center justify-center font-bold">
-              <Eye className="w-4 h-4 text-sky-200" />
-            </div>
-            <h4 className="font-extrabold text-slate-900">Quy Trình Đo Khám 12 Bước Miễn Phí</h4>
-            <p className="text-[11px] text-slate-500 leading-relaxed">
-              Kiểm tra toàn diện từ soi bóng đồng tử, thăng bằng hai mắt, đo biên độ điều tiết, độ quy tụ, đến kiểm tra tương phản thị giác. Hoàn toàn miễn phí khi đặt lịch hẹn trực tuyến.
-            </p>
-            <span className="text-[10px] font-bold text-[#0284c7] block pt-1">
-              ✓ Thời gian đo tiêu chuẩn: 15 - 20 phút
-            </span>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-            <div className="w-8 h-8 rounded-xl bg-[#074768] text-white flex items-center justify-center font-bold">
-              <Wrench className="w-4 h-4 text-sky-200" />
-            </div>
-            <h4 className="font-extrabold text-slate-900">Căn Chỉnh & Siêu Âm Trọn Đời</h4>
-            <p className="text-[11px] text-slate-500 leading-relaxed">
-              Khách hàng ghé bất kỳ chi nhánh nào trong hệ thống đều được làm sạch sâu kính bằng sóng siêu âm cao tần, thay đệm mũi silicon kháng khuẩn và căn chỉnh độ ôm vòm thái dương trọn đời miễn phí.
-            </p>
-            <span className="text-[10px] font-bold text-emerald-700 block pt-1">
-              ✓ Áp dụng trên toàn quốc cho mọi sản phẩm
-            </span>
-          </div>
-        </div>
-      </section>
+      )}
     </div>
   );
 }
-
