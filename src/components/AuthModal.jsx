@@ -46,7 +46,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
         purpose: otpPurpose,
       });
       setOtpChallenge(challenge);
-      setSuccessMessage(`Đã gửi mã OTP (hiệu lực ${challenge.expiresInSeconds || 300}s) tới SĐT ${challenge.maskedPhone}.`);
+      setSuccessMessage(`Đã gửi mã OTP (hiệu lực ${challenge.expiresInSeconds || 300}s) tới SĐT ${challenge.maskedPhone}. (Môi trường test: Xem mã OTP trong log identity-service)`);
     } catch (err) {
       setErrorMessage(err.message || 'Không thể gửi mã OTP. Vui lòng kiểm tra lại thông tin.');
     } finally {
@@ -152,6 +152,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
       try {
         const data = await authApi.login({
           email: email.trim(),
+          username: email.trim(),
           password: password
         });
 

@@ -22,8 +22,13 @@ function customerProfile(data) {
 export const authApi = {
   async login(credentials) {
     authApi.logout();
+    const payload = typeof credentials === 'object' && credentials !== null ? {
+      ...credentials,
+      username: credentials.username || credentials.email,
+      email: credentials.email || credentials.username,
+    } : credentials;
     const data = await request('login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(credentials),
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
     });
     if (!data?.token || data.token.split('.').length !== 3)
       throw new Error('Máy chủ không trả về phiên đăng nhập hợp lệ.');
