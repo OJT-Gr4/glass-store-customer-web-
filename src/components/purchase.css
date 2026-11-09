@@ -1,39 +1,458 @@
-.purchase-page { max-width: 1180px; margin: 0 auto; padding: 32px 20px; color: #263143; }
-.customer-orders { display: grid; gap: 16px; margin-top: 20px; }
-.customer-orders .purchase-toolbar { margin: 0; justify-content: space-between; }
-.customer-cancel { margin-top: 24px; max-width: 600px; }
-.purchase-page h1 { font-size: 26px; font-weight: 700; margin: 0 0 16px; }
-.purchase-card, .purchase-modal { background: white; padding: 24px; border: 1px solid #e2e8f0; border-radius: 16px; }
-.purchase-muted { color: #64748b; font-size: 13px; line-height: 1.7; margin: 12px 0; }
-.purchase-page button, .purchase-modal button { border: 1px solid #cbd5e1; padding: 10px 16px; border-radius: 9px; cursor: pointer; background: white; }
-.purchase-page .purchase-primary, .purchase-modal .purchase-primary { background: #074768; color: white; border-color: #074768; }
-.purchase-page button:disabled, .purchase-modal button:disabled { opacity: .5; cursor: not-allowed; }
-.purchase-fields { display: grid; gap: 16px; }
-.purchase-fields label, .purchase-field { display: flex; flex-direction: column; gap: 7px; font-size: 14px; font-weight: 500; }
-.purchase-page input:not([type=checkbox]), .purchase-page select, .purchase-modal input { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; background: white; min-width: 0; }
-.purchase-overlay { position: fixed; inset: 0; z-index: 60; background: #10263980; display: flex; align-items: center; justify-content: center; padding: 16px; }
-.purchase-modal { width: 100%; max-width: 620px; max-height: 90vh; overflow-y: auto; }
-.purchase-modal h2 { font-size: 22px; font-weight: 650; margin: 0 0 22px; }
-.purchase-summary { margin: 22px 0; border-top: 1px solid #e2e8f0; padding-top: 12px; }
-.purchase-summary p { display: flex; justify-content: space-between; gap: 20px; margin: 12px 0; font-size: 14px; }
-.purchase-summary strong { white-space: nowrap; }
-.purchase-rx-summary { padding: 12px; background: #f1f5f9; border-radius: 8px; font-size: 13px; line-height: 1.8; }
-.purchase-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
-.purchase-error { color: #b91c1c; background: #fef2f2; padding: 12px; border-radius: 8px; margin: 12px 0; font-size: 14px; }
-.purchase-toolbar { display: flex; gap: 12px; flex-wrap: wrap; margin: 24px 0; }
-.purchase-toolbar input { flex: 1; min-width: 220px; }
-.purchase-toolbar select { width: auto; min-width: 170px; }
-.purchase-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(230px,1fr)); gap: 20px; }
-.purchase-product { background: white; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; }
-.purchase-product img { width: 100%; height: 190px; object-fit: contain; background: #f8fafc; }
-.purchase-product-info { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
-.purchase-product h2 { font-weight: 600; min-height: 42px; }
-.purchase-detail-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 28px; margin-top: 24px; }
-.purchase-detail-image { width: 100%; object-fit: contain; max-height: 420px; background: #f8fafc; border-radius: 12px; }
-.purchase-rx { overflow-x: auto; margin: 20px 0; }
-.purchase-rx table { min-width: 470px; width: 100%; border-collapse: collapse; font-size: 13px; }
-.purchase-rx th, .purchase-rx td { text-align: left; padding: 8px 5px; }
-.purchase-rx th { color: #64748b; font-weight: 500; }
-.purchase-check { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.6; margin-top: 16px; }
-.purchase-check input { margin-top: 4px; }
-@media(max-width:700px) { .purchase-detail-grid { grid-template-columns: 1fr; } .purchase-card,.purchase-modal { padding: 18px; } .purchase-summary p { gap: 12px; } }
+/* ==========================================================================
+   OptiVision Customer Web - Purchase & Order Design System
+   Exact match to Internal Portal Design System (#086288, #004967, #e7eeff, #dee8ff)
+   ========================================================================== */
+
+.purchase-page {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px 20px;
+  color: #111c2d;
+  font-family: inherit;
+}
+
+.customer-orders {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.customer-orders .purchase-card {
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid #dee8ff;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+  background: #ffffff;
+}
+
+.customer-orders .purchase-card:hover {
+  border-color: #086288;
+  box-shadow: 0 2px 8px 0 rgba(8, 98, 136, 0.06);
+}
+
+.customer-orders .purchase-toolbar {
+  margin: 0 0 8px;
+  justify-content: space-between;
+}
+
+.customer-orders .purchase-toolbar strong {
+  font-size: 14px;
+  color: #111c2d;
+}
+
+.customer-orders .purchase-toolbar span {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #e7eeff;
+  color: #004967;
+  border: 1px solid #dee8ff;
+}
+
+.customer-cancel {
+  margin-top: 16px;
+  max-width: 540px;
+  padding: 14px;
+  background: #f0f3ff;
+  border: 1px solid #dee8ff;
+  border-radius: 12px;
+}
+
+.purchase-page h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111c2d;
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
+}
+
+.purchase-page h2,
+.purchase-modal h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111c2d;
+  margin: 0 0 12px;
+}
+
+.purchase-card {
+  background: #ffffff;
+  padding: 20px;
+  border: 1px solid #dee8ff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.purchase-card:hover {
+  border-color: #086288;
+}
+
+.purchase-modal {
+  background: #ffffff;
+  padding: 24px;
+  border: 1px solid #dee8ff;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.purchase-muted {
+  color: #40484e;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 6px 0;
+}
+
+/* --- Buttons (Internal Portal Style) --- */
+.purchase-page button,
+.purchase-modal button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid #dee8ff;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  background: #e7eeff;
+  color: #004967;
+  transition: all 0.15s ease;
+}
+
+.purchase-page button:hover,
+.purchase-modal button:hover {
+  background: #dee8ff;
+  color: #111c2d;
+}
+
+.purchase-page button:disabled,
+.purchase-modal button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.purchase-page button:active:not(:disabled),
+.purchase-modal button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.purchase-actions button[type="submit"],
+.purchase-modal form button[type="submit"],
+.purchase-product button {
+  background: #086288;
+  color: #ffffff;
+  border: none;
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(8, 98, 136, 0.2);
+}
+
+.purchase-actions button[type="submit"]:hover,
+.purchase-modal form button[type="submit"]:hover,
+.purchase-product button:hover {
+  background: #004967;
+  color: #ffffff;
+}
+
+/* --- Form Fields (Internal Portal Style) --- */
+.purchase-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 12px;
+  color: #111c2d;
+  margin-bottom: 12px;
+}
+
+.purchase-fields {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.purchase-field input,
+.purchase-field select,
+.purchase-field textarea,
+.purchase-toolbar input,
+.purchase-toolbar select {
+  border: 1px solid #dee8ff;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #111c2d;
+  background: #ffffff;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.purchase-field input:focus,
+.purchase-field select:focus,
+.purchase-field textarea:focus,
+.purchase-toolbar input:focus,
+.purchase-toolbar select:focus {
+  border-color: #086288;
+  box-shadow: 0 0 0 2px rgba(8, 98, 136, 0.15);
+}
+
+/* --- Modal Overlay --- */
+.purchase-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(17, 28, 45, 0.45);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.purchase-summary {
+  margin: 16px 0;
+  border-top: 1px solid #e7eeff;
+  border-bottom: 1px solid #e7eeff;
+  padding: 10px 0;
+}
+
+.purchase-summary p {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin: 8px 0;
+  font-size: 13px;
+  color: #40484e;
+}
+
+.purchase-summary strong {
+  white-space: nowrap;
+  color: #086288;
+  font-weight: 700;
+}
+
+.purchase-rx-summary {
+  padding: 12px 14px;
+  background: #f0f3ff;
+  border: 1px solid #dee8ff;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #004967;
+  margin: 10px 0;
+}
+
+.purchase-rx-summary strong {
+  color: #086288;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.purchase-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.purchase-error {
+  color: #ba1a1a;
+  background: #ffdad6;
+  border: 1px solid #ffb4ab;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin: 10px 0;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.purchase-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 16px 0 20px;
+}
+
+.purchase-toolbar input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.purchase-toolbar select {
+  width: auto;
+  min-width: 150px;
+}
+
+/* --- Catalog Grid & Products --- */
+.purchase-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.purchase-product {
+  background: #ffffff;
+  border: 1px solid #dee8ff;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02);
+}
+
+.purchase-product:hover {
+  border-color: #086288;
+  box-shadow: 0 4px 12px 0 rgba(8, 98, 136, 0.08);
+}
+
+.purchase-product img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  background: #f0f3ff;
+  border-bottom: 1px solid #e7eeff;
+}
+
+.purchase-product-info {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  justify-content: space-between;
+}
+
+.purchase-product h2 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111c2d;
+  line-height: 1.4;
+  min-height: 36px;
+  margin: 0;
+}
+
+.purchase-product-info strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: #086288;
+}
+
+.purchase-product-info .purchase-muted {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #086288;
+  margin: 0;
+}
+
+/* --- Product Detail Layout --- */
+.purchase-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.purchase-detail-image {
+  width: 100%;
+  object-fit: cover;
+  max-height: 380px;
+  background: #f0f3ff;
+  border-radius: 12px;
+  border: 1px solid #dee8ff;
+}
+
+/* --- Clinical Prescription Table (OD / OS) --- */
+.purchase-rx {
+  overflow-x: auto;
+  margin: 16px 0;
+  border: 1px solid #dee8ff;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.purchase-rx table {
+  min-width: 440px;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.purchase-rx th,
+.purchase-rx td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid #e7eeff;
+}
+
+.purchase-rx th {
+  color: #40484e;
+  font-weight: 700;
+  background: #f0f3ff;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.purchase-rx tr:hover td {
+  background: #e7eeff/30;
+}
+
+.purchase-rx tr:first-child th[scope=row],
+.purchase-rx tbody tr:nth-child(1) th {
+  background: #e7eeff;
+  color: #004967;
+  font-weight: 700;
+}
+
+.purchase-rx tbody tr:nth-child(2) th {
+  background: #fef3c7;
+  color: #92400e;
+  font-weight: 700;
+}
+
+.purchase-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 12px;
+  color: #111c2d;
+}
+
+.purchase-check input {
+  margin-top: 3px;
+  accent-color: #086288;
+}
+
+@media (max-width: 768px) {
+  .purchase-detail-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .purchase-card,
+  .purchase-modal {
+    padding: 16px;
+  }
+  .purchase-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+  }
+}
