@@ -11,11 +11,19 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
   const [reason, setReason] = useState('');
   const [requesting, setRequesting] = useState(false);
   const [cancelError, setCancelError] = useState('');
+
+  // Payment sandbox initiation state (S3-02)
+  const [paymentData, setPaymentData] = useState(null);
+  const [initiatingPayment, setInitiatingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
+
   const generation = useRef(0);
   const locked = useRef(false);
+
   useEffect(() => {
     const run = ++generation.current;
     setReason(''); setCancelError(''); setRequesting(false); locked.current = false;
+    setPaymentData(null); setPaymentError('');
     if (!customerId || !orderId) return;
     setState({ owner: customerId, id: orderId, loading: true, order: null, error: '' });
     customerOrdersApi.get(orderId, customerId)
@@ -23,9 +31,24 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
       .catch(error => { if (generation.current === run) setState({ owner: customerId, id: orderId, loading: false, order: null, error: error.message }); });
     return () => { generation.current++; };
   }, [customerId, orderId, retry]);
+
   if (!customerId) return <section className="purchase-page"><h1>Chi tiết đơn hàng</h1><p className="purchase-muted">Vui lòng đăng nhập để xem đơn hàng.</p><button onClick={openAuth}>Đăng nhập</button></section>;
   const current = state.owner === customerId && state.id === orderId ? state : { loading: true, order: null, error: '' };
   const order = current.order;
+
+  const handleInitiatePayment = async () => {
+    try {
+      setInitiatingPayment(true);
+      setPaymentError('');
+      const data = await customerOrdersApi.initiatePayment(orderId, customerId);
+      setPaymentData(data);
+    } catch (err) {
+      setPaymentError(err.message || 'Không thể khởi tạo thanh toán.');
+    } finally {
+      setInitiatingPayment(false);
+    }
+  };
+
   const cancel = async event => {
     event.preventDefault();
     if (locked.current) return;
@@ -37,15 +60,112 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
     } catch (error) { if (generation.current === run) setCancelError(error.message); }
     finally { if (generation.current === run) { locked.current = false; setRequesting(false); } }
   };
-  return <section className="purchase-page"><div className="purchase-toolbar"><button onClick={() => setActiveTab('orders')}>Đơn hàng của bạn</button><button disabled={current.loading || requesting} onClick={() => setRetry(value => value + 1)}>Tải lại</button></div>
-    {!orderId ? <p>Vui lòng chọn đơn từ danh sách.</p> : current.loading ? <p role="status">Đang tải chi tiết…</p> : current.error ? <p role="alert" className="purchase-error">{current.error}</p> : order && <article className="purchase-card">
-      <h1>{order.orderCode}</h1><p><strong>{orderStatusLabels[order.status] || order.status}</strong></p><p className="purchase-muted">Ngày tạo: {orderDate(order.createdAt)}</p>
-      <p>{order.customerName} · {order.customerPhone}</p>{order.shippingAddress && <p>{order.shippingAddress}</p>}{order.branchName && <p>Chi nhánh: {order.branchName}</p>}
-      <div className="purchase-summary">{(order.items || []).map(item => <p key={item.id || item.skuId}><span>{item.productName || item.skuId} × {item.quantity}</span><strong>{money(item.subtotal)}</strong></p>)}<p><strong>Tổng thanh toán</strong><strong>{money(order.finalAmount)}</strong></p></div>
-      <p>Phương thức: {order.paymentMethod || 'Chưa cập nhật'}</p>
-      {order.prescription && <div className="purchase-rx-summary"><strong>Thông số kính đã lưu với đơn</strong><p>OD: SPH {order.prescription.odSph} / CYL {order.prescription.odCyl} / AXIS {order.prescription.odAxis}</p><p>OS: SPH {order.prescription.osSph} / CYL {order.prescription.osCyl} / AXIS {order.prescription.osAxis} · PD {order.prescription.pd} mm</p></div>}
-      {order.status === 'CANCEL_REQUESTED' ? <p role="status" className="purchase-muted">Yêu cầu hủy đã được ghi nhận, đang chờ nhân viên xử lý. Đây chưa phải xác nhận hủy hoặc hoàn tiền.</p> : canRequestCancellation(order) && <form onSubmit={cancel} className="purchase-fields customer-cancel"><label className="purchase-field">Lý do yêu cầu hủy<input required maxLength={500} value={reason} disabled={requesting} onChange={event => setReason(event.target.value)} /></label><button disabled={requesting || !reason.trim()} type="submit">{requesting ? 'Đang gửi…' : 'Gửi yêu cầu hủy'}</button></form>}
-      {cancelError && <p role="alert" className="purchase-error">{cancelError} Trạng thái đang hiển thị được giữ nguyên; tải lại đơn để kiểm tra trước khi thử lại.</p>}
-    </article>}
-  </section>;
+
+  return (
+    <section className="purchase-page">
+      <div className="purchase-toolbar">
+        <button onClick={() => setActiveTab('orders')}>Đơn hàng của bạn</button>
+        <button disabled={current.loading || requesting} onClick={() => setRetry(value => value + 1)}>Tải lại</button>
+      </div>
+
+      {!orderId ? (
+        <p>Vui lòng chọn đơn từ danh sách.</p>
+      ) : current.loading ? (
+        <p role="status">Đang tải chi tiết…</p>
+      ) : current.error ? (
+        <p role="alert" className="purchase-error">{current.error}</p>
+      ) : order && (
+        <article className="purchase-card">
+          <h1>{order.orderCode}</h1>
+          <p><strong>{orderStatusLabels[order.status] || order.status}</strong></p>
+          <p className="purchase-muted">Ngày tạo: {orderDate(order.createdAt)}</p>
+          <p>{order.customerName} · {order.customerPhone}</p>
+          {order.shippingAddress && <p>{order.shippingAddress}</p>}
+          {order.branchName && <p>Chi nhánh: {order.branchName}</p>}
+
+          <div className="purchase-summary">
+            {(order.items || []).map(item => (
+              <p key={item.id || item.skuId}>
+                <span>{item.productName || item.skuId} × {item.quantity}</span>
+                <strong>{money(item.subtotal)}</strong>
+              </p>
+            ))}
+            <p><strong>Tổng thanh toán</strong><strong>{money(order.finalAmount)}</strong></p>
+          </div>
+
+          <p>Phương thức: {order.paymentMethod || 'Chưa cập nhật'}</p>
+
+          {/* S3-02: Payment Sandbox QR Code & Initiation Flow */}
+          {order.status === 'PENDING_PAYMENT' && (order.paymentMethod === 'VIETQR' || order.paymentMethod === 'VNPAY' || !order.paymentMethod || order.paymentMethod === 'CASH') && (
+            <div style={{ marginTop: '1rem', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #cbd5e1' }}>
+              <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', color: '#0f172a' }}>Cổng Thanh Toán Trực Tuyến Sandbox (S3-02)</h3>
+              <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.85rem', color: '#475569' }}>
+                Đơn hàng đang chờ thanh toán. Bạn có thể mở mã VietQR hoặc đường dẫn thanh toán để thực hiện chuyển khoản.
+              </p>
+
+              {!paymentData ? (
+                <button
+                  type="button"
+                  onClick={handleInitiatePayment}
+                  disabled={initiatingPayment}
+                  style={{ padding: '0.5rem 1rem', background: '#086288', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}
+                >
+                  {initiatingPayment ? 'Đang khởi tạo cổng…' : 'Mở Cổng Thanh Toán VietQR'}
+                </button>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', padding: '1rem', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <img
+                    src={paymentData.paymentUrl}
+                    alt="VietQR Payment"
+                    style={{ maxWidth: '280px', width: '100%', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                  />
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>
+                    Mã giao dịch: <strong>{paymentData.externalTransactionId}</strong>
+                  </p>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#086288', textAlign: 'center' }}>
+                    Quét mã QR bằng App ngân hàng bất kỳ để thanh toán {money(order.finalAmount)}.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setRetry(v => v + 1)}
+                    style={{ padding: '0.4rem 0.8rem', background: '#059669', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}
+                  >
+                    Đã thanh toán? Nhấn để kiểm tra
+                  </button>
+                </div>
+              )}
+
+              {paymentError && <p style={{ color: '#dc2626', fontSize: '0.8rem', marginTop: '0.5rem' }}>{paymentError}</p>}
+            </div>
+          )}
+
+          {order.prescription && (
+            <div className="purchase-rx-summary">
+              <strong>Thông số kính đã lưu với đơn</strong>
+              <p>OD: SPH {order.prescription.odSph} / CYL {order.prescription.odCyl} / AXIS {order.prescription.odAxis}</p>
+              <p>OS: SPH {order.prescription.osSph} / CYL {order.prescription.osCyl} / AXIS {order.prescription.osAxis} · PD {order.prescription.pd} mm</p>
+            </div>
+          )}
+
+          {order.status === 'CANCEL_REQUESTED' ? (
+            <p role="status" className="purchase-muted">
+              Yêu cầu hủy đã được ghi nhận, đang chờ nhân viên xử lý. Đây chưa phải xác nhận hủy hoặc hoàn tiền.
+            </p>
+          ) : canRequestCancellation(order) && (
+            <form onSubmit={cancel} className="purchase-fields customer-cancel">
+              <label className="purchase-field">
+                Lý do yêu cầu hủy
+                <input required maxLength={500} value={reason} disabled={requesting} onChange={event => setReason(event.target.value)} />
+              </label>
+              <button disabled={requesting || !reason.trim()} type="submit">
+                {requesting ? 'Đang gửi…' : 'Gửi yêu cầu hủy'}
+              </button>
+            </form>
+          )}
+
+          {cancelError && <p role="alert" className="purchase-error">{cancelError} Trạng thái đang hiển thị được giữ nguyên; tải lại đơn để kiểm tra trước khi thử lại.</p>}
+        </article>
+      )}
+    </section>
+  );
 }

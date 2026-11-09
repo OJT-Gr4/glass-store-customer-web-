@@ -49,4 +49,17 @@ export const customerOrdersApi = {
       throw new Error('Chưa xác nhận được yêu cầu hủy. Hãy tải lại đơn để kiểm tra.');
     return order;
   },
+  async initiatePayment(id, customerId) {
+    requireId(customerId);
+    const token = localStorage.getItem('optivision_customer_token');
+    const response = await fetch(`${baseUrl}/api/payments/order/${requireId(id)}/initiate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    });
+    const envelope = await response.json().catch(() => null);
+    if (!response.ok) {
+      throw new Error(envelope?.message || 'Không thể khởi tạo cổng thanh toán.');
+    }
+    return envelope?.data;
+  },
 };
