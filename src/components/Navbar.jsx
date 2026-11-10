@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Eye, Bell, ShoppingBag, User, LogOut, ChevronDown, Phone, MapPin } from 'lucide-react';
 
-export default function Navbar({ activeTab, setActiveTab, cartCount, openAuthModal, openCart, currentUser, onLogout }) {
+export default function Navbar({ activeTab, setActiveTab, cartCount, unreadCount = 0, openAuthModal, openCart, currentUser, onLogout }) {
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
   const mainNavItems = [
@@ -135,6 +135,7 @@ export default function Navbar({ activeTab, setActiveTab, cartCount, openAuthMod
           <button 
             onClick={() => setActiveTab('notifications')}
             aria-label="Thông báo"
+            data-testid="customer-notification-bell"
             className={`relative p-2 rounded-xl transition cursor-pointer ${
               activeTab === 'notifications' 
                 ? 'bg-[#e7eeff] text-[#004967]' 
@@ -142,7 +143,14 @@ export default function Navbar({ activeTab, setActiveTab, cartCount, openAuthMod
             }`}
           >
             <Bell className="w-4 h-4" />
-            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#086288] rounded-full ring-2 ring-white"></span>
+            {currentUser && unreadCount > 0 && (
+              <span
+                data-testid="customer-notification-badge"
+                className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white"
+              >
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
           </button>
 
           {/* Cart button */}
