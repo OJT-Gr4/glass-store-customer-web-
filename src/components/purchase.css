@@ -496,6 +496,13 @@
   position: relative;
   font-family: inherit;
   color: #1e293b;
+  margin: 0 auto;
+}
+
+@media (min-width: 860px) {
+  .transaction-voucher {
+    max-width: 960px;
+  }
 }
 
 .transaction-voucher.paid {
@@ -515,7 +522,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 22px;
+  padding: 12px 20px;
   background: #ffffff;
   border-bottom: 1px solid #f1f5f9;
 }
@@ -568,52 +575,117 @@
   border: 1px solid #fecaca;
 }
 
-/* Hero Section */
+/* Perforated Separator */
+.voucher-separator {
+  position: relative;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+.voucher-separator .separator-line {
+  width: 100%;
+  height: 0;
+  border-top: 2px dashed #cbd5e1;
+}
+
+.voucher-separator .separator-hole {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: #f1f5f9;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+}
+
+.voucher-separator .separator-hole.left {
+  left: -9px;
+}
+
+.voucher-separator .separator-hole.right {
+  right: -9px;
+}
+
+/* 2-Column Responsive Layout */
+.voucher-layout {
+  padding: 12px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (min-width: 860px) {
+  .voucher-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.05fr;
+    gap: 16px;
+    align-items: start;
+    padding: 12px 18px 16px;
+  }
+}
+
+.voucher-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.voucher-col-left {
+  justify-content: flex-start;
+}
+
+/* Hero Section inside Voucher */
 .voucher-hero {
-  padding: 16px 22px 14px;
+  padding: 10px 14px;
   text-align: center;
-  background: #ffffff;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 10px;
 }
 
 .hero-badge-icon {
-  width: 52px;
-  height: 52px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 10px;
+  margin: 0 auto 6px;
 }
 
 .hero-badge-icon.paid {
   background: #ecfdf5;
   color: #059669;
-  box-shadow: 0 0 0 5px #d1fae5;
+  box-shadow: 0 0 0 4px #d1fae5;
 }
 
 .hero-badge-icon.pending {
   background: #fffbeb;
   color: #d97706;
-  box-shadow: 0 0 0 5px #fef3c7;
+  box-shadow: 0 0 0 4px #fef3c7;
 }
 
 .hero-badge-icon.cancelled {
   background: #fef2f2;
   color: #dc2626;
-  box-shadow: 0 0 0 5px #fee2e2;
+  box-shadow: 0 0 0 4px #fee2e2;
 }
 
 .hero-label {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   color: #64748b;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .hero-amount {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -0.5px;
@@ -632,65 +704,76 @@
 }
 
 .hero-subtext {
-  font-size: 12px;
+  font-size: 11px;
   color: #64748b;
-  margin: 6px 0 0;
+  margin: 4px 0 0;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
 }
 
-/* Perforated Separator */
-.voucher-separator {
-  position: relative;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  margin: 0;
-}
-
-.voucher-separator .separator-line {
-  width: 100%;
-  height: 0;
-  border-top: 2px dashed #cbd5e1;
-}
-
-.voucher-separator .separator-hole {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  background: #f1f5f9;
-  border-radius: 50%;
-  border: 1px solid #e2e8f0;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 2;
-}
-
-.voucher-separator .separator-hole.left {
-  left: -10px;
-}
-
-.voucher-separator .separator-hole.right {
-  right: -10px;
-}
-
-/* Voucher Body */
-.voucher-body {
-  padding: 14px 22px 18px;
+/* SePay Gateway Payment Action Card */
+.sepay-gateway-card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  background: #f0f9ff;
+  border: 1.5px solid #bae6fd;
+  border-radius: 10px;
+  padding: 10px 14px;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(3, 105, 161, 0.05);
+}
+
+.sepay-card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #0369a1;
+  font-size: 12.5px;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+
+.sepay-card-desc {
+  margin: 0 0 8px;
+  font-size: 11px;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.sepay-card-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.sepay-card-btns .txn-btn {
+  width: 100%;
+  padding: 7px 12px;
+  font-size: 12px;
+  justify-content: center;
+}
+
+.btn-simulate {
+  background: #ecfdf5 !important;
+  color: #047857 !important;
+  border: 1px solid #a7f3d0 !important;
+}
+
+.btn-simulate:hover:not(:disabled) {
+  background: #d1fae5 !important;
 }
 
 /* Core Financial Metadata Grid */
 .meta-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px 16px;
+  gap: 6px 12px;
   background: #f8fafc;
-  padding: 12px 16px;
+  padding: 10px 14px;
   border-radius: 10px;
   border: 1px solid #f1f5f9;
 }
@@ -698,17 +781,17 @@
 .meta-item {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .meta-label {
-  font-size: 11px;
+  font-size: 10.5px;
   color: #64748b;
   font-weight: 500;
 }
 
 .meta-value {
-  font-size: 12.5px;
+  font-size: 12px;
   color: #0f172a;
 }
 
@@ -733,9 +816,9 @@
 
 .status-pill {
   display: inline-block;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
-  padding: 2px 8px;
+  padding: 2px 7px;
   border-radius: 4px;
   width: fit-content;
 }
@@ -760,25 +843,25 @@
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
-  padding: 10px 14px;
+  padding: 8px 12px;
 }
 
 .box-title {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   color: #334155;
-  padding-bottom: 6px;
+  padding-bottom: 4px;
   border-bottom: 1px solid #f1f5f9;
 }
 
 .items-list {
   display: grid;
-  gap: 6px;
-  padding: 6px 0;
-  max-height: 90px;
+  gap: 4px;
+  padding: 4px 0;
+  max-height: 80px;
   overflow-y: auto;
   scrollbar-width: thin;
 }
@@ -787,7 +870,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
+  font-size: 11.5px;
 }
 
 .item-details {
@@ -802,7 +885,7 @@
 }
 
 .item-sku {
-  font-size: 10.5px;
+  font-size: 10px;
   color: #94a3b8;
 }
 
@@ -815,11 +898,11 @@
 /* Totals Table */
 .totals-table {
   border-top: 1px dashed #e2e8f0;
-  padding-top: 6px;
-  margin-top: 4px;
+  padding-top: 4px;
+  margin-top: 2px;
   display: grid;
-  gap: 3px;
-  font-size: 11.5px;
+  gap: 2px;
+  font-size: 11px;
 }
 
 .total-row {
@@ -834,14 +917,14 @@
 
 .total-row.grand {
   border-top: 1px solid #f1f5f9;
-  padding-top: 4px;
-  font-size: 12.5px;
+  padding-top: 3px;
+  font-size: 12px;
   font-weight: 700;
   color: #0f172a;
 }
 
 .total-row.grand strong {
-  font-size: 13.5px;
+  font-size: 13px;
   color: #074768;
 }
 
@@ -850,21 +933,21 @@
   background: #f8fafc;
   border: 1px solid #f1f5f9;
   border-radius: 8px;
-  padding: 8px 12px;
+  padding: 6px 10px;
   display: grid;
-  gap: 3px;
-  font-size: 11.5px;
+  gap: 2px;
+  font-size: 11px;
 }
 
 .shipping-row {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 6px;
 }
 
 .shipping-label {
   color: #64748b;
-  min-width: 105px;
+  min-width: 95px;
   flex-shrink: 0;
 }
 
@@ -875,10 +958,10 @@
 
 /* Alerts */
 .txn-alert {
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 11.5px;
-  line-height: 1.4;
+  padding: 6px 10px;
+  border-radius: 7px;
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 .txn-alert.error {
@@ -897,18 +980,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
 }
 
 .txn-alert-sub {
-  font-size: 11px;
-  margin: 2px 0 0;
+  font-size: 10.5px;
+  margin: 1px 0 0;
   color: #0369a1;
 }
 
 .txn-btn-compact {
-  padding: 6px 12px;
-  font-size: 11.5px;
+  padding: 5px 10px;
+  font-size: 11px;
   white-space: nowrap;
 }
 
@@ -917,20 +1000,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
-  padding-top: 4px;
+  padding-top: 2px;
 }
 
 .txn-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 8px 16px;
-  font-size: 12.5px;
+  gap: 5px;
+  padding: 7px 14px;
+  font-size: 12px;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 7px;
   cursor: pointer;
   transition: all 0.15s ease;
   border: 1px solid transparent;
@@ -974,9 +1057,190 @@
 /* Footer */
 .voucher-footer {
   text-align: center;
-  padding-top: 4px;
+  padding-top: 3px;
   border-top: 1px solid #f1f5f9;
+  margin-top: 1px;
+}
+
+.footer-timestamp {
+  font-size: 10px;
+  color: #94a3b8;
   margin-top: 2px;
+}
+
+/* Order Detail Hub Page (VietQR 2-Column Desktop Grid) */
+.order-hub-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 860px) {
+  .order-hub-card {
+    max-width: 1020px;
+    margin: 0 auto;
+  }
+  .order-hub-grid {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+}
+
+.order-hub-payment-box {
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 12px 14px;
+  text-align: center;
+}
+
+.payment-box-title {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.payment-box-subtitle {
+  margin: 0 0 10px;
+  font-size: 11.5px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.vietqr-presentation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.vietqr-image {
+  max-width: 175px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.bank-account-details {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  padding: 6px 10px;
+  width: 100%;
+  font-size: 11px;
+  color: #166534;
+  text-align: left;
+  line-height: 1.5;
+}
+
+.bank-account-details strong {
+  color: #14532d;
+}
+
+.payment-action-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.payment-action-btns button {
+  width: 100%;
+  padding: 7px 10px;
+  font-size: 11.5px;
+  justify-content: center;
+}
+
+.order-hub-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #dee8ff;
+}
+
+.order-hub-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #086288;
+  margin: 0;
+}
+
+.order-meta-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  color: #334155;
+  margin-bottom: 8px;
+}
+
+.order-meta-info p {
+  margin: 1px 0;
+}
+
+.compact-summary {
+  margin: 8px 0;
+  padding: 6px 0;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.compact-summary p {
+  margin: 4px 0;
+  font-size: 12px;
+}
+
+.summary-grand-total {
+  border-top: 1px dashed #dee8ff;
+  padding-top: 6px;
+  margin-top: 6px !important;
+}
+
+.grand-amount {
+  font-size: 15px;
+  color: #086288;
+}
+
+.compact-rx {
+  padding: 8px 10px;
+  font-size: 11px;
+  margin: 6px 0;
+}
+
+.cancel-compact-form {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.cancel-compact-form input {
+  flex: 1;
+  padding: 6px 10px;
+  font-size: 11.5px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+}
+
+.cancel-compact-form button {
+  padding: 6px 12px;
+  font-size: 11.5px;
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .footer-timestamp {

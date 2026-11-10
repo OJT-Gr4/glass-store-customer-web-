@@ -337,28 +337,6 @@ export default function OrderPaymentPage({ orderCode, currentUser, authLoading, 
           </div>
         </div>
 
-        {/* Hero Transaction Amount Section */}
-        <div className="voucher-hero">
-          <div className={`hero-badge-icon ${state.theme}`}>
-            {phase === 'PAID' ? <CheckCircle2 size={32} /> : <Clock3 size={32} />}
-          </div>
-          <div className="hero-label">
-            {phase === 'PAID' ? 'SỐ TIỀN ĐÃ THANH TOÁN' : 'SỐ TIỀN CẦN THANH TOÁN'}
-          </div>
-          <div className={`hero-amount ${state.theme}`}>
-            {money(order.finalAmount)}
-          </div>
-          <p className="hero-subtext">
-            {phase === 'PAID' ? (
-              <span className="flex items-center justify-center gap-1.5 text-emerald-700">
-                <Sparkles size={14} /> Giao dịch đã được ghi nhận vào tài khoản thụ hưởng
-              </span>
-            ) : (
-              <span>Cổng thanh toán: <strong>{isVietQr ? 'VietQR QuickLink (Napas 24/7)' : 'Cổng Thanh Toán SePay (Napas 24/7)'}</strong></span>
-            )}
-          </p>
-        </div>
-
         {/* Perforated Divider Line */}
         <div className="voucher-separator">
           <span className="separator-hole left" />
@@ -366,252 +344,253 @@ export default function OrderPaymentPage({ orderCode, currentUser, authLoading, 
           <span className="separator-hole right" />
         </div>
 
-        {/* Transaction Core Metadata Grid */}
-        <div className="voucher-body">
-          <div className="meta-grid">
-            <div className="meta-item">
-              <span className="meta-label">Mã giao dịch (Txn ID):</span>
-              <span className="meta-value font-mono flex items-center gap-1 font-semibold text-slate-800">
-                {txnId}
-                <button
-                  type="button"
-                  title="Sao chép mã giao dịch"
-                  className="copy-icon-btn"
-                  onClick={() => copyText(txnId, 'txn')}
-                >
-                  {copiedField === 'txn' ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
-                </button>
-              </span>
-            </div>
-
-            <div className="meta-item">
-              <span className="meta-label">Mã đơn hàng (Order Ref):</span>
-              <span className="meta-value font-mono flex items-center gap-1 font-semibold text-slate-800">
-                {order.orderCode}
-                <button
-                  type="button"
-                  title="Sao chép mã đơn hàng"
-                  className="copy-icon-btn"
-                  onClick={() => copyText(order.orderCode, 'order')}
-                >
-                  {copiedField === 'order' ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
-                </button>
-              </span>
-            </div>
-
-            <div className="meta-item">
-              <span className="meta-label">Phương thức thanh toán:</span>
-              <span className="meta-value font-medium text-slate-800">
-                {isVietQr ? 'Chuyển khoản VietQR QuickLink (24/7)' : 'Chuyển khoản Cổng SePay (24/7)'}
-              </span>
-            </div>
-
-            <div className="meta-item">
-              <span className="meta-label">Thời gian giao dịch:</span>
-              <span className="meta-value text-slate-800">{formatDateTime(paidTime)}</span>
-            </div>
-
-            <div className="meta-item">
-              <span className="meta-label">Trạng thái xử lý:</span>
-              <span className={`status-pill ${state.theme}`}>
-                {ORDER_LABELS[order.status] || 'Đang chuẩn bị'}
-              </span>
-            </div>
-
-            <div className="meta-item">
-              <span className="meta-label">Kênh bán hàng:</span>
-              <span className="meta-value text-slate-800">Cửa hàng trực tuyến OptiVision</span>
-            </div>
-          </div>
-
-          {/* SePay Gateway Payment Action Card */}
-          {phase === 'PENDING' && (
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              background: '#f8fafc',
-              border: '1.5px solid #bae6fd',
-              borderRadius: '14px',
-              padding: '24px 20px',
-              margin: '12px 0',
-              textAlign: 'center',
-              boxShadow: '0 2px 8px rgba(3, 105, 161, 0.06)'
-            }}>
-              <div style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '50%',
-                background: '#e0f2fe',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#0284c7',
-                marginBottom: '10px'
-              }}>
-                <ExternalLink size={24} />
+        {/* 2-Column Responsive Layout for Desktop Viewport */}
+        <div className="voucher-layout">
+          {/* Left Column: Payment Summary, Actions & Security */}
+          <div className="voucher-col voucher-col-left">
+            {/* Hero Transaction Amount Section */}
+            <div className="voucher-hero">
+              <div className={`hero-badge-icon ${state.theme}`}>
+                {phase === 'PAID' ? <CheckCircle2 size={28} /> : <Clock3 size={28} />}
               </div>
-              <h3 style={{ margin: '0 0 6px', fontSize: '15px', color: '#0f172a', fontWeight: 700 }}>
-                Cổng Thanh Toán Trực Tuyến SePay Sandbox
-              </h3>
-              <p style={{ margin: '0 0 16px', fontSize: '12.5px', color: '#475569', maxWidth: '380px', lineHeight: 1.5 }}>
-                Đơn hàng đã được lưu an toàn. Nhấn nút bên dưới để mở Cổng thanh toán SePay và hoàn tất giao dịch.
+              <div className="hero-label">
+                {phase === 'PAID' ? 'SỐ TIỀN ĐÃ THANH TOÁN' : 'SỐ TIỀN CẦN THANH TOÁN'}
+              </div>
+              <div className={`hero-amount ${state.theme}`}>
+                {money(order.finalAmount)}
+              </div>
+              <p className="hero-subtext">
+                {phase === 'PAID' ? (
+                  <span className="flex items-center justify-center gap-1.5 text-emerald-700">
+                    <Sparkles size={13} /> Giao dịch đã được ghi nhận vào tài khoản thụ hưởng
+                  </span>
+                ) : (
+                  <span>Cổng thanh toán: <strong>{isVietQr ? 'VietQR QuickLink (Napas 24/7)' : 'Cổng Thanh Toán SePay (Napas 24/7)'}</strong></span>
+                )}
               </p>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', maxWidth: '320px' }}>
-                <button
-                  type="button"
-                  className="txn-btn primary"
-                  disabled={paying || refreshing || Boolean(error)}
-                  onClick={() => startPayment(order.id)}
-                  style={{ justifyContent: 'center', padding: '10px 18px', fontSize: '13px' }}
-                >
-                  {paying ? 'Đang mở SePay…' : 'Mở cổng thanh toán SePay ngay ↗'}
-                  <ExternalLink size={15} />
-                </button>
-                <button
-                  type="button"
-                  className="txn-btn secondary txn-btn-compact"
-                  onClick={handleSimulatePayment}
-                  disabled={simulating || refreshing}
-                  style={{ justifyContent: 'center', fontSize: '12px', padding: '8px 12px', background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0' }}
-                >
-                  <Sparkles size={13} className={simulating ? 'spin' : ''} />
-                  {simulating ? 'Đang xử lý…' : '⚡ Giả lập thanh toán SePay thành công'}
-                </button>
-              </div>
             </div>
-          )}
 
-          {/* Items breakdown */}
-          <div className="order-items-box">
-            <div className="box-title">
-              <span>Sản phẩm trong giao dịch</span>
-              <span className="text-xs text-slate-500 font-normal">{(order.items || []).length} món</span>
-            </div>
-            <div className="items-list">
-              {(order.items || []).map((item) => (
-                <div key={item.id || item.skuId || item.sku} className="item-row">
-                  <div className="item-details">
-                    <span className="item-name">{item.productName}</span>
-                    <span className="item-sku">{item.skuId || item.sku} · Số lượng: {item.quantity}</span>
-                  </div>
-                  <strong className="item-price">
-                    {money(item.subtotal != null ? item.subtotal : (item.unitPrice || 0) * (item.quantity || 1))}
-                  </strong>
+            {/* SePay Gateway Payment Action Card */}
+            {phase === 'PENDING' && (
+              <div className="sepay-gateway-card">
+                <div className="sepay-card-header">
+                  <ExternalLink size={16} className="text-sky-600" />
+                  <span>Cổng Thanh Toán SePay Sandbox</span>
                 </div>
-              ))}
-            </div>
-
-            <div className="totals-table">
-              <div className="total-row">
-                <span>Tiền hàng:</span>
-                <span>{money(order.totalAmount)}</span>
-              </div>
-              {Number(order.discountAmount) > 0 && (
-                <div className="total-row discount">
-                  <span>Giảm giá / Voucher:</span>
-                  <span>−{money(order.discountAmount)}</span>
+                <p className="sepay-card-desc">
+                  Nhấn để chuyển sang Cổng SePay thanh toán hoặc giả lập nhanh:
+                </p>
+                <div className="sepay-card-btns">
+                  <button
+                    type="button"
+                    className="txn-btn primary"
+                    disabled={paying || refreshing || Boolean(error)}
+                    onClick={() => startPayment(order.id)}
+                  >
+                    {paying ? 'Đang mở SePay…' : 'Mở cổng thanh toán SePay ngay ↗'}
+                    <ExternalLink size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    className="txn-btn secondary txn-btn-compact btn-simulate"
+                    onClick={handleSimulatePayment}
+                    disabled={simulating || refreshing}
+                  >
+                    <Sparkles size={13} className={simulating ? 'spin' : ''} />
+                    {simulating ? 'Đang xử lý…' : '⚡ Giả lập thanh toán SePay thành công'}
+                  </button>
                 </div>
-              )}
-              {Number(order.taxAmount) > 0 && (
-                <div className="total-row">
-                  <span>Thuế VAT:</span>
-                  <span>{money(order.taxAmount)}</span>
-                </div>
-              )}
-              <div className="total-row grand">
-                <span>Tổng tiền thanh toán:</span>
-                <strong>{money(order.finalAmount)}</strong>
               </div>
-            </div>
-          </div>
-
-          {/* Customer & Shipping info */}
-          <div className="shipping-box">
-            <div className="shipping-row">
-              <span className="shipping-label">Khách hàng:</span>
-              <strong className="shipping-value">{order.customerName} ({order.customerPhone})</strong>
-            </div>
-            <div className="shipping-row">
-              <span className="shipping-label">Địa chỉ nhận hàng:</span>
-              <span className="shipping-value">{order.shippingAddress || order.branchName || 'Nhận tại cửa hàng OptiVision'}</span>
-            </div>
-          </div>
-
-          {/* Alerts & Outcome Notifier */}
-          {paymentOutcome === 'success' && phase === 'PENDING' && (
-            <div className="txn-alert info">
-              <div className="txn-alert-flex">
-                <div>
-                  <strong>Đã nhận tín hiệu trở về từ SePay!</strong>
-                  <p className="txn-alert-sub">
-                    Tín hiệu chuyển khoản đã hoàn tất trên SePay. Hệ thống đang tự động đồng bộ kết quả đối soát từ cổng thanh toán.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className="txn-btn primary txn-btn-compact"
-                  onClick={handleSyncPayment}
-                  disabled={refreshing}
-                >
-                  <RefreshCw size={12} className={refreshing ? 'spin' : ''} />
-                  {refreshing ? 'Đang đối soát…' : 'Đối soát ngay'}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {paymentOutcome === 'cancel' && phase === 'PENDING' && (
-            <div className="txn-alert info">
-              Bạn đã dừng giao dịch trên cổng thanh toán SePay. Đơn hàng vẫn được lưu an toàn, bạn có thể thanh toán lại bất kỳ lúc nào.
-            </div>
-          )}
-
-          {paymentError && <div className="txn-alert error">{paymentError}</div>}
-          {error && <div className="txn-alert error">{error}</div>}
-
-          {/* Action Button Bar */}
-          <div className="voucher-actions">
-            {phase === 'PAID' ? (
-              <>
-                <button type="button" className="txn-btn primary" onClick={onOrders}>
-                  <FileText size={15} /> Xem đơn hàng của bạn
-                </button>
-                <button type="button" className="txn-btn outline" onClick={() => window.print()}>
-                  <Printer size={15} /> In biên lai
-                </button>
-                <button type="button" className="txn-btn secondary" onClick={onContinue}>
-                  <ShoppingBag size={15} /> Tiếp tục mua sắm
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  className="txn-btn primary"
-                  onClick={refresh}
-                  disabled={refreshing || paying}
-                >
-                  <RefreshCw size={14} className={refreshing ? 'spin' : ''} />
-                  {refreshing ? 'Đang kiểm tra…' : 'Kiểm tra trạng thái'}
-                </button>
-                <button type="button" className="txn-btn outline" onClick={onOrders}>
-                  <FileText size={14} /> Tất cả đơn hàng
-                </button>
-              </>
             )}
+
+            {/* Alerts & Outcome Notifier */}
+            {paymentOutcome === 'success' && phase === 'PENDING' && (
+              <div className="txn-alert info">
+                <div className="txn-alert-flex">
+                  <div>
+                    <strong>Đã nhận tín hiệu trở về từ SePay!</strong>
+                    <p className="txn-alert-sub">Đang đồng bộ kết quả đối soát...</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="txn-btn primary txn-btn-compact"
+                    onClick={handleSyncPayment}
+                    disabled={refreshing}
+                  >
+                    <RefreshCw size={12} className={refreshing ? 'spin' : ''} />
+                    {refreshing ? 'Đang đối soát…' : 'Đối soát ngay'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {paymentOutcome === 'cancel' && phase === 'PENDING' && (
+              <div className="txn-alert info">
+                Bạn đã dừng giao dịch trên SePay. Bạn có thể thử lại bất kỳ lúc nào.
+              </div>
+            )}
+
+            {paymentError && <div className="txn-alert error">{paymentError}</div>}
+            {error && <div className="txn-alert error">{error}</div>}
+
+            {/* Action Button Bar */}
+            <div className="voucher-actions">
+              {phase === 'PAID' ? (
+                <>
+                  <button type="button" className="txn-btn primary" onClick={onOrders}>
+                    <FileText size={14} /> Xem đơn hàng của bạn
+                  </button>
+                  <button type="button" className="txn-btn outline" onClick={() => window.print()}>
+                    <Printer size={14} /> In biên lai
+                  </button>
+                  <button type="button" className="txn-btn secondary" onClick={onContinue}>
+                    <ShoppingBag size={14} /> Tiếp tục mua sắm
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="txn-btn primary"
+                    onClick={refresh}
+                    disabled={refreshing || paying}
+                  >
+                    <RefreshCw size={13} className={refreshing ? 'spin' : ''} />
+                    {refreshing ? 'Đang kiểm tra…' : 'Kiểm tra trạng thái'}
+                  </button>
+                  <button type="button" className="txn-btn outline" onClick={onOrders}>
+                    <FileText size={13} /> Tất cả đơn hàng
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Security & Audit Footer */}
+            <div className="voucher-footer">
+              <span className="flex items-center justify-center gap-1 text-xs text-slate-500">
+                <ShieldCheck size={13} className="text-emerald-600" />
+                Đối soát tự động qua <strong>{isVietQr ? 'VietQR QuickLink' : 'SePay Gateway'}</strong> · ISO 27001
+              </span>
+              <div className="footer-timestamp">
+                {lastChecked && `Cập nhật: ${lastChecked.toLocaleTimeString('vi-VN')}`}
+                {phase === 'PENDING' && !pollingEnded && ' · Tự động lắng nghe (3s)'}
+              </div>
+            </div>
           </div>
 
-          {/* Security & Audit Footer */}
-          <div className="voucher-footer">
-            <span className="flex items-center justify-center gap-1.5 text-xs text-slate-500">
-              <ShieldCheck size={14} className="text-emerald-600" />
-              Giao dịch đối soát tự động qua <strong>{isVietQr ? 'VietQR QuickLink Gateway' : 'SePay Payment Gateway'}</strong> · Hệ thống bảo mật ISO 27001
-            </span>
-            <div className="footer-timestamp">
-              {lastChecked && `Thời gian cập nhật gần nhất: ${lastChecked.toLocaleTimeString('vi-VN')}`}
-              {phase === 'PENDING' && !pollingEnded && ' · Đang tự động lắng nghe giao dịch (mỗi 3s)'}
+          {/* Right Column: Financial Metadata, Order Items & Customer Info */}
+          <div className="voucher-col voucher-col-right">
+            {/* Transaction Core Metadata Grid */}
+            <div className="meta-grid">
+              <div className="meta-item">
+                <span className="meta-label">Mã giao dịch (Txn ID):</span>
+                <span className="meta-value font-mono flex items-center gap-1 font-semibold text-slate-800">
+                  {txnId}
+                  <button
+                    type="button"
+                    title="Sao chép mã giao dịch"
+                    className="copy-icon-btn"
+                    onClick={() => copyText(txnId, 'txn')}
+                  >
+                    {copiedField === 'txn' ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
+                  </button>
+                </span>
+              </div>
+
+              <div className="meta-item">
+                <span className="meta-label">Mã đơn hàng (Order Ref):</span>
+                <span className="meta-value font-mono flex items-center gap-1 font-semibold text-slate-800">
+                  {order.orderCode}
+                  <button
+                    type="button"
+                    title="Sao chép mã đơn hàng"
+                    className="copy-icon-btn"
+                    onClick={() => copyText(order.orderCode, 'order')}
+                  >
+                    {copiedField === 'order' ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
+                  </button>
+                </span>
+              </div>
+
+              <div className="meta-item">
+                <span className="meta-label">Phương thức:</span>
+                <span className="meta-value font-medium text-slate-800">
+                  {isVietQr ? 'Chuyển khoản VietQR QuickLink' : 'Cổng Thanh Toán SePay (24/7)'}
+                </span>
+              </div>
+
+              <div className="meta-item">
+                <span className="meta-label">Thời gian:</span>
+                <span className="meta-value text-slate-800">{formatDateTime(paidTime)}</span>
+              </div>
+
+              <div className="meta-item">
+                <span className="meta-label">Trạng thái:</span>
+                <span className={`status-pill ${state.theme}`}>
+                  {ORDER_LABELS[order.status] || 'Đang chuẩn bị'}
+                </span>
+              </div>
+
+              <div className="meta-item">
+                <span className="meta-label">Kênh bán:</span>
+                <span className="meta-value text-slate-800">Cửa hàng trực tuyến OptiVision</span>
+              </div>
+            </div>
+
+            {/* Items breakdown */}
+            <div className="order-items-box">
+              <div className="box-title">
+                <span>Sản phẩm trong giao dịch</span>
+                <span className="text-xs text-slate-500 font-normal">{(order.items || []).length} món</span>
+              </div>
+              <div className="items-list">
+                {(order.items || []).map((item) => (
+                  <div key={item.id || item.skuId || item.sku} className="item-row">
+                    <div className="item-details">
+                      <span className="item-name">{item.productName}</span>
+                      <span className="item-sku">{item.skuId || item.sku} · SL: {item.quantity}</span>
+                    </div>
+                    <strong className="item-price">
+                      {money(item.subtotal != null ? item.subtotal : (item.unitPrice || 0) * (item.quantity || 1))}
+                    </strong>
+                  </div>
+                ))}
+              </div>
+
+              <div className="totals-table">
+                <div className="total-row">
+                  <span>Tiền hàng:</span>
+                  <span>{money(order.totalAmount)}</span>
+                </div>
+                {Number(order.discountAmount) > 0 && (
+                  <div className="total-row discount">
+                    <span>Giảm giá / Voucher:</span>
+                    <span>−{money(order.discountAmount)}</span>
+                  </div>
+                )}
+                {Number(order.taxAmount) > 0 && (
+                  <div className="total-row">
+                    <span>Thuế VAT:</span>
+                    <span>{money(order.taxAmount)}</span>
+                  </div>
+                )}
+                <div className="total-row grand">
+                  <span>Tổng tiền thanh toán:</span>
+                  <strong>{money(order.finalAmount)}</strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Customer & Shipping info */}
+            <div className="shipping-box">
+              <div className="shipping-row">
+                <span className="shipping-label">Khách hàng:</span>
+                <strong className="shipping-value">{order.customerName} ({order.customerPhone})</strong>
+              </div>
+              <div className="shipping-row">
+                <span className="shipping-label">Địa chỉ nhận hàng:</span>
+                <span className="shipping-value">{order.shippingAddress || order.branchName || 'Nhận tại cửa hàng OptiVision'}</span>
+              </div>
             </div>
           </div>
         </div>
