@@ -20,6 +20,8 @@ import CartDrawer from './components/CartDrawer';
 import CheckoutModal from './components/CheckoutModal';
 import { addSelection } from './components/purchaseUtils';
 import { authApi } from './api/authApi';
+import { notificationApi } from './api/notificationApi';
+import { normalizePollIntervalMs } from './components/customerNotificationUtils.js';
 import { useCustomerCart } from './components/useCustomerCart.js';
 import { orderRoute } from './components/customerOrderUtils.js';
 import { claimGuestCart } from './components/customerCartStore.js';
@@ -66,10 +68,43 @@ export default function App() {
   activeCustomerId.current = currentUser?.id;
   const [cart, setCart, cartError] = useCustomerCart(currentUser?.id);
   const [cartNotice, setCartNotice] = useState('');
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
+  const [notificationPollSeconds, setNotificationPollSeconds] = useState(15);
   useEffect(() => {
     checkoutRequest.current = null;
     setCheckoutOpen(false); setIsCartOpen(false);
+    setUnreadNotificationCount(0);
   }, [currentUser?.id]);
+
+  useEffect(() => {
+    const uid = currentUser?.id;
+    if (!uid) return undefined;
+    let active = true;
+    const syncUnread = () => {
+      notificationApi.getUnreadSummary()
+        .then((summary) => {
+          if (!active || activeCustomerId.current !== uid) return;
+          setUnreadNotificationCount(Number(summary.unreadCount) || 0);
+          if (summary.pollIntervalSeconds) {
+            setNotificationPollSeconds(summary.pollIntervalSeconds);
+          }
+        })
+        .catch(() => {});
+    };
+    syncUnread();
+    const intervalId = setInterval(() => {
+      if (document.visibilityState !== 'hidden') {
+        syncUnread();
+      }
+    }, normalizePollIntervalMs(notificationPollSeconds));
+    const onFocus = () => syncUnread();
+    window.addEventListener('focus', onFocus);
+    return () => {
+      active = false;
+      clearInterval(intervalId);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [currentUser?.id, notificationPollSeconds]);
 
   const handleLogout = () => {
     authGeneration.current++;
@@ -123,6 +158,7 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
+        unreadCount={unreadNotificationCount}
         openAuthModal={() => setIsAuthOpen(true)}
         openCart={() => setIsCartOpen(true)}
         currentUser={currentUser}
@@ -245,6 +281,12 @@ export default function App() {
           <NotificationCenterPage
             setActiveTab={setActiveTab}
             currentUser={currentUser}
+            openAuth={() => setIsAuthOpen(true)}
+            pollIntervalSeconds={notificationPollSeconds}
+            onUnreadChange={(nextCount, nextPollSec) => {
+              setUnreadNotificationCount(Number(nextCount) || 0);
+              if (nextPollSec) setNotificationPollSeconds(nextPollSec);
+            }}
           />
         )}
 
