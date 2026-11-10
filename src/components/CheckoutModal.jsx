@@ -5,7 +5,13 @@ import { checkoutPayload, money } from './purchaseUtils';
 import './purchase.css';
 
 export default function CheckoutModal({ cart, user, requestRef, onClose, onSuccess }) {
-  const [contact, setContact] = useState({ name: user?.fullName || '', phone: user?.phoneNumber || '', address: '' });
+  const [deliveryMethod, setDeliveryMethod] = useState('DOOR');
+  const [selectedShowroom, setSelectedShowroom] = useState('Flagship Q.1 (TP.HCM) - 123 Lê Lợi, P. Bến Thành, Q.1');
+  const [contact, setContact] = useState({
+    name: user?.fullName || '',
+    phone: user?.phoneNumber || '',
+    address: user?.address || ''
+  });
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [priceChange, setPriceChange] = useState(null);
@@ -22,7 +28,13 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
     setSaving(true); 
     setError('');
     try {
-      const payload = checkoutPayload(cart, contact, user);
+      const contactWithDelivery = {
+        ...contact,
+        deliveryMethod,
+        storePickupLocation: deliveryMethod === 'SHOWROOM' ? selectedShowroom : null,
+        address: deliveryMethod === 'SHOWROOM' ? selectedShowroom : contact.address
+      };
+      const payload = checkoutPayload(cart, contactWithDelivery, user);
       if (priceChange && acceptPriceChange) payload.acceptPriceChange = true;
       const fingerprint = JSON.stringify(payload);
       if (request.current?.fingerprint !== fingerprint) request.current = { fingerprint, key: crypto.randomUUID() };
@@ -72,26 +84,84 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
 
         <form onSubmit={submit}>
           <fieldset disabled={saving} className="space-y-5">
+            {/* Delivery Method Choice (S3-15) */}
+            <div className="flex flex-col gap-1.5 text-xs font-bold text-slate-700">
+              <span>Hình thức nhận hàng <span className="text-red-500">*</span></span>
+              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setDeliveryMethod('DOOR')}
+                  className={`py-2 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${deliveryMethod === 'DOOR' ? 'bg-white text-[#086288] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+                >
+                  <ShoppingBag className="w-3.5 h-3.5" />
+                  <span>Giao tận nơi</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeliveryMethod('SHOWROOM')}
+                  className={`py-2 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${deliveryMethod === 'SHOWROOM' ? 'bg-white text-[#086288] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Nhận tại Showroom</span>
+                </button>
+              </div>
+            </div>
+
             {/* Contact Info Fields */}
             <div className="purchase-fields space-y-3">
-              {[
-                ['name', 'Họ và tên người nhận'],
-                ['phone', 'Số điện thoại liên hệ'],
-                ['address', 'Địa chỉ giao hàng chi tiết']
-              ].map(([field, label]) => (
-                <label key={field} className="flex flex-col gap-1.5 text-xs font-bold text-slate-700">
-                  <span>{label} <span className="text-red-500">*</span></span>
+              <label className="flex flex-col gap-1.5 text-xs font-bold text-slate-700">
+                <span>Họ và tên người nhận <span className="text-red-500">*</span></span>
+                <input 
+                  required 
+                  maxLength={120} 
+                  type="text" 
+                  value={contact.name} 
+                  onChange={event => setContact({ ...contact, name: event.target.value })} 
+                  className="p-2.5 rounded-xl border border-slate-300 text-sm focus:border-[#086288] focus:ring-2 focus:ring-[#086288]/15 outline-none transition"
+                  placeholder="Nhập họ và tên..."
+                />
+              </label>
+
+              <label className="flex flex-col gap-1.5 text-xs font-bold text-slate-700">
+                <span>Số điện thoại liên hệ <span className="text-red-500">*</span></span>
+                <input 
+                  required 
+                  maxLength={30} 
+                  type="tel" 
+                  value={contact.phone} 
+                  onChange={event => setContact({ ...contact, phone: event.target.value })} 
+                  className="p-2.5 rounded-xl border border-slate-300 text-sm focus:border-[#086288] focus:ring-2 focus:ring-[#086288]/15 outline-none transition"
+                  placeholder="Nhập số điện thoại..."
+                />
+              </label>
+
+              {deliveryMethod === 'DOOR' ? (
+                <label className="flex flex-col gap-1.5 text-xs font-bold text-slate-700">
+                  <span>Địa chỉ giao hàng chi tiết <span className="text-red-500">*</span></span>
                   <input 
                     required 
-                    maxLength={field === 'address' ? 500 : field === 'name' ? 120 : 30} 
-                    type={field === 'phone' ? 'tel' : 'text'} 
-                    value={contact[field]} 
-                    onChange={event => setContact({ ...contact, [field]: event.target.value })} 
+                    maxLength={500} 
+                    type="text" 
+                    value={contact.address} 
+                    onChange={event => setContact({ ...contact, address: event.target.value })} 
                     className="p-2.5 rounded-xl border border-slate-300 text-sm focus:border-[#086288] focus:ring-2 focus:ring-[#086288]/15 outline-none transition"
-                    placeholder={`Nhập ${label.toLowerCase()}...`}
+                    placeholder="Nhập số nhà, tên đường, phường/xã, quận/huyện..."
                   />
                 </label>
-              ))}
+              ) : (
+                <label className="flex flex-col gap-1.5 text-xs font-bold text-slate-700">
+                  <span>Chọn Showroom tiếp nhận <span className="text-red-500">*</span></span>
+                  <select
+                    value={selectedShowroom}
+                    onChange={event => setSelectedShowroom(event.target.value)}
+                    className="p-2.5 rounded-xl border border-slate-300 text-sm focus:border-[#086288] focus:ring-2 focus:ring-[#086288]/15 outline-none transition bg-white"
+                  >
+                    <option value="Flagship Q.1 (TP.HCM) - 123 Lê Lợi, P. Bến Thành, Q.1">Flagship Q.1 (TP.HCM) - 123 Lê Lợi, P. Bến Thành, Q.1</option>
+                    <option value="Tràng Tiền Plaza (Hà Nội) - 24 Hai Bà Trưng, Q. Hoàn Kiếm">Tràng Tiền Plaza (Hà Nội) - 24 Hai Bà Trưng, Q. Hoàn Kiếm</option>
+                    <option value="Thảo Điền Store (Q.2) - 88 Xuân Thủy, P. Thảo Điền, TP. Thủ Đức">Thảo Điền Store (Q.2) - 88 Xuân Thủy, P. Thảo Điền, TP. Thủ Đức</option>
+                  </select>
+                </label>
+              )}
             </div>
 
             {/* Cart Summary */}
