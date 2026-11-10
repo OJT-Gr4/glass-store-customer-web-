@@ -165,7 +165,7 @@ export default function OrderPaymentPage({ orderCode, currentUser, authLoading, 
     const controller = new AbortController();
     paymentRequest.current = controller;
     try {
-      const checkout = await checkoutApi.initiate(orderId, controller.signal);
+      const checkout = await checkoutApi.initiate(orderId, controller.signal, 'SEPAY');
       if (!controller.signal.aborted) submitCheckoutForm(checkout);
     } catch (err) {
       if (controller.signal.aborted) return;

@@ -47,7 +47,7 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
     try {
       setInitiatingPayment(true);
       setPaymentError('');
-      const data = await customerOrdersApi.initiatePayment(orderId, customerId);
+      const data = await customerOrdersApi.initiatePayment(orderId, customerId, 'VIETQR');
       setPaymentData(data);
     } catch (err) {
       setPaymentError(err.message || 'Không thể khởi tạo thanh toán.');
@@ -129,14 +129,22 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
               </p>
 
               {!paymentData ? (
-                <button
-                  type="button"
-                  onClick={handleInitiatePayment}
-                  disabled={initiatingPayment}
-                  style={{ padding: '0.5rem 1rem', background: '#086288', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}
-                >
-                  {initiatingPayment ? 'Đang khởi tạo cổng…' : 'Mở Cổng Thanh Toán VietQR'}
-                </button>
+                <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={handleInitiatePayment}
+                    disabled={initiatingPayment}
+                    style={{ padding: '0.5rem 1rem', background: '#086288', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem' }}
+                  >
+                    {initiatingPayment ? 'Đang khởi tạo cổng…' : 'Mở Mã Thanh Toán VietQR'}
+                  </button>
+                  <a
+                    href={`/orders/${encodeURIComponent(order.orderCode)}`}
+                    style={{ padding: '0.5rem 1rem', background: '#0284c7', color: '#fff', borderRadius: '8px', textDecoration: 'none', fontWeight: 600, fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center' }}
+                  >
+                    Thanh Toán Qua Cổng SePay &amp; Biên Lai
+                  </a>
+                </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', padding: '1rem', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                   <img
@@ -150,13 +158,35 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
                   <p style={{ margin: 0, fontSize: '0.8rem', color: '#086288', textAlign: 'center' }}>
                     Quét mã QR bằng App ngân hàng bất kỳ để thanh toán {money(order.finalAmount)}.
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => setRetry(v => v + 1)}
-                    style={{ padding: '0.4rem 0.8rem', background: '#059669', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}
-                  >
-                    Đã thanh toán? Nhấn để kiểm tra
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                    <button
+                      type="button"
+                      onClick={() => setRetry(v => v + 1)}
+                      style={{ padding: '0.4rem 0.8rem', background: '#059669', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}
+                    >
+                      Đã thanh toán? Nhấn để kiểm tra
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          await fetch(`/api/payments/sandbox/simulate-callback?orderCode=${encodeURIComponent(order.orderCode)}`, { method: 'POST' });
+                          setRetry(v => v + 1);
+                        } catch (e) {
+                          alert(e.message);
+                        }
+                      }}
+                      style={{ padding: '0.4rem 0.8rem', background: '#0284c7', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
+                    >
+                      ⚡ Giả lập thanh toán VietQR thành công
+                    </button>
+                    <a
+                      href={`/orders/${encodeURIComponent(order.orderCode)}`}
+                      style={{ padding: '0.4rem 0.8rem', background: '#64748b', color: '#fff', borderRadius: '6px', textDecoration: 'none', fontSize: '0.8rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center' }}
+                    >
+                      Xem trang biên lai SePay
+                    </a>
+                  </div>
                 </div>
               )}
 

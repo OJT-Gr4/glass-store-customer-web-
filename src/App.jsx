@@ -346,7 +346,7 @@ export default function App() {
             if (activeCustomerId.current !== currentUser.id) return;
             checkoutRequest.current = null;
             setCheckoutOpen(false);
-            if (order.paymentMethod === 'SEPAY' || !order.id) {
+            if (order.paymentProvider === 'SEPAY' || order.paymentMethod === 'SEPAY' || !order.id) {
               navigate(`/orders/${encodeURIComponent(order.orderCode)}`, { state: { initiatePayment: true } });
             } else {
               openOrder(order.id, order.orderCode);

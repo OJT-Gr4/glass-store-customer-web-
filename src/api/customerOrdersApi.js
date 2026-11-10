@@ -66,10 +66,11 @@ export const customerOrdersApi = {
     }
     return envelope?.data;
   },
-  async initiatePayment(id, customerId) {
+  async initiatePayment(id, customerId, provider = 'VIETQR') {
     requireId(customerId);
     const token = localStorage.getItem('optivision_customer_token');
-    const response = await fetch(`${baseUrl}/api/payments/order/${requireId(id)}/initiate`, {
+    const query = provider ? `?provider=${encodeURIComponent(provider)}` : '';
+    const response = await fetch(`${baseUrl}/api/payments/order/${requireId(id)}/initiate${query}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     });

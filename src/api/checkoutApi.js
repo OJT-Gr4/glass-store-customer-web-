@@ -58,6 +58,6 @@ export const checkoutApi = {
     return payments;
   },
   configuration: signal => request('payments/sepay/configuration', { signal }),
-  initiate: (orderId, signal) => request(`payments/order/${orderId}/initiate`, { method: 'POST', signal }),
+  initiate: (orderId, signal, provider) => request(`payments/order/${orderId}/initiate${provider ? `?provider=${encodeURIComponent(provider)}` : ''}`, { method: 'POST', signal }),
   syncPayment: (orderId, signal) => request(`payments/order/${orderId}/sync`, { method: 'POST', signal }),
 };

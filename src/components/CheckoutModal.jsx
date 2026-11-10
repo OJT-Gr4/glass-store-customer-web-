@@ -63,10 +63,12 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
         storePickupLocation: deliveryMethod === 'SHOWROOM' ? selectedShowroom : null,
         address: deliveryMethod === 'SHOWROOM' ? selectedShowroom : contact.address
       };
-      const payload = checkoutPayload(cart, contactWithDelivery, user, paymentMethod);
+      const payload = checkoutPayload(cart, contactWithDelivery, user, 'VIETQR');
+      payload.paymentProvider = paymentMethod;
       if (priceChange && acceptPriceChange) payload.acceptPriceChange = true;
       request.current = checkoutClaim(payload, request.current);
       const order = await checkoutApi.createOrder(payload, request.current.key);
+      order.paymentProvider = paymentMethod;
       onSuccess(order);
     } catch (err) {
       setError(err.message);
