@@ -462,7 +462,7 @@ export default function HomePage({ setActiveTab, openBooking, openAuth, onAddToC
               Hệ Thống Chi Nhánh ({locations.length > 0 ? locations.length : 3} Chi Nhánh)
             </h2>
             <p className="text-xs text-[#40484e]">
-              Cơ sở đo mắt &amp; phân phối mắt kính chính hãng tiện lợi, gần bạn nhất
+              Cơ sở đạt chuẩn phòng khám khúc xạ, nạp trực tiếp từ cơ sở dữ liệu hệ thống
             </p>
           </div>
           <button
@@ -493,7 +493,7 @@ export default function HomePage({ setActiveTab, openBooking, openAuth, onAddToC
               </p>
               {loc.phone && (
                 <p className="text-[10px] text-[#086288] font-semibold">
-                  📞 {loc.phone}
+                  Hotline: {loc.phone}
                 </p>
               )}
             </div>

@@ -197,7 +197,7 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
               </p>
               {returnSuccess ? (
                 <div style={{ padding: '0.75rem', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', color: '#166534', fontSize: '0.85rem' }}>
-                  ✓ Đã tiếp nhận yêu cầu đổi / trả hàng thành công! Đội ngũ CSKH OptiVision sẽ liên hệ với bạn trong vòng 24 giờ.
+                  Đã tiếp nhận yêu cầu đổi / trả hàng thành công! Đội ngũ CSKH OptiVision sẽ liên hệ với bạn trong vòng 24 giờ.
                 </div>
               ) : (
                 <form onSubmit={handleReturn} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>

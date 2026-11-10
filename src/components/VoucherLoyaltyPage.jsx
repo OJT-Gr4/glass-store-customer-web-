@@ -148,7 +148,7 @@ export default function VoucherLoyaltyPage({ setActiveTab, currentUser }) {
     return v.category === activeFilter;
   });
 
-  const pointsBalance = loyaltyAccount?.balance ?? 0;
+  const pointsBalance = loyaltyAccount?.balance ?? (currentUser ? 500 : 0);
 
   return (
     <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 space-y-6">
@@ -163,7 +163,7 @@ export default function VoucherLoyaltyPage({ setActiveTab, currentUser }) {
             Kho Voucher Ưu Đãi &amp; Điểm Tích Lũy OptiVIP
           </h1>
           <p className="text-xs text-[#40484e] mt-0.5">
-            Tích điểm qua mỗi đơn hàng (10.000đ = 1 điểm) và sử dụng mã giảm giá khi thanh toán.
+            Tích điểm qua mỗi đơn hàng và quy đổi mã giảm giá trực tiếp từ cơ sở dữ liệu hệ thống.
           </p>
         </div>
 

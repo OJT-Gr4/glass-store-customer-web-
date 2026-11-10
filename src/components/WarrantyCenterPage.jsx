@@ -140,7 +140,7 @@ export default function WarrantyCenterPage({ setActiveTab, currentUser }) {
 
       const result = await warrantyApi.createClaim(payload);
       alert(
-        '🎉 YÊU CẦU BẢO DƯỠNG ĐÃ ĐƯỢC GỬI THÀNH CÔNG LÊN CƠ SỞ DỮ LIỆU!\n\n' +
+        'Yêu cầu bảo dưỡng kính đã được tiếp nhận thành công!\n\n' +
         `Mã phiếu kỹ thuật: #${result.warrantyCode || payload.warrantyCode}\n` +
         `Khách hàng: ${payload.customerName} - ${payload.customerPhone}\n` +
         `Dịch vụ: ${selectedService === 'ALIGN' ? 'Nắn chỉnh gọng' : selectedService === 'ULTRASONIC' ? 'Vệ sinh siêu âm' : 'Thay phụ kiện'}\n\n` +
