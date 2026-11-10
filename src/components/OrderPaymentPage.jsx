@@ -93,6 +93,7 @@ export default function OrderPaymentPage({ orderCode, currentUser, authLoading, 
   const [error, setError] = useState('');
   const [paymentError, setPaymentError] = useState('');
   const [paying, setPaying] = useState(false);
+  const [simulating, setSimulating] = useState(false);
   const [lastChecked, setLastChecked] = useState(null);
   const [pollingEnded, setPollingEnded] = useState(false);
   const [copiedField, setCopiedField] = useState(null);
@@ -193,7 +194,6 @@ export default function OrderPaymentPage({ orderCode, currentUser, authLoading, 
         if (!controller.signal.aborted && autoPayment.current) {
           autoPayment.current = false;
           navigate(location.pathname, { replace: true, state: null });
-          if (canPay(saved, history)) startPayment(saved.id);
         }
       })
       .catch((err) => {
@@ -206,6 +206,28 @@ export default function OrderPaymentPage({ orderCode, currentUser, authLoading, 
   }, [authLoading, currentUser?.id, load, navigate, location.pathname, startPayment]);
 
   const phase = order ? paymentState(order, payments) : null;
+  const isVietQr = Boolean(order && (order.notes?.includes('PAYMENT_PROVIDER:VIETQR') || (!order.notes?.includes('PAYMENT_PROVIDER:SEPAY') && order.paymentMethod === 'VIETQR')));
+
+  const handleSimulatePayment = useCallback(async () => {
+    if (!order?.orderCode) return;
+    setSimulating(true);
+    setError('');
+    try {
+      const endpoint = isVietQr
+        ? `/api/payments/sandbox/simulate-callback?orderCode=${encodeURIComponent(order.orderCode)}`
+        : `/api/payments/sepay/simulate-ipn?orderCode=${encodeURIComponent(order.orderCode)}`;
+      const res = await fetch(endpoint, { method: 'POST' });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Không thể giả lập thanh toán.');
+      }
+      await load();
+    } catch (err) {
+      setError('Lỗi giả lập thanh toán: ' + err.message);
+    } finally {
+      setSimulating(false);
+    }
+  }, [order?.orderCode, isVietQr, load]);
 
   // Real-time polling while PENDING (every 3 seconds)
   useEffect(() => {
@@ -321,7 +343,7 @@ export default function OrderPaymentPage({ orderCode, currentUser, authLoading, 
                 <Sparkles size={14} /> Giao dịch đã được ghi nhận vào tài khoản thụ hưởng
               </span>
             ) : (
-              <span>Cổng thanh toán: <strong>SePay VietQR (Napas 24/7)</strong></span>
+              <span>Cổng thanh toán: <strong>{isVietQr ? 'VietQR QuickLink (Napas 24/7)' : 'SePay VietQR (Napas 24/7)'}</strong></span>
             )}
           </p>
         </div>
@@ -368,7 +390,9 @@ export default function OrderPaymentPage({ orderCode, currentUser, authLoading, 
 
             <div className="meta-item">
               <span className="meta-label">Phương thức thanh toán:</span>
-              <span className="meta-value font-medium text-slate-800">Chuyển khoản SePay VietQR (24/7)</span>
+              <span className="meta-value font-medium text-slate-800">
+                {isVietQr ? 'Chuyển khoản VietQR QuickLink (24/7)' : 'Chuyển khoản SePay VietQR (24/7)'}
+              </span>
             </div>
 
             <div className="meta-item">
@@ -388,6 +412,46 @@ export default function OrderPaymentPage({ orderCode, currentUser, authLoading, 
               <span className="meta-value text-slate-800">Cửa hàng trực tuyến OptiVision</span>
             </div>
           </div>
+
+          {/* QR Code and Quick Bank Transfer Card */}
+          {phase === 'PENDING' && (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              padding: '16px',
+              margin: '8px 0',
+              textAlign: 'center'
+            }}>
+              <img
+                src={isVietQr
+                  ? `https://img.vietqr.io/image/970422-0987654321-compact2.png?amount=${order.finalAmount}&addInfo=${encodeURIComponent('DH ' + order.orderCode)}&accountName=${encodeURIComponent('OPTI VISION CLINICAL')}`
+                  : `https://qr.sepay.vn/img?acc=1903&bank=MBBank&amount=${order.finalAmount}&des=${encodeURIComponent(order.orderCode)}`
+                }
+                alt="QR Thanh Toán"
+                style={{ maxWidth: '220px', width: '100%', borderRadius: '10px', background: '#fff', padding: '8px', border: '1px solid #cbd5e1' }}
+              />
+              <p style={{ margin: '8px 0 4px', fontSize: '12px', color: '#086288', fontWeight: 600 }}>
+                {isVietQr ? 'Quét mã VietQR bằng App Ngân Hàng bất kỳ' : 'Quét mã SePay QR Napas 24/7'}
+              </p>
+              <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '10px' }}>
+                MBBank · STK: <strong>{isVietQr ? '0987654321' : '1903'}</strong> · Số tiền: <strong>{money(order.finalAmount)}</strong>
+              </div>
+              <button
+                type="button"
+                className="txn-btn primary txn-btn-compact"
+                onClick={handleSimulatePayment}
+                disabled={simulating || refreshing}
+                style={{ fontSize: '11px', padding: '6px 12px' }}
+              >
+                <Sparkles size={12} className={simulating ? 'spin' : ''} />
+                {simulating ? 'Đang xử lý…' : (isVietQr ? '⚡ Giả lập thanh toán VietQR thành công' : '⚡ Giả lập thanh toán SePay thành công')}
+              </button>
+            </div>
+          )}
 
           {/* Items breakdown */}
           <div className="order-items-box">
@@ -493,16 +557,26 @@ export default function OrderPaymentPage({ orderCode, currentUser, authLoading, 
               </>
             ) : (
               <>
-                {canPay(order, payments) && (
+                {isVietQr ? (
                   <button
                     type="button"
                     className="txn-btn primary"
-                    disabled={paying || refreshing || Boolean(error)}
-                    onClick={() => startPayment(order.id)}
+                    onClick={() => { window.location.hash = `orders/${order.id}`; window.location.href = `/#orders/${order.id}`; }}
                   >
-                    {paying ? 'Đang mở SePay…' : 'Mở cổng thanh toán SePay ngay'}
-                    <ExternalLink size={15} />
+                    <FileText size={15} /> Xem chi tiết đơn hàng (Hub)
                   </button>
+                ) : (
+                  canPay(order, payments) && (
+                    <button
+                      type="button"
+                      className="txn-btn primary"
+                      disabled={paying || refreshing || Boolean(error)}
+                      onClick={() => startPayment(order.id)}
+                    >
+                      {paying ? 'Đang mở SePay…' : 'Mở cổng thanh toán SePay ngay ↗'}
+                      <ExternalLink size={15} />
+                    </button>
+                  )
                 )}
                 <button
                   type="button"
@@ -524,7 +598,7 @@ export default function OrderPaymentPage({ orderCode, currentUser, authLoading, 
           <div className="voucher-footer">
             <span className="flex items-center justify-center gap-1.5 text-xs text-slate-500">
               <ShieldCheck size={14} className="text-emerald-600" />
-              Giao dịch đối soát tự động qua <strong>SePay Payment Gateway</strong> · Hệ thống bảo mật ISO 27001
+              Giao dịch đối soát tự động qua <strong>{isVietQr ? 'VietQR QuickLink Gateway' : 'SePay Payment Gateway'}</strong> · Hệ thống bảo mật ISO 27001
             </span>
             <div className="footer-timestamp">
               {lastChecked && `Thời gian cập nhật gần nhất: ${lastChecked.toLocaleTimeString('vi-VN')}`}

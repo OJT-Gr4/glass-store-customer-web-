@@ -55,13 +55,14 @@ export default function App() {
     window.scrollTo({ top: 0 });
   };
 
-  const openOrder = (id, code) => {
+  const openOrder = (id, code, provider = 'VIETQR') => {
     setSelectedOrderId(id);
-    if (code) {
+    if (provider === 'SEPAY' && code) {
       navigate(`/orders/${encodeURIComponent(code)}`);
     } else {
       setTab('order-hub');
       window.location.hash = `orders/${id}`;
+      navigate('/');
     }
     window.scrollTo({ top: 0 });
   };
@@ -347,9 +348,9 @@ export default function App() {
             checkoutRequest.current = null;
             setCheckoutOpen(false);
             if (order.paymentProvider === 'SEPAY' || order.paymentMethod === 'SEPAY' || !order.id) {
-              navigate(`/orders/${encodeURIComponent(order.orderCode)}`, { state: { initiatePayment: true } });
+              navigate(`/orders/${encodeURIComponent(order.orderCode)}`);
             } else {
-              openOrder(order.id, order.orderCode);
+              openOrder(order.id, order.orderCode, 'VIETQR');
             }
             window.scrollTo({ top: 0 });
           }}

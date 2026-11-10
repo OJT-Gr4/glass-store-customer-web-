@@ -56,6 +56,20 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
     }
   };
 
+  useEffect(() => {
+    if (order?.status === 'PENDING_PAYMENT' && !paymentData && !initiatingPayment) {
+      handleInitiatePayment();
+    }
+  }, [order?.status, order?.id]);
+
+  useEffect(() => {
+    if (order?.status !== 'PENDING_PAYMENT') return;
+    const interval = setInterval(() => {
+      setRetry(v => v + 1);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [order?.status]);
+
   const cancel = async event => {
     event.preventDefault();
     if (locked.current) return;
@@ -155,6 +169,13 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
                   <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>
                     Mã giao dịch: <strong>{paymentData.externalTransactionId}</strong>
                   </p>
+                  <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '0.6rem 1rem', width: '100%', maxWidth: '320px', fontSize: '0.8rem', color: '#166534', textAlign: 'left', lineHeight: 1.6 }}>
+                    <div>Ngân hàng: <strong>MBBank (Ngân Hàng Quân Đội)</strong></div>
+                    <div>Số tài khoản: <strong>0987654321</strong></div>
+                    <div>Chủ tài khoản: <strong>OPTI VISION CLINICAL</strong></div>
+                    <div>Số tiền: <strong>{money(order.finalAmount)}</strong></div>
+                    <div>Nội dung: <strong>DH {order.orderCode}</strong></div>
+                  </div>
                   <p style={{ margin: 0, fontSize: '0.8rem', color: '#086288', textAlign: 'center' }}>
                     Quét mã QR bằng App ngân hàng bất kỳ để thanh toán {money(order.finalAmount)}.
                   </p>

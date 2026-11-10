@@ -82,7 +82,10 @@ export default function OrdersPage({ setActiveTab, currentUser, openAuth, onOpen
                 </p>
                 <div className="purchase-actions">
                   <strong>{money(order.finalAmount)}</strong>
-                  <button onClick={() => onOpenOrder(order.id, order.orderCode)}>
+                  <button onClick={() => {
+                    const isSepay = order.paymentMethod === 'SEPAY' || (order.notes && order.notes.includes('PAYMENT_PROVIDER:SEPAY'));
+                    onOpenOrder(order.id, order.orderCode, isSepay ? 'SEPAY' : 'VIETQR');
+                  }}>
                     Xem chi tiết / Thanh toán
                   </button>
                 </div>

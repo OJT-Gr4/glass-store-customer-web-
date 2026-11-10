@@ -44,6 +44,7 @@ export function submitCheckoutForm(checkout, documentRef = document) {
   const fields = validateCheckoutForm(checkout);
   const form = documentRef.createElement('form');
   form.method = 'POST'; form.action = checkout.paymentUrl; form.hidden = true;
+  form.target = '_blank';
   // Preserve the server's signing order; do not sort or encode the fields again.
   for (const [name, value] of fields) {
     const input = documentRef.createElement('input');
