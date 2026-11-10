@@ -115,7 +115,7 @@ export default function NotificationCenterPage({ setActiveTab }) {
                   Giao hàng hỏa tốc nội thành: <strong>Dự kiến nhận lúc 16:45 hôm nay</strong>
                 </span>
                 <button
-                  onClick={() => setActiveTab('order-hub')}
+                  onClick={() => setActiveTab('orders')}
                   className="bg-[#074768] hover:bg-[#09577f] text-white px-3.5 py-1.5 rounded-xl font-bold text-[11px] flex items-center gap-1 transition self-end sm:self-auto shrink-0"
                 >
                   <span>Theo dõi đơn hàng</span>

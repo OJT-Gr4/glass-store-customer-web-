@@ -34,3 +34,640 @@
 .purchase-check { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.6; margin-top: 16px; }
 .purchase-check input { margin-top: 4px; }
 @media(max-width:700px) { .purchase-detail-grid { grid-template-columns: 1fr; } .purchase-card,.purchase-modal { padding: 18px; } .purchase-summary p { gap: 12px; } }
+
+/* Customer checkout and stored payment status. */
+.purchase-modal { max-width: 760px; }
+.purchase-modal fieldset { min-width: 0; border: 0; padding: 0; margin: 0; }
+.purchase-modal .purchase-fields { grid-template-columns: 1fr 1fr; }
+.purchase-modal .purchase-fields label:last-child { grid-column: 1 / -1; }
+.purchase-modal .checkout-methods { margin-top: 20px; }
+.checkout-methods legend { font-size: 15px; font-weight: 650; margin-bottom: 12px; }
+.checkout-method { display: flex; align-items: center; gap: 12px; border: 1px solid #cbd5e1; border-radius: 12px; padding: 16px; cursor: pointer; }
+.checkout-method.selected { border-color: #086288; background: #f0f9ff; box-shadow: 0 0 0 1px #086288; }
+.purchase-modal .checkout-method input[type=radio] { width: 18px; height: 18px; margin: 0; padding: 0; accent-color: #086288; flex-shrink: 0; }
+.checkout-method strong { display: block; font-size: 14px; }
+.checkout-method small { display: block; color: #64748b; font-size: 12px; line-height: 1.6; margin-top: 4px; }
+.sepay-wordmark { color: #1575bf; background: white; padding: 8px 10px; border: 1px solid #dbe8f1; border-radius: 8px; font-size: 20px; font-weight: 800; letter-spacing: -.7px; }
+.purchase-modal .purchase-actions { position: sticky; bottom: -24px; padding: 16px 0; background: white; border-top: 1px solid #edf2f7; margin-bottom: -16px; }
+
+/* ==========================================================================
+   TRANSACTION VOUCHER / E-RECEIPT UI (Compact 1-Desktop Screen Viewport)
+   ========================================================================== */
+.transaction-screen {
+  min-height: calc(100vh - 76px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: #f1f5f9;
+}
+
+.transaction-voucher {
+  width: 100%;
+  max-width: 640px;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
+  overflow: hidden;
+  position: relative;
+  font-family: inherit;
+  color: #1e293b;
+}
+
+.transaction-voucher.paid {
+  border-top: 5px solid #10b981;
+}
+
+.transaction-voucher.pending {
+  border-top: 5px solid #f59e0b;
+}
+
+.transaction-voucher.cancelled {
+  border-top: 5px solid #ef4444;
+}
+
+/* Header */
+.voucher-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 22px;
+  background: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.voucher-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.voucher-brand .brand-name {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: #074768;
+}
+
+.voucher-brand .voucher-title {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.voucher-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+.voucher-badge.paid {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.voucher-badge.pending {
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fde68a;
+}
+
+.voucher-badge.cancelled {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+/* Hero Section */
+.voucher-hero {
+  padding: 16px 22px 14px;
+  text-align: center;
+  background: #ffffff;
+}
+
+.hero-badge-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px;
+}
+
+.hero-badge-icon.paid {
+  background: #ecfdf5;
+  color: #059669;
+  box-shadow: 0 0 0 5px #d1fae5;
+}
+
+.hero-badge-icon.pending {
+  background: #fffbeb;
+  color: #d97706;
+  box-shadow: 0 0 0 5px #fef3c7;
+}
+
+.hero-badge-icon.cancelled {
+  background: #fef2f2;
+  color: #dc2626;
+  box-shadow: 0 0 0 5px #fee2e2;
+}
+
+.hero-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.hero-amount {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+}
+
+.hero-amount.paid {
+  color: #059669;
+}
+
+.hero-amount.pending {
+  color: #074768;
+}
+
+.hero-amount.cancelled {
+  color: #dc2626;
+}
+
+.hero-subtext {
+  font-size: 12px;
+  color: #64748b;
+  margin: 6px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+/* Perforated Separator */
+.voucher-separator {
+  position: relative;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+.voucher-separator .separator-line {
+  width: 100%;
+  height: 0;
+  border-top: 2px dashed #cbd5e1;
+}
+
+.voucher-separator .separator-hole {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: #f1f5f9;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+}
+
+.voucher-separator .separator-hole.left {
+  left: -10px;
+}
+
+.voucher-separator .separator-hole.right {
+  right: -10px;
+}
+
+/* Voucher Body */
+.voucher-body {
+  padding: 14px 22px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Core Financial Metadata Grid */
+.meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  background: #f8fafc;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid #f1f5f9;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.meta-label {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.meta-value {
+  font-size: 12.5px;
+  color: #0f172a;
+}
+
+.copy-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  color: #64748b;
+  margin-left: 4px;
+  transition: all 0.15s ease;
+}
+
+.copy-icon-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.status-pill {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  width: fit-content;
+}
+
+.status-pill.paid {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-pill.pending {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.status-pill.cancelled {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Order Items Box */
+.order-items-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+.box-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.items-list {
+  display: grid;
+  gap: 6px;
+  padding: 6px 0;
+  max-height: 90px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.item-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.item-name {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.item-sku {
+  font-size: 10.5px;
+  color: #94a3b8;
+}
+
+.item-price {
+  font-weight: 600;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+/* Totals Table */
+.totals-table {
+  border-top: 1px dashed #e2e8f0;
+  padding-top: 6px;
+  margin-top: 4px;
+  display: grid;
+  gap: 3px;
+  font-size: 11.5px;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  color: #64748b;
+}
+
+.total-row.discount {
+  color: #059669;
+}
+
+.total-row.grand {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 4px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.total-row.grand strong {
+  font-size: 13.5px;
+  color: #074768;
+}
+
+/* Customer & Shipping Box */
+.shipping-box {
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: grid;
+  gap: 3px;
+  font-size: 11.5px;
+}
+
+.shipping-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.shipping-label {
+  color: #64748b;
+  min-width: 105px;
+  flex-shrink: 0;
+}
+
+.shipping-value {
+  color: #1e293b;
+  line-height: 1.35;
+}
+
+/* Alerts */
+.txn-alert {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+.txn-alert.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+.txn-alert.info {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  color: #0369a1;
+}
+
+.txn-alert-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.txn-alert-sub {
+  font-size: 11px;
+  margin: 2px 0 0;
+  color: #0369a1;
+}
+
+.txn-btn-compact {
+  padding: 6px 12px;
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+/* Actions */
+.voucher-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+
+.txn-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.txn-btn.primary {
+  background: #074768;
+  color: #ffffff;
+}
+
+.txn-btn.primary:hover:not(:disabled) {
+  background: #095982;
+}
+
+.txn-btn.secondary {
+  background: #ffffff;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+.txn-btn.secondary:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.txn-btn.outline {
+  background: #f8fafc;
+  color: #074768;
+  border-color: #bae6fd;
+}
+
+.txn-btn.outline:hover:not(:disabled) {
+  background: #e0f2fe;
+}
+
+.txn-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Footer */
+.voucher-footer {
+  text-align: center;
+  padding-top: 4px;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 2px;
+}
+
+.footer-timestamp {
+  font-size: 10.5px;
+  color: #94a3b8;
+  margin-top: 3px;
+}
+
+/* Loading & Empty states */
+.transaction-loading-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #ffffff;
+  padding: 32px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 13.5px;
+}
+
+.transaction-card {
+  width: 100%;
+  max-width: 480px;
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.transaction-card-header {
+  padding: 20px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.transaction-card-header h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+/* Print View: Clean physical receipt */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .transaction-screen,
+  .transaction-voucher,
+  .transaction-voucher * {
+    visibility: visible;
+  }
+  .transaction-screen {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+  }
+  .transaction-voucher {
+    max-width: 100%;
+    border: none;
+    box-shadow: none;
+  }
+  .voucher-actions,
+  .copy-icon-btn {
+    display: none !important;
+  }
+  .voucher-separator .separator-hole {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .meta-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .voucher-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .voucher-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  .txn-btn {
+    width: 100%;
+  }
+}
+
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.orders-toolbar { display: flex; justify-content: space-between; gap: 16px; align-items: end; margin-bottom: 20px; }
+.orders-toolbar label { display: grid; gap: 7px; font-size: 12px; color: #64748b; }
+.orders-toolbar select { min-width: 220px; font-size: 14px; color: #334155; }
+.orders-empty { display: grid; justify-items: center; padding: 44px; gap: 16px; text-align: center; }
+.orders-empty svg { color: #86a3b7; }
+.orders-empty h2 { font-weight: 650; }
+.orders-list { display: grid; gap: 20px; }
+.customer-order header { display: flex; justify-content: space-between; align-items: start; gap: 15px; border-bottom: 1px solid #edf2f7; padding-bottom: 12px; }
+.customer-order header strong { font-size: 15px; color: #074768; overflow-wrap: anywhere; }
+.order-products { display: grid; gap: 16px; margin: 18px 0; }
+.order-products > div { display: flex; justify-content: space-between; gap: 20px; font-size: 14px; }
+.order-products span { overflow-wrap: anywhere; }
+.order-products small { display: block; font-size: 11px; color: #94a3b8; margin-top: 6px; }
+.order-products strong { white-space: nowrap; font-weight: 600; }
+.customer-order footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 18px; padding-top: 16px; border-top: 1px solid #edf2f7; font-size: 13px; color: #64748b; }
+.customer-order footer strong { color: #074768; font-size: 21px; margin-left: 12px; white-space: nowrap; }
+@media(max-width:800px) { .payment-layout { grid-template-columns: minmax(0,1fr); } .payment-page-heading { align-items: start; flex-direction: column; } .payment-status-card { padding: 24px; } }
+@media(max-width:500px) { .purchase-modal .purchase-fields { grid-template-columns: 1fr; } .checkout-method { flex-wrap: wrap; padding: 12px; } .checkout-method > span:last-child { flex-basis: 100%; } .purchase-modal .purchase-actions { bottom: -18px; } .purchase-actions button { flex: 1; } .payment-status-card { padding: 18px; } .payment-status-card h2 { font-size: 20px; } .customer-order header { flex-direction: column; } .order-products > div { flex-direction: column; gap: 6px; } .orders-toolbar select { min-width: 0; } .payment-grand-total strong { font-size: 21px; } }

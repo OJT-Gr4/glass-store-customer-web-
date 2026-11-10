@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import HomePage from './components/HomePage';
@@ -10,7 +11,6 @@ import WarrantyCenterPage from './components/WarrantyCenterPage';
 import ClaimWarrantyPage from './components/ClaimWarrantyPage';
 import PolicyPage from './components/PolicyPage';
 import OrdersPage from './components/OrdersPage';
-import OrderDetailHubPage from './components/OrderDetailHubPage';
 import ReviewFeedbackPage from './components/ReviewFeedbackPage';
 import StoreLocationsPage from './components/StoreLocationsPage';
 import NotificationCenterPage from './components/NotificationCenterPage';
@@ -18,34 +18,51 @@ import VoucherLoyaltyPage from './components/VoucherLoyaltyPage';
 import AuthModal from './components/AuthModal';
 import CartDrawer from './components/CartDrawer';
 import CheckoutModal from './components/CheckoutModal';
-import OrderConfirmation from './components/OrderConfirmation';
+import OrderPaymentPage from './components/OrderPaymentPage';
+import { clearCheckoutClaim, readCart, saveCart } from './components/checkoutSession';
 import { addSelection } from './components/purchaseUtils';
 import { authApi } from './api/authApi';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('home'); 
-  // 'home' | 'products' | 'product-detail' | 'booking' | 'records' | 'warranty' | 'claim-warranty' | 'policy' | 'orders' | 'order-hub' | 'review'
+  const location = useLocation();
+  const navigate = useNavigate();
+  const orderCode = /^\/orders\/([A-Za-z0-9_-]{1,120})\/?$/.exec(location.pathname)?.[1];
+  const [tab, setTab] = useState('home');
+  const activeTab = orderCode ? 'order-hub' : location.pathname === '/orders' ? 'orders' : tab;
+  const setActiveTab = nextTab => {
+    const target = nextTab === 'order-hub' ? 'orders' : nextTab;
+    setTab(target);
+    navigate(target === 'orders' ? '/orders' : '/');
+    window.scrollTo({ top: 0 });
+  };
+  const openOrder = code => {
+    navigate(`/orders/${encodeURIComponent(code)}`);
+    window.scrollTo({ top: 0 });
+  };
   
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedProductDetail, setSelectedProductDetail] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
   useEffect(() => {
     let active = true;
     authApi.getMe().then(user => { if (active) setCurrentUser(user); })
-      .catch(() => { if (active) setCurrentUser(null); });
+      .catch(() => { if (active) setCurrentUser(null); })
+      .finally(() => { if (active) setAuthLoading(false); });
     return () => { active = false; };
   }, []);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [lastPlacedOrder, setLastPlacedOrder] = useState(null);
   const checkoutRequest = useRef(null);
 
   const handleLogout = () => {
     authApi.logout();
     setCurrentUser(null);
+    setCart([]); checkoutRequest.current = null; clearCheckoutClaim(); setCheckoutOpen(false);
   };
 
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(readCart);
+  useEffect(() => { saveCart(cart); }, [cart]);
   const handleAddToCart = selection => {
     if (!selection.items && !selection.productType) { handleViewDetail(selection); return; }
     setCart(addSelection(cart, selection));
@@ -168,14 +185,16 @@ export default function App() {
         {activeTab === 'orders' && (
           <OrdersPage
             setActiveTab={setActiveTab}
+            currentUser={currentUser} authLoading={authLoading}
+            openAuth={() => setIsAuthOpen(true)} onOpenOrder={openOrder}
           />
         )}
 
-        {/* Screen 10: Phiếu Xác Nhận Đơn Hàng, Mã QR Check-in & Tiến Độ Lab Delta 200 */}
-        {activeTab === 'order-hub' && !lastPlacedOrder && (
-          <OrderDetailHubPage
-            setActiveTab={setActiveTab}
-          />
+        {/* Stored order and payment status, including SePay return navigation. */}
+        {activeTab === 'order-hub' && orderCode && (
+            <OrderPaymentPage key={orderCode} orderCode={orderCode}
+            currentUser={currentUser} authLoading={authLoading} openAuth={() => setIsAuthOpen(true)}
+            onOrders={() => setActiveTab('orders')} onContinue={() => setActiveTab('products')} />
         )}
 
         {/* Screen 11: Đánh Giá Trải Nghiệm Mắt Kính & Dịch Vụ Khúc Xạ */}
@@ -207,10 +226,11 @@ export default function App() {
         )}
       </main>
 
-      {activeTab === 'order-hub' && lastPlacedOrder && <OrderConfirmation order={lastPlacedOrder} onContinue={() => setActiveTab('products')} />}
-      {checkoutOpen && <CheckoutModal cart={cart} user={currentUser} requestRef={checkoutRequest} onClose={() => setCheckoutOpen(false)} onSuccess={order => {
-        checkoutRequest.current = null;
-        setLastPlacedOrder(order); setCheckoutOpen(false); setCart([]); setActiveTab('order-hub'); window.scrollTo({top:0});
+      {checkoutOpen && <CheckoutModal cart={cart} user={currentUser} requestRef={checkoutRequest} onClose={() => { setCheckoutOpen(false); setIsCartOpen(true); }} onSuccess={order => {
+        checkoutRequest.current = null; clearCheckoutClaim();
+        setCheckoutOpen(false); setCart([]);
+        navigate(`/orders/${encodeURIComponent(order.orderCode)}`, { state: { initiatePayment: true } });
+        window.scrollTo({top:0});
       }} />}
       {/* 3. Footer Chuẩn Nhãn Khoa */}
       <Footer />

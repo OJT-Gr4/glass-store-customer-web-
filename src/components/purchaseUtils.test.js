@@ -33,3 +33,9 @@ test('catalog excludes inactive variants and respects available stock including 
   ]}]);
   assert.equal(rows.length,1); assert.equal(rows[0].stock,0);
 });
+
+test('checkout requires the explicitly supported payment method', () => {
+  for (const method of ['', 'CARD', 'VNPAY', 'COD']) {
+    assert.throws(() => checkoutPayload([frame], { name:'A', phone:'0901', address:'B' }, { id:10 }, method), /phương thức/);
+  }
+});

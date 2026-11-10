@@ -40,7 +40,8 @@ export function addSelection(cart, selection) {
   return next;
 }
 
-export function checkoutPayload(cart, contact, user) {
+export function checkoutPayload(cart, contact, user, paymentMethod = 'VIETQR') {
+  if (paymentMethod !== 'VIETQR') throw new Error('Vui lòng chọn phương thức thanh toán SePay.');
   if (!cart.length) throw new Error('Giỏ hàng đang trống.');
   const customerId = user?.id ?? user?.userId;
   if (!customerId) throw new Error('Vui lòng đăng nhập lại để đặt hàng.');
@@ -50,7 +51,7 @@ export function checkoutPayload(cart, contact, user) {
   const prescription = snapshots[0];
   const hasFrame = cart.some(item => item.productType === 'FRAME');
   return { channel: 'ONLINE', customerId, customerName: contact.name.trim(), customerPhone: contact.phone.trim(),
-    shippingAddress: contact.address.trim(), paymentMethod: 'VIETQR',
+    shippingAddress: contact.address.trim(), paymentMethod,
     orderType: prescription ? (hasFrame ? 'COMPLETE_GLASSES' : 'LENS_ONLY') : cart.every(item => item.productType === 'ACCESSORY') ? 'ACCESSORY' : 'FRAME_ONLY',
     ...(prescription ? { prescription } : {}),
     items: cart.map(item => {
