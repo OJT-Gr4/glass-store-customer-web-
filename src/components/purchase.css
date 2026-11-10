@@ -476,6 +476,529 @@
 /* ==========================================================================
    TRANSACTION VOUCHER / E-RECEIPT UI (Compact 1-Desktop Screen Viewport)
    ========================================================================== */
+/* ==========================================================================
+   Payment & Order Dashboard System (Full Desktop Layout, Zero-Scroll)
+   ========================================================================== */
+
+.payment-dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 20px 24px;
+  color: #1e293b;
+  font-family: inherit;
+}
+
+/* Breadcrumbs */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.crumb-link {
+  color: #086288;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.crumb-link:hover {
+  text-decoration: underline;
+}
+
+.crumb-sep {
+  color: #cbd5e1;
+}
+
+.crumb-current {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+/* Top Title Row */
+.dashboard-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.dashboard-main-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #074768;
+  margin: 0 0 3px;
+  letter-spacing: -0.01em;
+}
+
+.dashboard-subtitle {
+  font-size: 12.5px;
+  color: #64748b;
+  margin: 0;
+}
+
+.dashboard-status-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.status-pill-lg {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.status-pill-lg.paid {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.status-pill-lg.pending {
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fde68a;
+}
+
+.status-pill-lg.cancelled {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.dashboard-order-code {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* 4-Step Stepper Bar */
+.order-stepper-bar {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #dee8ff;
+  border-radius: 12px;
+  padding: 8px 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.step-circle {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11.5px;
+  font-weight: 700;
+  background: #f1f5f9;
+  color: #94a3b8;
+  border: 1px solid #cbd5e1;
+}
+
+.step-item.completed .step-circle {
+  background: #ecfdf5;
+  color: #059669;
+  border-color: #a7f3d0;
+}
+
+.step-item.current .step-circle {
+  background: #e0f2fe;
+  color: #0284c7;
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px #bae6fd;
+}
+
+.step-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.step-name {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.step-sub {
+  font-size: 10px;
+  color: #64748b;
+}
+
+.step-item.current .step-name {
+  color: #0369a1;
+}
+
+.step-line {
+  flex: 1;
+  height: 2px;
+  background: #e2e8f0;
+  margin: 0 12px;
+}
+
+.step-line.active {
+  background: #0284c7;
+}
+
+/* Main 2-Column Grid */
+.dashboard-main-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .dashboard-main-grid {
+    grid-template-columns: 1fr;
+  }
+  .order-stepper-bar {
+    display: none;
+  }
+}
+
+.dashboard-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Cards */
+.dashboard-card {
+  background: #ffffff;
+  border: 1px solid #dee8ff;
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+/* Payment Amount Card */
+.payment-amount-card {
+  background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);
+  border: 1.5px solid #bae6fd;
+}
+
+.amount-header-flex {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.amount-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #bae6fd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(3, 105, 161, 0.06);
+}
+
+.amount-text-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.amount-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.amount-val {
+  font-size: 26px;
+  font-weight: 800;
+  color: #074768;
+  line-height: 1.15;
+}
+
+.gateway-indicator {
+  font-size: 11.5px;
+  color: #475569;
+  padding-top: 6px;
+  border-top: 1px dashed #bae6fd;
+}
+
+/* SePay Portal Card */
+.sepay-portal-card {
+  border: 1.5px solid #bae6fd;
+  background: #ffffff;
+}
+
+.sepay-portal-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.portal-badge-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #e0f2fe;
+  color: #0284c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.portal-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 2px;
+}
+
+.portal-desc {
+  font-size: 11px;
+  color: #64748b;
+  margin: 0;
+}
+
+.sepay-steps-box {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+}
+
+.sepay-step-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #334155;
+}
+
+.step-num {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #086288;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.sepay-action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.btn-open-sepay {
+  width: 100%;
+  padding: 9px 16px;
+  font-size: 12.5px;
+  font-weight: 700;
+  background: #086288;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(8, 98, 136, 0.25);
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-open-sepay:hover:not(:disabled) {
+  background: #004967;
+}
+
+.btn-simulate-sepay {
+  width: 100%;
+  padding: 7px 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  justify-content: center;
+}
+
+.btn-simulate-sepay:hover:not(:disabled) {
+  background: #d1fae5;
+}
+
+/* Actions Bar */
+.dashboard-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dashboard-actions-bar .txn-btn {
+  padding: 7px 14px;
+  font-size: 12px;
+}
+
+/* Support & ISO Guarantee Card */
+.dashboard-support-card {
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 10px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.support-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #475569;
+}
+
+.support-item-sub {
+  font-size: 10px;
+  color: #94a3b8;
+  padding-top: 3px;
+  border-top: 1px solid #f1f5f9;
+}
+
+/* Right Column: Order Meta & Items */
+.card-section-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 8px;
+}
+
+.meta-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+}
+
+.items-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.badge-count {
+  font-size: 10.5px;
+  background: #e7eeff;
+  color: #004967;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.dashboard-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 95px;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin-bottom: 6px;
+}
+
+.dashboard-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 11.5px;
+}
+
+.dashboard-item-row:last-child {
+  border-bottom: none;
+}
+
+.dashboard-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.dashboard-item-name {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.dashboard-item-sub {
+  font-size: 10px;
+  color: #64748b;
+}
+
+.dashboard-item-price {
+  font-weight: 700;
+  color: #086288;
+  white-space: nowrap;
+}
+
+.dashboard-totals-table {
+  border-top: 1px dashed #dee8ff;
+  padding-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+}
+
+.total-line {
+  display: flex;
+  justify-content: space-between;
+  color: #64748b;
+}
+
+.total-line.discount {
+  color: #059669;
+}
+
+.grand-total-line {
+  border-top: 1px solid #dee8ff;
+  padding-top: 5px;
+  margin-top: 2px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.grand-price {
+  font-size: 15px;
+  color: #086288;
+}
+
 .transaction-screen {
   min-height: calc(100vh - 76px);
   display: flex;
@@ -1077,12 +1600,12 @@
 
 @media (min-width: 860px) {
   .order-hub-card {
-    max-width: 1020px;
+    max-width: 1200px;
     margin: 0 auto;
   }
   .order-hub-grid {
     display: grid;
-    grid-template-columns: 360px 1fr;
+    grid-template-columns: 440px 1fr;
     gap: 20px;
     align-items: start;
   }
@@ -1293,7 +1816,9 @@
   }
   .transaction-screen,
   .transaction-voucher,
-  .transaction-voucher * {
+  .transaction-voucher *,
+  .payment-dashboard-container,
+  .payment-dashboard-container * {
     visibility: visible;
   }
   .transaction-screen {
