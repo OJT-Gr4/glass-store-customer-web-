@@ -22,8 +22,13 @@ function customerProfile(data) {
 export const authApi = {
   async login(credentials) {
     authApi.logout();
+    const payload = typeof credentials === 'object' && credentials !== null ? {
+      ...credentials,
+      username: credentials.username || credentials.email,
+      email: credentials.email || credentials.username,
+    } : credentials;
     const data = await request('login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(credentials),
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
     });
     if (!data?.token || data.token.split('.').length !== 3)
       throw new Error('Máy chủ không trả về phiên đăng nhập hợp lệ.');
@@ -38,6 +43,31 @@ export const authApi = {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(customerData),
     });
     if (!data?.id) throw new Error('Máy chủ chưa xác nhận tạo tài khoản.');
+    return data;
+  },
+
+  async sendOtp(payload) {
+    const data = await request('otp/send', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+    });
+    if (!data?.challengeId) throw new Error('Máy chủ chưa khởi tạo được phiên xác thực OTP.');
+    return data;
+  },
+
+  async verifyPhoneOtp(payload) {
+    const data = await request('otp/verify', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+    });
+    if (!data?.verified) throw new Error('Xác thực OTP chưa thành công.');
+    return data;
+  },
+
+  async resetPassword(payload) {
+    const data = await request('password/reset', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+    });
+    if (!data?.verified) throw new Error('Đặt lại mật khẩu chưa thành công.');
+    authApi.logout();
     return data;
   },
 

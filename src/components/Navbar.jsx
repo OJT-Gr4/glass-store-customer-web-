@@ -1,173 +1,200 @@
-import React from 'react';
-import { Eye, Bell, ShoppingBag, User, Phone, LogOut } from 'lucide-react';
+import React, { useState } from 'react';
+import { Eye, Bell, ShoppingBag, User, LogOut, ChevronDown, Phone, MapPin } from 'lucide-react';
 
 export default function Navbar({ activeTab, setActiveTab, cartCount, openAuthModal, openCart, currentUser, onLogout }) {
-  const navItems = [
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+
+  const mainNavItems = [
     { id: 'home', label: 'Trang Chủ' },
     { id: 'products', label: 'Sản Phẩm' },
     { id: 'booking', label: 'Đặt Lịch Đo Mắt' },
     { id: 'records', label: 'Hồ Sơ Thị Lực' },
-    { id: 'warranty', label: 'Tra Cứu Bảo Hành' },
     { id: 'orders', label: 'Đơn Hàng' },
-    { id: 'stores', label: 'Cửa Hàng' },
-    { id: 'vouchers', label: 'Ưu Đãi & VIP' },
-    { id: 'policy', label: 'Chính Sách' },
+    { id: 'warranty', label: 'Bảo Hành' },
   ];
 
+  const moreNavItems = [
+    { id: 'stores', label: 'Hệ Thống Cửa Hàng' },
+    { id: 'vouchers', label: 'Kho Voucher & VIP' },
+    { id: 'policy', label: 'Chính Sách Hậu Mãi' },
+  ];
+
+  const handleNavClick = (id) => {
+    setActiveTab(id);
+    setMoreMenuOpen(false);
+  };
+
+  const isMoreActive = moreNavItems.some(item => item.id === activeTab);
+
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200">
-      {/* Top micro bar */}
-      <div className="bg-[#04334f] text-slate-200 text-xs py-1.5 px-4 hidden sm:block">
-        <div className="max-w-[1600px] mx-auto flex justify-between items-center">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#e7eeff] shadow-[0_1px_6px_rgba(0,0,0,0.03)]">
+      {/* Micro top header - Minimal, light, clean like internal portal */}
+      <div className="bg-[#f0f3ff] border-b border-[#e7eeff] text-[#40484e] text-[11px] py-1 px-4 hidden md:block">
+        <div className="max-w-[1440px] mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <span className="bg-[#0b5c87] text-[#97d7ff] px-2 py-0.5 rounded text-[10px] font-semibold tracking-wide uppercase">
-              Hệ Thống Chuẩn Y Khoa
+            <span className="inline-flex items-center gap-1 font-semibold text-[#004967]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#086288]"></span>
+              Hệ thống phòng khám & khúc xạ y khoa OptiVision
             </span>
-            <span className="text-slate-300 text-xs">
-              Đo thị lực khúc xạ 12 bước tiêu chuẩn quốc tế miễn phí 100%
-            </span>
+            <span className="text-slate-300">•</span>
+            <span>Đo mắt 12 bước chuẩn quốc tế · Cắt kính lấy ngay trong 20 phút</span>
           </div>
-          <div className="flex items-center gap-4 text-xs">
-            <span className="flex items-center gap-1.5 hover:text-white cursor-pointer transition">
-              <Phone className="w-3 h-3 text-[#97d7ff]" /> Hotline hỗ trợ: <strong>1900 6868</strong>
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-1 text-[#004967] font-semibold">
+              <Phone className="w-3 h-3 text-[#086288]" /> Hotline: 1900 6868
             </span>
-            <span className="text-slate-500">|</span>
-            <span className="text-slate-300">16+ Showroom toàn quốc</span>
+            <span className="text-slate-300">•</span>
+            <button 
+              onClick={() => setActiveTab('stores')}
+              className="hover:text-[#004967] transition cursor-pointer"
+            >
+              16+ Chi nhánh toàn quốc
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Main navigation */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between gap-6">
-        {/* Brand Logo */}
+      {/* Main Navigation Bar */}
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+        {/* Brand Logo - Exact match to Internal Portal */}
         <div 
           onClick={() => setActiveTab('home')} 
-          className="flex items-center gap-2.5 cursor-pointer select-none group"
+          className="flex items-center gap-3 cursor-pointer select-none group shrink-0"
         >
-          <div className="w-10 h-10 rounded-xl bg-[#074768] text-white flex items-center justify-center shadow-md shadow-[#074768]/20 group-hover:bg-[#09577f] transition">
-            <Eye className="w-5 h-5 text-[#97d7ff]" />
+          <div className="w-9 h-9 rounded-xl bg-[#086288] text-white flex items-center justify-center shadow-sm group-hover:bg-[#004967] transition">
+            <Eye className="w-5 h-5 text-[#cae6ff]" />
           </div>
-          <div className="flex flex-col">
-            <span className="text-xl sm:text-2xl font-black tracking-tight text-[#074768] leading-none">
-              Opti<span className="text-[#38bdf8]">Vision</span>
-            </span>
-            <span className="text-[9px] uppercase tracking-widest font-bold text-slate-500 mt-1">
-              OMNICHANNEL EYEWEAR
+          <div>
+            <span className="text-lg text-[#004967] font-bold block leading-tight">OptiVision</span>
+            <span className="text-[10px] text-[#19648f] tracking-widest uppercase block font-bold">
+              Clinical &amp; Eyewear
             </span>
           </div>
         </div>
 
-        {/* Center menu */}
-        <nav className="hidden lg:flex items-center gap-1">
-          {navItems.map((item) => {
+        {/* Center Desktop Navigation - Minimalist Pill Style */}
+        <nav className="hidden lg:flex items-center gap-1.5">
+          {mainNavItems.map((item) => {
             const isActive = activeTab === item.id;
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`px-3.5 py-2 rounded-lg text-sm font-semibold transition-all ${
+                onClick={() => handleNavClick(item.id)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   isActive
-                    ? 'text-[#074768] bg-[#e0f2fe] font-bold'
-                    : 'text-slate-600 hover:text-[#074768] hover:bg-slate-100/80'
+                    ? 'bg-[#086288] text-white font-bold shadow-sm'
+                    : 'text-[#40484e] hover:bg-[#dee8ff] hover:text-[#111c2d]'
                 }`}
               >
                 {item.label}
               </button>
             );
           })}
+
+          {/* "Thêm" Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setMoreMenuOpen(!moreMenuOpen)}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
+                isMoreActive
+                  ? 'bg-[#086288] text-white font-bold shadow-sm'
+                  : 'text-[#40484e] hover:bg-[#dee8ff] hover:text-[#111c2d]'
+              }`}
+            >
+              <span>Dịch Vụ Khác</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${moreMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {moreMenuOpen && (
+              <div 
+                className="absolute left-0 mt-1.5 w-48 bg-white rounded-xl shadow-lg border border-[#dee8ff] py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150"
+                onMouseLeave={() => setMoreMenuOpen(false)}
+              >
+                {moreNavItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleNavClick(item.id)}
+                    className={`w-full text-left px-3.5 py-2 text-xs font-medium flex items-center justify-between transition cursor-pointer ${
+                      activeTab === item.id
+                        ? 'text-[#004967] bg-[#e7eeff] font-bold'
+                        : 'text-[#40484e] hover:bg-[#f0f3ff] hover:text-[#111c2d]'
+                    }`}
+                  >
+                    <span>{item.label}</span>
+                    {activeTab === item.id && <span className="w-1.5 h-1.5 rounded-full bg-[#086288]"></span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </nav>
 
-        {/* Right actions */}
-        <div className="flex items-center gap-2.5">
+        {/* Right Actions */}
+        <div className="flex items-center gap-2">
           {/* Notifications button */}
           <button 
             onClick={() => setActiveTab('notifications')}
             aria-label="Thông báo"
-            className={`relative p-2 rounded-full transition ${
+            className={`relative p-2 rounded-xl transition cursor-pointer ${
               activeTab === 'notifications' 
-                ? 'text-[#074768] bg-[#e0f2fe]' 
-                : 'text-slate-600 hover:text-[#074768] hover:bg-slate-100'
+                ? 'bg-[#e7eeff] text-[#004967]' 
+                : 'text-[#40484e] hover:text-[#111c2d] hover:bg-[#f0f3ff]'
             }`}
           >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
+            <Bell className="w-4 h-4" />
+            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#086288] rounded-full ring-2 ring-white"></span>
           </button>
 
           {/* Cart button */}
           <button
             onClick={openCart}
             aria-label="Giỏ hàng"
-            className="relative p-2 text-slate-600 hover:text-[#074768] hover:bg-slate-100 rounded-full transition"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#e7eeff] hover:bg-[#dee8ff] text-[#004967] text-xs font-bold transition cursor-pointer"
           >
-            <ShoppingBag className="w-5 h-5" />
+            <ShoppingBag className="w-4 h-4 text-[#086288]" />
+            <span className="hidden sm:inline">Giỏ hàng</span>
             {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#074768] text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-sm">
+              <span className="bg-[#086288] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full min-w-[18px] text-center">
                 {cartCount}
               </span>
             )}
           </button>
 
-          {/* User Account / VIP Button */}
+          {/* User Account or Login CTA */}
           {currentUser ? (
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2.5 bg-[#074768] text-white pl-3 pr-4 py-2 rounded-xl font-semibold shadow-md shadow-[#074768]/20 border border-[#97d7ff]/20">
-                <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center border border-white/20 flex-shrink-0">
-                  <User className="w-4 h-4 text-[#97d7ff]" />
+            <div className="flex items-center gap-2 pl-1 border-l border-[#dee8ff]">
+              <div 
+                onClick={() => setActiveTab('orders')}
+                className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-[#f0f3ff] transition cursor-pointer"
+              >
+                <div className="w-7 h-7 rounded-full bg-[#004967] text-white flex items-center justify-center text-xs font-bold shrink-0">
+                  <User className="w-3.5 h-3.5 text-[#cae6ff]" />
                 </div>
-                <div className="text-left hidden sm:flex flex-col justify-center">
-                  <span className="text-[10px] text-[#97d7ff] uppercase font-bold tracking-wider leading-none">
-                    {currentUser.tier || 'Thành Viên'}
-                  </span>
-                  <span className="text-xs font-bold text-white whitespace-nowrap mt-1 leading-none">
+                <div className="hidden md:block text-left leading-tight">
+                  <div className="text-xs font-bold text-[#111c2d] max-w-[120px] truncate">
                     {currentUser.name || currentUser.fullName || 'Khách Hàng'}
-                  </span>
+                  </div>
+                  <div className="text-[10px] text-[#086288] font-medium">Thành viên</div>
                 </div>
               </div>
               <button
                 onClick={onLogout}
                 title="Đăng xuất"
-                className="p-2 text-xs font-semibold text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition flex items-center gap-1 border border-slate-200"
+                className="p-1.5 rounded-lg text-[#ba1a1a] hover:bg-[#ffdad6] transition cursor-pointer"
               >
-                <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden md:inline">Đăng xuất</span>
+                <LogOut className="w-4 h-4" />
               </button>
             </div>
           ) : (
             <button
               onClick={openAuthModal}
-              className="flex items-center gap-2.5 bg-[#074768] hover:bg-[#09577f] text-white px-4 py-2.5 rounded-xl font-semibold shadow-md shadow-[#074768]/20 transition-all active:scale-95 ml-2 border border-[#97d7ff]/20 min-w-[155px]"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#086288] hover:bg-[#004967] text-white text-xs font-bold shadow-sm transition active:scale-[0.98] cursor-pointer"
             >
-              <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center border border-white/20 flex-shrink-0">
-                <User className="w-4 h-4 text-[#97d7ff]" />
-              </div>
-              <div className="text-left hidden sm:flex flex-col justify-center">
-                <span className="text-[10px] text-[#97d7ff] uppercase font-bold tracking-wider leading-none">
-                  Xác Thực
-                </span>
-                <span className="text-xs font-bold text-white whitespace-nowrap mt-1 leading-none">
-                  Đăng Nhập / Đăng Ký
-                </span>
-              </div>
+              <User className="w-3.5 h-3.5 text-[#cae6ff]" />
+              <span>Đăng Nhập</span>
             </button>
           )}
         </div>
-      </div>
-
-      {/* Mobile navigation tab scroll */}
-      <div className="lg:hidden flex items-center gap-1 overflow-x-auto px-4 py-2 border-t border-slate-100 bg-slate-50/80 no-scrollbar">
-        {navItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setActiveTab(item.id)}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition ${
-              activeTab === item.id
-                ? 'bg-[#074768] text-white'
-                : 'text-slate-600 hover:bg-slate-200/60'
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
       </div>
     </header>
   );

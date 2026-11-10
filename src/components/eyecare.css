@@ -1,27 +1,248 @@
-.eyecare-page { max-width:1200px; margin:0 auto; padding:32px 24px; color:#263143; }
-.eyecare-header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:24px; }
-.eyecare-page h1 { font-size:26px; font-weight:750; margin:0 0 8px; }
-.eyecare-page h2 { font-size:18px; font-weight:650; margin:0 0 16px; }
-.eyecare-page p { margin:10px 0; }
-.eyecare-muted { color:#64748b; font-size:14px; }
-.eyecare-panel { background:white; border:1px solid #e2e8f0; border-radius:18px; padding:24px; margin:20px 0; }
-.eyecare-page button { cursor:pointer; border:1px solid #cbd5e1; border-radius:9px; background:white; padding:9px 14px; font-size:14px; }
-.eyecare-page button:disabled { cursor:default; opacity:.5; }
-.eyecare-page .eyecare-primary { color:white; background:#074768; border-color:#074768; }
-.eyecare-actions { display:flex; gap:10px; flex-wrap:wrap; }
-.eyecare-table { width:100%; border-collapse:collapse; font-size:14px; }
-.eyecare-table th,.eyecare-table td { padding:12px; text-align:left; border-bottom:1px solid #e2e8f0; }
-.eyecare-table th { font-weight:600; background:#f8fafc; }
-.eyecare-overflow { overflow-x:auto; }
-.eyecare-page label { display:flex; flex-direction:column; gap:8px; font-size:14px; margin:18px 0; }
-.eyecare-page input,.eyecare-page textarea,.eyecare-page select { border:1px solid #cbd5e1; border-radius:8px; padding:10px; background:white; width:100%; }
-.eyecare-error { padding:14px; color:#991b1b; background:#fff1f2; border:1px solid #fecdd3; border-radius:10px; }
-.eyecare-success { padding:16px; color:#166534; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; }
-.eyecare-versions { border-top:1px solid #e2e8f0; margin-top:24px; padding-top:20px; }
-@media(max-width:640px) { .eyecare-page { padding:24px 16px; } .eyecare-header { align-items:flex-start; flex-direction:column; } .eyecare-panel { padding:16px; } }
+/* ==========================================================================
+   OptiVision Customer Web - Eyecare & Clinical Records Design System
+   Exact match to Internal Portal Design System (#086288, #004967, #e7eeff, #dee8ff)
+   ========================================================================== */
+
+.eyecare-page {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px 20px;
+  color: #111c2d;
+  font-family: inherit;
+}
+
+.eyecare-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.eyecare-page h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111c2d;
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+}
+
+.eyecare-page h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111c2d;
+  margin: 0 0 12px;
+}
+
+.eyecare-page p {
+  margin: 6px 0;
+  font-size: 13px;
+  color: #40484e;
+  line-height: 1.5;
+}
+
+.eyecare-muted {
+  color: #40484e;
+  font-size: 12.5px;
+}
+
+.eyecare-panel {
+  background: #ffffff;
+  border: 1px solid #dee8ff;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 16px 0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02);
+}
+
+.eyecare-page button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  border: 1px solid #dee8ff;
+  border-radius: 10px;
+  background: #e7eeff;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #004967;
+  transition: all 0.15s ease;
+}
+
+.eyecare-page button:hover:not(:disabled) {
+  background: #dee8ff;
+  color: #111c2d;
+}
+
+.eyecare-page button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.eyecare-page .eyecare-primary {
+  color: #ffffff;
+  background: #086288;
+  border-color: #086288;
+  box-shadow: 0 1px 2px rgba(8, 98, 136, 0.2);
+}
+
+.eyecare-page .eyecare-primary:hover:not(:disabled) {
+  background: #004967;
+  border-color: #004967;
+  color: #ffffff;
+}
+
+.eyecare-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* --- Tables --- */
+.eyecare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.eyecare-table th,
+.eyecare-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e7eeff;
+}
+
+.eyecare-table th {
+  font-weight: 700;
+  color: #40484e;
+  background: #f0f3ff;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.eyecare-table tbody tr:hover td {
+  background: #f9f9ff;
+}
+
+.eyecare-overflow {
+  overflow-x: auto;
+  border: 1px solid #dee8ff;
+  border-radius: 10px;
+  background: #ffffff;
+  margin: 12px 0;
+}
+
+/* Form Controls */
+.eyecare-page label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #111c2d;
+  margin: 12px 0;
+}
+
+.eyecare-page input,
+.eyecare-page textarea,
+.eyecare-page select {
+  border: 1px solid #dee8ff;
+  border-radius: 10px;
+  padding: 8px 12px;
+  background: #ffffff;
+  width: 100%;
+  font-size: 12.5px;
+  color: #111c2d;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.eyecare-page input:focus,
+.eyecare-page textarea:focus,
+.eyecare-page select:focus {
+  border-color: #086288;
+  box-shadow: 0 0 0 2px rgba(8, 98, 136, 0.15);
+}
+
+.eyecare-error {
+  padding: 10px 14px;
+  color: #ba1a1a;
+  background: #ffdad6;
+  border: 1px solid #ffb4ab;
+  border-radius: 8px;
+  margin: 10px 0;
+  font-size: 12px;
+}
+
+.eyecare-success {
+  padding: 14px 16px;
+  color: #005030;
+  background: #c3eed4;
+  border: 1px solid #a4e2bd;
+  border-radius: 10px;
+  margin: 12px 0;
+}
+
+.eyecare-success h2 {
+  color: #005030;
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+
+.eyecare-versions {
+  border-top: 1px solid #dee8ff;
+  margin-top: 16px;
+  padding-top: 12px;
+}
+
+.eyecare-versions summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: #086288;
+  padding: 6px 0;
+  user-select: none;
+}
+
+.eyecare-versions summary:hover {
+  color: #004967;
+}
+
+@media (max-width: 640px) {
+  .eyecare-page {
+    padding: 16px 12px;
+  }
+  .eyecare-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .eyecare-panel {
+    padding: 14px;
+  }
+}
+
 @media print {
-  body:has(.eyecare-print) * { visibility:hidden; }
-  .eyecare-print,.eyecare-print * { visibility:visible !important; }
-  .eyecare-print { position:absolute; top:0; left:0; width:100%; padding:12mm; margin:0; border:0; }
-  .eyecare-print .eyecare-no-print { display:none; }
+  body:has(.eyecare-print) * {
+    visibility: hidden;
+  }
+  .eyecare-print,
+  .eyecare-print * {
+    visibility: visible !important;
+  }
+  .eyecare-print {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 12mm;
+    margin: 0;
+    border: 0;
+    box-shadow: none;
+  }
+  .eyecare-print .eyecare-no-print {
+    display: none;
+  }
 }
