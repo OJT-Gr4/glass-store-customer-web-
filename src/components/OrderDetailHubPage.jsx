@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { customerOrdersApi } from '../api/customerOrdersApi.js';
 import { money } from './purchaseUtils.js';
 import { orderDate, orderStatusLabels, canRequestCancellation } from './customerOrderUtils.js';
@@ -26,6 +26,22 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
 
   const generation = useRef(0);
   const locked = useRef(false);
+  const refreshLock = useRef(false);
+
+  const silentCheck = useCallback(async () => {
+    if (!customerId || !orderId || refreshLock.current) return;
+    refreshLock.current = true;
+    try {
+      const updated = await customerOrdersApi.get(orderId, customerId);
+      if (updated) {
+        setState(prev => (prev.id === orderId && prev.owner === customerId ? { ...prev, order: updated } : prev));
+      }
+    } catch {
+      // Silent background check failure
+    } finally {
+      refreshLock.current = false;
+    }
+  }, [customerId, orderId]);
 
   useEffect(() => {
     const run = ++generation.current;
@@ -62,13 +78,16 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
     }
   }, [order?.status, order?.id]);
 
+  // Silent real-time background polling every 3s without remounting or resetting QR
   useEffect(() => {
-    if (order?.status !== 'PENDING_PAYMENT') return;
+    if (!customerId || !orderId || order?.status !== 'PENDING_PAYMENT') return;
     const interval = setInterval(() => {
-      setRetry(v => v + 1);
+      if (document.visibilityState === 'visible') {
+        silentCheck();
+      }
     }, 3000);
     return () => clearInterval(interval);
-  }, [order?.status]);
+  }, [customerId, orderId, order?.status, silentCheck]);
 
   const cancel = async event => {
     event.preventDefault();
@@ -176,7 +195,7 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
                   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
                     <button
                       type="button"
-                      onClick={() => setRetry(v => v + 1)}
+                      onClick={silentCheck}
                       style={{ padding: '0.4rem 0.8rem', background: '#059669', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}
                     >
                       Đã thanh toán? Nhấn để kiểm tra
@@ -186,7 +205,7 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
                       onClick={async () => {
                         try {
                           await fetch(`/api/payments/sandbox/simulate-callback?orderCode=${encodeURIComponent(order.orderCode)}`, { method: 'POST' });
-                          setRetry(v => v + 1);
+                          await silentCheck();
                         } catch (e) {
                           alert(e.message);
                         }
