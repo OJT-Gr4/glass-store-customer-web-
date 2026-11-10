@@ -184,7 +184,11 @@ export default function OrderPaymentPage({ orderCode, currentUser, authLoading, 
   useEffect(() => () => paymentRequest.current?.abort(), []);
 
   useEffect(() => {
-    if (authLoading || !currentUser) return;
+    if (authLoading) return;
+    if (!currentUser) {
+      setLoading(false);
+      return;
+    }
     const controller = new AbortController();
     setLoading(true);
     setOrder(null);
@@ -343,7 +347,7 @@ export default function OrderPaymentPage({ orderCode, currentUser, authLoading, 
                 <Sparkles size={14} /> Giao dịch đã được ghi nhận vào tài khoản thụ hưởng
               </span>
             ) : (
-              <span>Cổng thanh toán: <strong>{isVietQr ? 'VietQR QuickLink (Napas 24/7)' : 'SePay VietQR (Napas 24/7)'}</strong></span>
+              <span>Cổng thanh toán: <strong>{isVietQr ? 'VietQR QuickLink (Napas 24/7)' : 'Cổng Thanh Toán SePay (Napas 24/7)'}</strong></span>
             )}
           </p>
         </div>
@@ -391,7 +395,7 @@ export default function OrderPaymentPage({ orderCode, currentUser, authLoading, 
             <div className="meta-item">
               <span className="meta-label">Phương thức thanh toán:</span>
               <span className="meta-value font-medium text-slate-800">
-                {isVietQr ? 'Chuyển khoản VietQR QuickLink (24/7)' : 'Chuyển khoản SePay VietQR (24/7)'}
+                {isVietQr ? 'Chuyển khoản VietQR QuickLink (24/7)' : 'Chuyển khoản Cổng SePay (24/7)'}
               </span>
             </div>
 
