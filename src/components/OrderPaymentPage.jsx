@@ -212,6 +212,13 @@ export default function OrderPaymentPage({ orderCode, currentUser, authLoading, 
   const phase = order ? paymentState(order, payments) : null;
   const isVietQr = Boolean(order && (order.notes?.includes('PAYMENT_PROVIDER:VIETQR') || (!order.notes?.includes('PAYMENT_PROVIDER:SEPAY') && order.paymentMethod === 'VIETQR')));
 
+  useEffect(() => {
+    if (order && isVietQr) {
+      window.location.hash = `orders/${order.id}`;
+      window.location.href = `/#orders/${order.id}`;
+    }
+  }, [order, isVietQr]);
+
   const handleSimulatePayment = useCallback(async () => {
     if (!order?.orderCode) return;
     setSimulating(true);
@@ -417,43 +424,62 @@ export default function OrderPaymentPage({ orderCode, currentUser, authLoading, 
             </div>
           </div>
 
-          {/* QR Code and Quick Bank Transfer Card */}
+          {/* SePay Gateway Payment Action Card */}
           {phase === 'PENDING' && (
             <div style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               background: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              borderRadius: '12px',
-              padding: '16px',
-              margin: '8px 0',
-              textAlign: 'center'
+              border: '1.5px solid #bae6fd',
+              borderRadius: '14px',
+              padding: '24px 20px',
+              margin: '12px 0',
+              textAlign: 'center',
+              boxShadow: '0 2px 8px rgba(3, 105, 161, 0.06)'
             }}>
-              <img
-                src={isVietQr
-                  ? `https://img.vietqr.io/image/970422-0987654321-compact2.png?amount=${order.finalAmount}&addInfo=${encodeURIComponent('DH ' + order.orderCode)}&accountName=${encodeURIComponent('OPTI VISION CLINICAL')}`
-                  : `https://qr.sepay.vn/img?acc=1903&bank=MBBank&amount=${order.finalAmount}&des=${encodeURIComponent(order.orderCode)}`
-                }
-                alt="QR Thanh Toán"
-                style={{ maxWidth: '220px', width: '100%', borderRadius: '10px', background: '#fff', padding: '8px', border: '1px solid #cbd5e1' }}
-              />
-              <p style={{ margin: '8px 0 4px', fontSize: '12px', color: '#086288', fontWeight: 600 }}>
-                {isVietQr ? 'Quét mã VietQR bằng App Ngân Hàng bất kỳ' : 'Quét mã SePay QR Napas 24/7'}
-              </p>
-              <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '10px' }}>
-                MBBank · STK: <strong>{isVietQr ? '0987654321' : '1903'}</strong> · Số tiền: <strong>{money(order.finalAmount)}</strong>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                background: '#e0f2fe',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#0284c7',
+                marginBottom: '10px'
+              }}>
+                <ExternalLink size={24} />
               </div>
-              <button
-                type="button"
-                className="txn-btn primary txn-btn-compact"
-                onClick={handleSimulatePayment}
-                disabled={simulating || refreshing}
-                style={{ fontSize: '11px', padding: '6px 12px' }}
-              >
-                <Sparkles size={12} className={simulating ? 'spin' : ''} />
-                {simulating ? 'Đang xử lý…' : (isVietQr ? '⚡ Giả lập thanh toán VietQR thành công' : '⚡ Giả lập thanh toán SePay thành công')}
-              </button>
+              <h3 style={{ margin: '0 0 6px', fontSize: '15px', color: '#0f172a', fontWeight: 700 }}>
+                Cổng Thanh Toán Trực Tuyến SePay Sandbox
+              </h3>
+              <p style={{ margin: '0 0 16px', fontSize: '12.5px', color: '#475569', maxWidth: '380px', lineHeight: 1.5 }}>
+                Đơn hàng đã được lưu an toàn. Nhấn nút bên dưới để mở Cổng thanh toán SePay và hoàn tất giao dịch.
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', maxWidth: '320px' }}>
+                <button
+                  type="button"
+                  className="txn-btn primary"
+                  disabled={paying || refreshing || Boolean(error)}
+                  onClick={() => startPayment(order.id)}
+                  style={{ justifyContent: 'center', padding: '10px 18px', fontSize: '13px' }}
+                >
+                  {paying ? 'Đang mở SePay…' : 'Mở cổng thanh toán SePay ngay ↗'}
+                  <ExternalLink size={15} />
+                </button>
+                <button
+                  type="button"
+                  className="txn-btn secondary txn-btn-compact"
+                  onClick={handleSimulatePayment}
+                  disabled={simulating || refreshing}
+                  style={{ justifyContent: 'center', fontSize: '12px', padding: '8px 12px', background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0' }}
+                >
+                  <Sparkles size={13} className={simulating ? 'spin' : ''} />
+                  {simulating ? 'Đang xử lý…' : '⚡ Giả lập thanh toán SePay thành công'}
+                </button>
+              </div>
             </div>
           )}
 
