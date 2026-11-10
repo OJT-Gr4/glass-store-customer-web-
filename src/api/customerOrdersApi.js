@@ -49,6 +49,23 @@ export const customerOrdersApi = {
       throw new Error('Chưa xác nhận được yêu cầu hủy. Hãy tải lại đơn để kiểm tra.');
     return order;
   },
+  async requestReturn(id, customerId, reason) {
+    requireId(customerId);
+    if (!reason?.trim()) throw new Error('Vui lòng nhập lý do đổi / trả hàng.');
+    const response = await fetch(`${baseUrl}/api/orders/${requireId(id)}/return-request`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('optivision_customer_token')}`
+      },
+      body: JSON.stringify({ reason: reason.trim() })
+    });
+    const envelope = await response.json().catch(() => null);
+    if (!response.ok) {
+      throw new Error(envelope?.message || 'Không thể gửi yêu cầu đổi / trả hàng.');
+    }
+    return envelope?.data;
+  },
   async initiatePayment(id, customerId) {
     requireId(customerId);
     const token = localStorage.getItem('optivision_customer_token');

@@ -17,6 +17,13 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
   const [initiatingPayment, setInitiatingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState('');
 
+  // Return / Exchange request state (GLAS-17 S3-17)
+  const [returnReason, setReturnReason] = useState('Trầy xước bề mặt tròng kính');
+  const [returnNote, setReturnNote] = useState('');
+  const [returnSuccess, setReturnSuccess] = useState(false);
+  const [submittingReturn, setSubmittingReturn] = useState(false);
+  const [returnError, setReturnError] = useState('');
+
   const generation = useRef(0);
   const locked = useRef(false);
 
@@ -61,6 +68,21 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
     finally { if (generation.current === run) { locked.current = false; setRequesting(false); } }
   };
 
+  const handleReturn = async event => {
+    event.preventDefault();
+    try {
+      setSubmittingReturn(true);
+      setReturnError('');
+      const combined = `${returnReason}${returnNote ? `: ${returnNote}` : ''}`;
+      await customerOrdersApi.requestReturn(orderId, customerId, combined);
+      setReturnSuccess(true);
+    } catch (err) {
+      setReturnError(err.message || 'Lỗi khi gửi yêu cầu đổi/trả hàng');
+    } finally {
+      setSubmittingReturn(false);
+    }
+  };
+
   return (
     <section className="purchase-page">
       <div className="purchase-toolbar">
@@ -80,7 +102,10 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
           <p><strong>{orderStatusLabels[order.status] || order.status}</strong></p>
           <p className="purchase-muted">Ngày tạo: {orderDate(order.createdAt)}</p>
           <p>{order.customerName} · {order.customerPhone}</p>
-          {order.shippingAddress && <p>{order.shippingAddress}</p>}
+          {order.deliveryMethod && (
+            <p><strong>Hình thức nhận:</strong> {order.deliveryMethod === 'SHOWROOM' ? `Nhận tại showroom (${order.storePickupLocation || 'Showroom OptiVision'})` : 'Giao hàng tận nơi'}</p>
+          )}
+          {order.shippingAddress && <p><strong>Địa chỉ:</strong> {order.shippingAddress}</p>}
           {order.branchName && <p>Chi nhánh: {order.branchName}</p>}
 
           <div className="purchase-summary">
@@ -161,6 +186,56 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
                 {requesting ? 'Đang gửi…' : 'Gửi yêu cầu hủy'}
               </button>
             </form>
+          )}
+
+          {/* GLAS-17: Return & Exchange Request for completed orders */}
+          {['COMPLETED', 'DELIVERED'].includes(String(order.status || '').toUpperCase()) && (
+            <div style={{ marginTop: '1.25rem', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #cbd5e1' }}>
+              <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '0.95rem', color: '#0f172a' }}>Chính Sách Đổi Trả &amp; Hậu Mãi (S3-17)</h3>
+              <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.8rem', color: '#475569' }}>
+                Đơn hàng đã hoàn tất. Quý khách được quyền đổi trả hoặc chỉnh nắn miễn phí trong vòng 30 ngày nếu phát hiện lỗi quang học hoặc trầy xước.
+              </p>
+              {returnSuccess ? (
+                <div style={{ padding: '0.75rem', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', color: '#166534', fontSize: '0.85rem' }}>
+                  ✓ Đã tiếp nhận yêu cầu đổi / trả hàng thành công! Đội ngũ CSKH OptiVision sẽ liên hệ với bạn trong vòng 24 giờ.
+                </div>
+              ) : (
+                <form onSubmit={handleReturn} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.8rem', fontWeight: 600, color: '#334155' }}>
+                    Lý do đổi / trả hàng:
+                    <select
+                      value={returnReason}
+                      onChange={e => setReturnReason(e.target.value)}
+                      style={{ padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.8rem', background: '#fff' }}
+                    >
+                      <option value="Trầy xước bề mặt tròng kính">Trầy xước bề mặt tròng kính</option>
+                      <option value="Sai thông số độ cận/loạn so với toa đo">Sai thông số độ cận/loạn so với toa đo</option>
+                      <option value="Gọng bị chật/lỏng hoặc lệch càng">Gọng bị chật/lỏng hoặc lệch càng</option>
+                      <option value="Bong tróc lớp váng phủ chống chói">Bong tróc lớp váng phủ chống chói</option>
+                      <option value="Khác">Lý do khác</option>
+                    </select>
+                  </label>
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.8rem', fontWeight: 600, color: '#334155' }}>
+                    Ghi chú thêm (tùy chọn):
+                    <input
+                      type="text"
+                      placeholder="Mô tả chi tiết tình trạng kính..."
+                      value={returnNote}
+                      onChange={e => setReturnNote(e.target.value)}
+                      style={{ padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.8rem' }}
+                    />
+                  </label>
+                  {returnError && <p style={{ color: '#dc2626', fontSize: '0.8rem', margin: 0 }}>{returnError}</p>}
+                  <button
+                    type="submit"
+                    disabled={submittingReturn}
+                    style={{ alignSelf: 'flex-start', padding: '0.4rem 0.9rem', background: '#086288', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
+                  >
+                    {submittingReturn ? 'Đang gửi yêu cầu…' : 'Gửi yêu cầu đổi / trả'}
+                  </button>
+                </form>
+              )}
+            </div>
           )}
 
           {cancelError && <p role="alert" className="purchase-error">{cancelError} Trạng thái đang hiển thị được giữ nguyên; tải lại đơn để kiểm tra trước khi thử lại.</p>}
