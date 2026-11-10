@@ -561,30 +561,9 @@ export default function OrderPaymentPage({ orderCode, currentUser, authLoading, 
               </>
             ) : (
               <>
-                {isVietQr ? (
-                  <button
-                    type="button"
-                    className="txn-btn primary"
-                    onClick={() => { window.location.hash = `orders/${order.id}`; window.location.href = `/#orders/${order.id}`; }}
-                  >
-                    <FileText size={15} /> Xem chi tiết đơn hàng (Hub)
-                  </button>
-                ) : (
-                  canPay(order, payments) && (
-                    <button
-                      type="button"
-                      className="txn-btn primary"
-                      disabled={paying || refreshing || Boolean(error)}
-                      onClick={() => startPayment(order.id)}
-                    >
-                      {paying ? 'Đang mở SePay…' : 'Mở cổng thanh toán SePay ngay ↗'}
-                      <ExternalLink size={15} />
-                    </button>
-                  )
-                )}
                 <button
                   type="button"
-                  className="txn-btn secondary"
+                  className="txn-btn primary"
                   onClick={refresh}
                   disabled={refreshing || paying}
                 >
