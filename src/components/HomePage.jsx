@@ -161,7 +161,7 @@ export default function HomePage({ setActiveTab, openBooking, openAuth, onAddToC
           <div className="lg:col-span-7 space-y-4">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#e7eeff] text-[#004967] text-xs font-semibold">
               <span className="w-1.5 h-1.5 rounded-full bg-[#086288]"></span>
-              Tiêu chuẩn đo khúc xạ y khoa quốc tế
+              Chuỗi Cửa Hàng Kính Mắt Chính Hãng
             </div>
 
             <h1 className="text-2xl sm:text-4xl font-bold text-[#111c2d] tracking-tight leading-tight">
@@ -170,8 +170,7 @@ export default function HomePage({ setActiveTab, openBooking, openAuth, onAddToC
             </h1>
 
             <p className="text-xs sm:text-sm text-[#40484e] leading-relaxed max-w-xl">
-              Giải pháp mắt kính đo khúc xạ chuẩn y khoa kết hợp công nghệ mài lắp tự động Đức. 
-              Trải nghiệm thị lực êm ái, sắc nét và tính thẩm mỹ hoàn hảo cho người dùng.
+              Phân phối gọng kính thời trang, tròng kính kiểm soát khúc xạ và phụ kiện quang học chính hãng từ Ray-Ban, Bolon, Gentle Monster, Essilor và Zeiss.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -196,7 +195,7 @@ export default function HomePage({ setActiveTab, openBooking, openAuth, onAddToC
             <div className="pt-4 border-t border-[#e7eeff] flex flex-wrap items-center gap-6 text-xs text-[#40484e]">
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-[#086288]" />
-                <span>{locations.length > 0 ? `${locations.length}+ Chi nhánh toàn quốc` : '16+ Chi nhánh toàn quốc'}</span>
+                <span>{locations.length > 0 ? `${locations.length}+ Showroom toàn quốc` : 'Showroom hiện đại'}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-[#086288]" />
@@ -204,7 +203,7 @@ export default function HomePage({ setActiveTab, openBooking, openAuth, onAddToC
               </div>
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-[#086288]" />
-                <span>Bảo hiểm độ khúc xạ 180 ngày</span>
+                <span>Bảo hành độ khúc xạ 180 ngày</span>
               </div>
             </div>
           </div>
@@ -217,16 +216,6 @@ export default function HomePage({ setActiveTab, openBooking, openAuth, onAddToC
                 alt="Bộ sưu tập kính mắt OptiVision"
                 className="w-full h-full object-cover"
               />
-            </div>
-            {/* Minimal floating badge */}
-            <div className="absolute -bottom-3 -left-3 bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl border border-[#dee8ff] shadow-sm flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-[#e7eeff] flex items-center justify-center text-[#086288]">
-                <Eye className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="text-xs font-bold text-[#111c2d]">Đo Khúc Xạ 12 Bước</div>
-                <div className="text-[10px] text-[#40484e]">Thiết bị Topcon Nhật Bản</div>
-              </div>
             </div>
           </div>
         </div>
@@ -287,7 +276,7 @@ export default function HomePage({ setActiveTab, openBooking, openAuth, onAddToC
               Sản Phẩm Nổi Bật ({filteredBestSellers.length})
             </h2>
             <p className="text-xs text-[#40484e]">
-              Các mẫu gọng và tròng kính được đồng bộ thời gian thực từ cơ sở dữ liệu
+              Bộ sưu tập gọng kính và tròng kính thịnh hành được yêu thích nhất
             </p>
           </div>
 
@@ -432,7 +421,7 @@ export default function HomePage({ setActiveTab, openBooking, openAuth, onAddToC
               </div>
               <h3 className="font-bold text-[#111c2d] text-xs">Đo Khúc Xạ &amp; Nhập Toa Kính</h3>
               <p className="text-[11px] text-[#40484e] mt-1 leading-relaxed">
-                Đo mắt 12 bước trực tiếp tại showroom hoặc chọn lại toa kính đã lưu trong hồ sơ thị lực.
+                Đo khám thị lực trực tiếp tại showroom hoặc sử dụng lại toa kính trong hồ sơ thị lực.
               </p>
             </div>
             <button
@@ -473,7 +462,7 @@ export default function HomePage({ setActiveTab, openBooking, openAuth, onAddToC
               Hệ Thống Chi Nhánh ({locations.length > 0 ? locations.length : 3} Chi Nhánh)
             </h2>
             <p className="text-xs text-[#40484e]">
-              Cơ sở đạt chuẩn phòng khám khúc xạ, nạp trực tiếp từ cơ sở dữ liệu hệ thống
+              Cơ sở đo mắt &amp; phân phối mắt kính chính hãng tiện lợi, gần bạn nhất
             </p>
           </div>
           <button

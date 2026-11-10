@@ -22,9 +22,9 @@ export default function StoreLocationsPage({ setActiveTab }) {
       phone: '028 3822 6868',
       hours: '08:30 - 21:30 (Thứ 2 - CN)',
       headDoctor: 'BS. Khúc xạ Lâm Hoàng Phúc',
-      equipment: 'Máy đo Topcon KR-800 Nhật Bản, Essilor Delta 200 Pháp',
-      features: ['Đo mắt 12 bước', 'Lấy ngay 20 phút', 'Đậu xe hơi miễn phí'],
-      image: 'https://images.unsplash.com/photo-1577803645773-f96470509666?auto=format&fit=crop&w=600&q=80',
+      equipment: 'Hệ thống đo khúc xạ tự động, máy mài viền kỹ thuật số',
+      features: ['Đo khúc xạ chuẩn y khoa', 'Gia công lấy ngay 20 phút', 'Đậu xe hơi miễn phí'],
+      image: 'https://images.unsplash.com/photo-1555529771-835f59fc5efe?auto=format&fit=crop&w=800&q=80',
     },
     {
       id: 'HK',
@@ -35,9 +35,9 @@ export default function StoreLocationsPage({ setActiveTab }) {
       phone: '024 3936 6868',
       hours: '08:30 - 21:30 (Thứ 2 - CN)',
       headDoctor: 'ThS. Đỗ Thùy Trang (ĐHY Hà Nội)',
-      equipment: 'Hệ thống Topcon CV-5000 tự động, Essilor Pro Special 2.0',
-      features: ['Đo mắt 12 bước', 'Lấy ngay 20 phút', 'Valet Parking ô tô'],
-      image: 'https://images.unsplash.com/photo-1591076482161-42ce6da69f67?auto=format&fit=crop&w=600&q=80',
+      equipment: 'Thiết bị khám nhãn khoa kỹ thuật số, máy mài tự động',
+      features: ['Đo khúc xạ chuẩn y khoa', 'Gia công lấy ngay 20 phút', 'Bảo dưỡng trọn đời'],
+      image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80',
     },
     {
       id: 'HC',
@@ -48,9 +48,9 @@ export default function StoreLocationsPage({ setActiveTab }) {
       phone: '0236 388 6868',
       hours: '08:30 - 21:30 (Thứ 2 - CN)',
       headDoctor: 'Cử nhân Khúc xạ Nguyễn Văn Bình',
-      equipment: 'Máy đo khúc xạ Topcon KR-800, máy mài Nidek LE-900',
-      features: ['Đo mắt 12 bước', 'Chỗ đậu xe rộng'],
-      image: 'https://images.unsplash.com/photo-1508296695146-257a814070b4?auto=format&fit=crop&w=600&q=80',
+      equipment: 'Hệ thống đo khúc xạ và mài lắp chuẩn nhãn khoa',
+      features: ['Đo khúc xạ chuẩn y khoa', 'Chỗ đậu xe rộng', 'Tư vấn phom kính'],
+      image: 'https://images.unsplash.com/photo-1528698827591-e19ccd7bc23d?auto=format&fit=crop&w=800&q=80',
     },
   ];
 

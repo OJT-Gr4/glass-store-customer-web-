@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Eye, Bell, ShoppingBag, User, LogOut, ChevronDown, Phone, MapPin } from 'lucide-react';
 
-export default function Navbar({ activeTab, setActiveTab, cartCount, unreadCount = 0, openAuthModal, openCart, currentUser, onLogout }) {
+export default function Navbar({ activeTab, setActiveTab, cartCount, unreadCount = 0, openAuthModal, openCart, openProfileModal, currentUser, onLogout }) {
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const mainNavItems = [
     { id: 'home', label: 'Trang Chủ' },
@@ -168,11 +169,12 @@ export default function Navbar({ activeTab, setActiveTab, cartCount, unreadCount
             )}
           </button>
 
-          {/* User Account or Login CTA */}
+          {/* User Account Dropdown */}
           {currentUser ? (
-            <div className="flex items-center gap-2 pl-1 border-l border-[#dee8ff]">
-              <div 
-                onClick={() => setActiveTab('orders')}
+            <div className="relative pl-1 border-l border-[#dee8ff]">
+              <button 
+                type="button"
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
                 className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-[#f0f3ff] transition cursor-pointer"
               >
                 <div className="w-7 h-7 rounded-full bg-[#004967] text-white flex items-center justify-center text-xs font-bold shrink-0">
@@ -184,14 +186,62 @@ export default function Navbar({ activeTab, setActiveTab, cartCount, unreadCount
                   </div>
                   <div className="text-[10px] text-[#086288] font-medium">Thành viên</div>
                 </div>
-              </div>
-              <button
-                onClick={onLogout}
-                title="Đăng xuất"
-                className="p-1.5 rounded-lg text-[#ba1a1a] hover:bg-[#ffdad6] transition cursor-pointer"
-              >
-                <LogOut className="w-4 h-4" />
+                <ChevronDown className="w-3.5 h-3.5 text-[#70787f]" />
               </button>
+
+              {userMenuOpen && (
+                <div 
+                  className="absolute right-0 mt-1.5 w-52 bg-white rounded-2xl border border-[#dee8ff] shadow-lg py-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-150"
+                  onClick={() => setUserMenuOpen(false)}
+                >
+                  <div className="px-3 py-2 border-b border-[#f0f3ff]">
+                    <div className="text-xs font-bold text-[#111c2d] truncate">
+                      {currentUser.name || currentUser.fullName}
+                    </div>
+                    <div className="text-[10px] text-[#70787f] font-mono">
+                      {currentUser.phone || currentUser.phoneNumber || currentUser.email || 'Khách hàng'}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => { setUserMenuOpen(false); if (openProfileModal) openProfileModal(); }}
+                    className="w-full px-3 py-2 text-left text-xs text-[#111c2d] hover:bg-[#f0f3ff] font-semibold flex items-center gap-2 cursor-pointer transition"
+                  >
+                    <User className="w-3.5 h-3.5 text-[#086288]" />
+                    <span>Thông tin cá nhân</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setUserMenuOpen(false); setActiveTab('orders'); }}
+                    className="w-full px-3 py-2 text-left text-xs text-[#111c2d] hover:bg-[#f0f3ff] font-semibold flex items-center gap-2 cursor-pointer transition"
+                  >
+                    <ShoppingBag className="w-3.5 h-3.5 text-[#086288]" />
+                    <span>Đơn hàng của bạn</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setUserMenuOpen(false); setActiveTab('records'); }}
+                    className="w-full px-3 py-2 text-left text-xs text-[#111c2d] hover:bg-[#f0f3ff] font-semibold flex items-center gap-2 cursor-pointer transition"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-[#086288]" />
+                    <span>Hồ sơ thị lực & toa kính</span>
+                  </button>
+
+                  <div className="border-t border-[#f0f3ff] mt-1 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => { setUserMenuOpen(false); onLogout(); }}
+                      className="w-full px-3 py-2 text-left text-xs text-[#ba1a1a] hover:bg-[#ffdad6] font-semibold flex items-center gap-2 cursor-pointer transition"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Đăng xuất</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <button

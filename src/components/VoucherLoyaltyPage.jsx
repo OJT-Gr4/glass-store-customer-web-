@@ -148,7 +148,7 @@ export default function VoucherLoyaltyPage({ setActiveTab, currentUser }) {
     return v.category === activeFilter;
   });
 
-  const pointsBalance = loyaltyAccount?.balance ?? (currentUser ? 500 : 0);
+  const pointsBalance = loyaltyAccount?.balance ?? 0;
 
   return (
     <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 space-y-6">
@@ -163,7 +163,7 @@ export default function VoucherLoyaltyPage({ setActiveTab, currentUser }) {
             Kho Voucher Ưu Đãi &amp; Điểm Tích Lũy OptiVIP
           </h1>
           <p className="text-xs text-[#40484e] mt-0.5">
-            Tích điểm qua mỗi đơn hàng và quy đổi mã giảm giá trực tiếp từ cơ sở dữ liệu hệ thống.
+            Tích điểm qua mỗi đơn hàng (10.000đ = 1 điểm) và sử dụng mã giảm giá khi thanh toán.
           </p>
         </div>
 
@@ -173,7 +173,7 @@ export default function VoucherLoyaltyPage({ setActiveTab, currentUser }) {
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-[10px] text-[#40484e] font-semibold">Điểm tích lũy CSDL:</div>
+            <div className="text-[10px] text-[#40484e] font-semibold">Điểm tích lũy khả dụng:</div>
             <div className="text-sm font-bold text-[#086288]">
               {loyaltyLoading ? 'Đang tải…' : `${pointsBalance.toLocaleString('vi-VN')} Điểm`}
             </div>
@@ -188,7 +188,7 @@ export default function VoucherLoyaltyPage({ setActiveTab, currentUser }) {
             <Tag className="w-4 h-4 text-[#40484e] absolute left-3 top-2.5" />
             <input
               type="text"
-              placeholder="Nhập mã voucher (VD: BOLON200K, FREELAB2026...) để tra cứu CSDL..."
+              placeholder="Nhập mã voucher (VD: BOLON200K, FREELAB2026...) để kiểm tra..."
               value={couponInput}
               onChange={(e) => setCouponInput(e.target.value)}
               className="w-full text-xs bg-[#f9f9ff] border border-[#dee8ff] rounded-xl pl-9 pr-3 py-2 text-[#111c2d] uppercase font-mono outline-none focus:border-[#086288]"
@@ -200,7 +200,7 @@ export default function VoucherLoyaltyPage({ setActiveTab, currentUser }) {
             className="px-5 py-2 rounded-xl bg-[#086288] hover:bg-[#004967] disabled:opacity-50 text-white text-xs font-bold shadow-sm transition shrink-0 cursor-pointer flex items-center justify-center gap-1.5"
           >
             {couponLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-            <span>Kiểm Tra CSDL</span>
+            <span>Kiểm Tra Mã</span>
           </button>
         </form>
 

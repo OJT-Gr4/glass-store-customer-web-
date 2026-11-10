@@ -117,7 +117,7 @@ export default function ReviewFeedbackPage({ setActiveTab, currentUser, orderId 
           </div>
           <h2 className="text-base font-bold text-[#111c2d]">Cảm Ơn Quý Khách Đã Đánh Giá!</h2>
           <p className="text-xs text-[#40484e]">
-            Đánh giá của bạn đã được ghi nhận vào hệ thống. Bạn nhận được +500 Điểm Tích Lũy OptiVIP cho lần mua sắm kế tiếp.
+            Ý kiến đóng góp quý báu của bạn giúp OptiVision không ngừng nâng cao chất lượng dịch vụ và sản phẩm.
           </p>
           <button
             onClick={() => setActiveTab('orders')}
@@ -242,7 +242,7 @@ export default function ReviewFeedbackPage({ setActiveTab, currentUser, orderId 
               disabled={submitting}
               className="w-full py-2.5 rounded-xl bg-[#086288] hover:bg-[#004967] disabled:opacity-50 text-white font-bold text-xs shadow-sm transition active:scale-[0.98] cursor-pointer"
             >
-              {submitting ? 'Đang gửi đánh giá…' : 'Gửi Đánh Giá & Nhận +500 Điểm VIP'}
+              {submitting ? 'Đang gửi đánh giá…' : 'Gửi Đánh Giá Trải Nghiệm'}
             </button>
           </div>
         </form>

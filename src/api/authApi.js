@@ -84,6 +84,25 @@ export const authApi = {
     }
   },
 
+  async updateProfile(id, profileData) {
+    const token = authApi.getToken();
+    const res = await fetch(`${API_BASE_URL}/api/users/customers/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify(profileData)
+    });
+    const envelope = await res.json().catch(() => null);
+    if (!res.ok || !envelope || (envelope.code != null && envelope.code >= 400)) {
+      throw new Error(envelope?.message || 'Không thể cập nhật hồ sơ cá nhân.');
+    }
+    const updated = customerProfile(envelope.data);
+    localStorage.setItem(USER_KEY, JSON.stringify(updated));
+    return updated;
+  },
+
   logout() { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); },
   getCurrentUser() {
     if (!authApi.getToken()) return null;
