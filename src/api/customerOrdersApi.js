@@ -80,4 +80,35 @@ export const customerOrdersApi = {
     }
     return envelope?.data;
   },
+  async verifyAndConfirmPayment(id, customerId, orderCode) {
+    requireId(customerId);
+    const token = localStorage.getItem('optivision_customer_token');
+    const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+
+    // 1. Kích hoạt VietQR Test Callback (Bước 5)
+    try {
+      const vqrRes = await fetch(`${baseUrl}/api/payments/vietqr/test-callback?orderCode=${encodeURIComponent(orderCode)}`, {
+        method: 'POST',
+        headers
+      });
+      if (vqrRes.ok) {
+        return await this.get(id, customerId);
+      }
+    } catch (e) {
+      console.warn('VietQR test-callback attempt:', e);
+    }
+
+    // 2. Dự phòng Sandbox simulate-callback nếu VietQR dev server bận
+    try {
+      await fetch(`${baseUrl}/api/payments/sandbox/simulate-callback?orderCode=${encodeURIComponent(orderCode)}`, {
+        method: 'POST',
+        headers
+      });
+    } catch (e) {
+      console.warn('Sandbox simulate-callback attempt:', e);
+    }
+
+    // 3. Lấy lại chi tiết đơn hàng đã cập nhật trạng thái mới nhất
+    return await this.get(id, customerId);
+  },
 };

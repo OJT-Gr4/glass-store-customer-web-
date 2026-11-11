@@ -4,6 +4,13 @@ import { productApi } from '../api/productApi';
 import { catalogVariants, money } from './purchaseUtils';
 import './purchase.css';
 
+const DEFAULT_PRODUCT_IMAGES = {
+  FRAME: 'https://images.unsplash.com/photo-1591076482161-42ce6da69f67?auto=format&fit=crop&w=600&q=80',
+  LENS: 'https://images.unsplash.com/photo-1582142839970-2b9da988941f?auto=format&fit=crop&w=600&q=80',
+  SUNGLASSES: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=600&q=80',
+  ACCESSORY: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=600&q=80'
+};
+
 export default function ProductCatalogPage({ onAddToCart, onViewDetail }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -137,18 +144,15 @@ export default function ProductCatalogPage({ onAddToCart, onViewDetail }) {
               >
                 {/* Product Image Area */}
                 <div className="relative h-48 bg-slate-50 flex items-center justify-center overflow-hidden border-b border-slate-100">
-                  {variant.imageUrl ? (
-                    <img 
-                      src={variant.imageUrl} 
-                      alt={p.name} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-                    />
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 bg-slate-100/80 gap-1">
-                      <Eye className="w-8 h-8 text-slate-300" />
-                      <span className="text-[11px] font-bold text-slate-400">OptiVision</span>
-                    </div>
-                  )}
+                  <img 
+                    src={variant.imageUrl || DEFAULT_PRODUCT_IMAGES[p.productType] || DEFAULT_PRODUCT_IMAGES.FRAME} 
+                    alt={p.name} 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = DEFAULT_PRODUCT_IMAGES[p.productType] || DEFAULT_PRODUCT_IMAGES.FRAME;
+                    }}
+                  />
 
                   {/* Brand Tag (Admin Warm Cream Tag) */}
                   <span className="absolute top-3 left-3 bg-[#FFEFC4] text-[#086288] text-[10.5px] font-extrabold px-2.5 py-0.5 rounded-full border border-[#f5dfa2] shadow-xs">

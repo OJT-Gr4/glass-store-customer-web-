@@ -173,7 +173,7 @@ export default function VoucherLoyaltyPage({ setActiveTab, currentUser }) {
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-[10px] text-[#40484e] font-semibold">Điểm tích lũy CSDL:</div>
+            <div className="text-[10px] text-[#40484e] font-semibold">Điểm tích lũy khả dụng:</div>
             <div className="text-sm font-bold text-[#086288]">
               {loyaltyLoading ? 'Đang tải…' : `${pointsBalance.toLocaleString('vi-VN')} Điểm`}
             </div>
@@ -188,7 +188,7 @@ export default function VoucherLoyaltyPage({ setActiveTab, currentUser }) {
             <Tag className="w-4 h-4 text-[#40484e] absolute left-3 top-2.5" />
             <input
               type="text"
-              placeholder="Nhập mã voucher (VD: BOLON200K, FREELAB2026...) để tra cứu CSDL..."
+              placeholder="Nhập mã voucher (VD: BOLON200K, FREELAB2026...) để kiểm tra..."
               value={couponInput}
               onChange={(e) => setCouponInput(e.target.value)}
               className="w-full text-xs bg-[#f9f9ff] border border-[#dee8ff] rounded-xl pl-9 pr-3 py-2 text-[#111c2d] uppercase font-mono outline-none focus:border-[#086288]"
@@ -200,7 +200,7 @@ export default function VoucherLoyaltyPage({ setActiveTab, currentUser }) {
             className="px-5 py-2 rounded-xl bg-[#086288] hover:bg-[#004967] disabled:opacity-50 text-white text-xs font-bold shadow-sm transition shrink-0 cursor-pointer flex items-center justify-center gap-1.5"
           >
             {couponLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-            <span>Kiểm Tra CSDL</span>
+            <span>Kiểm Tra Mã</span>
           </button>
         </form>
 

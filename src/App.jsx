@@ -18,6 +18,7 @@ import StoreLocationsPage from './components/StoreLocationsPage';
 import NotificationCenterPage from './components/NotificationCenterPage';
 import VoucherLoyaltyPage from './components/VoucherLoyaltyPage';
 import AuthModal from './components/AuthModal';
+import CustomerProfileModal from './components/CustomerProfileModal';
 import CartDrawer from './components/CartDrawer';
 import CheckoutModal from './components/CheckoutModal';
 import { clearCheckoutClaim } from './components/checkoutSession';
@@ -82,6 +83,7 @@ export default function App() {
   }, []);
 
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedProductDetail, setSelectedProductDetail] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
@@ -212,6 +214,7 @@ export default function App() {
         cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
         unreadCount={unreadNotificationCount}
         openAuthModal={() => setIsAuthOpen(true)}
+        openProfileModal={() => setIsProfileOpen(true)}
         openCart={() => setIsCartOpen(true)}
         currentUser={currentUser}
         onLogout={handleLogout}
@@ -422,6 +425,16 @@ export default function App() {
           activeCustomerId.current = user.id;
           if (!currentUser?.id) setCartNotice(claimGuestCart(user.id, addSelection));
           setCurrentUser(user);
+        }}
+      />
+
+      {/* 6. Modal Cập Nhật Thông Tin Cá Nhân Khách Hàng */}
+      <CustomerProfileModal
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        currentUser={currentUser}
+        onProfileUpdated={(updated) => {
+          setCurrentUser(updated);
         }}
       />
     </div>
