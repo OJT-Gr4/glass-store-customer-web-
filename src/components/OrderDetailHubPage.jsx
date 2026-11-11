@@ -16,6 +16,8 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
   const [paymentData, setPaymentData] = useState(null);
   const [initiatingPayment, setInitiatingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState('');
+  const [checkingPayment, setCheckingPayment] = useState(false);
+  const [paymentNotice, setPaymentNotice] = useState('');
 
   // Return / Exchange request state (GLAS-17 S3-17)
   const [returnReason, setReturnReason] = useState('Trầy xước bề mặt tròng kính');
@@ -30,11 +32,17 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
   useEffect(() => {
     const run = ++generation.current;
     setReason(''); setCancelError(''); setRequesting(false); locked.current = false;
-    setPaymentData(null); setPaymentError('');
     if (!customerId || !orderId) return;
-    setState({ owner: customerId, id: orderId, loading: true, order: null, error: '' });
+    setState(prev => prev.order ? prev : { owner: customerId, id: orderId, loading: true, order: null, error: '' });
     customerOrdersApi.get(orderId, customerId)
-      .then(order => { if (generation.current === run) setState({ owner: customerId, id: orderId, loading: false, order, error: '' }); })
+      .then(order => {
+        if (generation.current === run) {
+          setState({ owner: customerId, id: orderId, loading: false, order, error: '' });
+          if (order && order.status !== 'PENDING_PAYMENT') {
+            setPaymentData(null);
+          }
+        }
+      })
       .catch(error => { if (generation.current === run) setState({ owner: customerId, id: orderId, loading: false, order: null, error: error.message }); });
     return () => { generation.current++; };
   }, [customerId, orderId, retry]);
@@ -43,10 +51,51 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
   const current = state.owner === customerId && state.id === orderId ? state : { loading: true, order: null, error: '' };
   const order = current.order;
 
+  // Tự động kiểm tra trạng thái thanh toán theo chu kỳ 2.5s khi đang mở mã VietQR
+  useEffect(() => {
+    if (!paymentData || !customerId || !orderId || order?.status !== 'PENDING_PAYMENT') return;
+
+    const timer = setInterval(async () => {
+      try {
+        const fresh = await customerOrdersApi.get(orderId, customerId);
+        if (fresh && fresh.status !== 'PENDING_PAYMENT') {
+          setState({ owner: customerId, id: orderId, loading: false, order: fresh, error: '' });
+          setPaymentData(null);
+          setPaymentNotice('Thanh toán thành công! Đơn hàng đã được xác nhận.');
+        }
+      } catch {
+        // silent polling catch
+      }
+    }, 2500);
+
+    return () => clearInterval(timer);
+  }, [paymentData, customerId, orderId, order?.status]);
+
+  const handleVerifyPayment = async () => {
+    if (!order?.orderCode || checkingPayment) return;
+    try {
+      setCheckingPayment(true);
+      setPaymentNotice('Đang kiểm tra & kích hoạt đối soát giao dịch VietQR...');
+      const updated = await customerOrdersApi.verifyAndConfirmPayment(orderId, customerId, order.orderCode);
+      if (updated && updated.status !== 'PENDING_PAYMENT') {
+        setState({ owner: customerId, id: orderId, loading: false, order: updated, error: '' });
+        setPaymentData(null);
+        setPaymentNotice('Thanh toán thành công! Đơn hàng đã chuyển sang trạng thái: Đã thanh toán.');
+      } else {
+        setPaymentNotice('Chưa ghi nhận biến động số dư. Nếu bạn đã chuyển khoản, vui lòng thử lại sau 2-3 giây.');
+      }
+    } catch (err) {
+      setPaymentNotice(err.message || 'Lỗi khi kiểm tra thanh toán.');
+    } finally {
+      setCheckingPayment(false);
+    }
+  };
+
   const handleInitiatePayment = async () => {
     try {
       setInitiatingPayment(true);
       setPaymentError('');
+      setPaymentNotice('');
       const data = await customerOrdersApi.initiatePayment(orderId, customerId);
       setPaymentData(data);
     } catch (err) {
@@ -123,7 +172,7 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
           {/* S3-02: Payment Sandbox QR Code & Initiation Flow */}
           {order.status === 'PENDING_PAYMENT' && (order.paymentMethod === 'VIETQR' || order.paymentMethod === 'VNPAY' || !order.paymentMethod || order.paymentMethod === 'CASH') && (
             <div style={{ marginTop: '1rem', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #cbd5e1' }}>
-              <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', color: '#0f172a' }}>Cổng Thanh Toán Trực Tuyến Sandbox (S3-02)</h3>
+              <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', color: '#0f172a' }}>Cổng Thanh Toán Trực Tuyến Sandbox</h3>
               <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.85rem', color: '#475569' }}>
                 Đơn hàng đang chờ thanh toán. Bạn có thể mở mã VietQR hoặc đường dẫn thanh toán để thực hiện chuyển khoản.
               </p>
@@ -152,11 +201,26 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
                   </p>
                   <button
                     type="button"
-                    onClick={() => setRetry(v => v + 1)}
-                    style={{ padding: '0.4rem 0.8rem', background: '#059669', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}
+                    onClick={handleVerifyPayment}
+                    disabled={checkingPayment}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      background: '#059669',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: checkingPayment ? 'not-allowed' : 'pointer',
+                      fontSize: '0.85rem',
+                      fontWeight: 600
+                    }}
                   >
-                    Đã thanh toán? Nhấn để kiểm tra
+                    {checkingPayment ? 'Đang kiểm tra giao dịch…' : 'Đã thanh toán? Nhấn để kiểm tra'}
                   </button>
+                  {paymentNotice && (
+                    <p style={{ margin: 0, fontSize: '0.8rem', color: paymentNotice.includes('thành công') ? '#059669' : '#d97706', textAlign: 'center', fontWeight: 500 }}>
+                      {paymentNotice}
+                    </p>
+                  )}
                 </div>
               )}
 
