@@ -3,12 +3,13 @@ import { Search, Filter, RotateCw, AlertCircle, ShoppingBag, Eye, Check } from '
 import { productApi } from '../api/productApi';
 import { catalogVariants, money } from './purchaseUtils';
 import './purchase.css';
+import { DEFAULT_PRODUCT_IMAGE } from './imageUploadUtils';
 
 const DEFAULT_PRODUCT_IMAGES = {
-  FRAME: 'https://images.unsplash.com/photo-1591076482161-42ce6da69f67?auto=format&fit=crop&w=600&q=80',
-  LENS: 'https://images.unsplash.com/photo-1582142839970-2b9da988941f?auto=format&fit=crop&w=600&q=80',
-  SUNGLASSES: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=600&q=80',
-  ACCESSORY: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=600&q=80'
+  FRAME: DEFAULT_PRODUCT_IMAGE,
+  LENS: DEFAULT_PRODUCT_IMAGE,
+  SUNGLASSES: DEFAULT_PRODUCT_IMAGE,
+  ACCESSORY: DEFAULT_PRODUCT_IMAGE
 };
 
 export default function ProductCatalogPage({ onAddToCart, onViewDetail }) {
@@ -154,8 +155,8 @@ export default function ProductCatalogPage({ onAddToCart, onViewDetail }) {
                     }}
                   />
 
-                  {/* Brand Tag (Admin Warm Cream Tag) */}
-                  <span className="absolute top-3 left-3 bg-[#FFEFC4] text-[#086288] text-[10.5px] font-extrabold px-2.5 py-0.5 rounded-full border border-[#f5dfa2] shadow-xs">
+                  {/* Brand Tag (Clean Ice-Blue Clinical Pill) */}
+                  <span className="absolute top-3 left-3 bg-[#f0f7ff]/95 backdrop-blur-xs text-[#004967] text-[10.5px] font-bold px-2.5 py-0.5 rounded-full border border-[#c7e0f7] shadow-xs">
                     {p.brandName || 'OptiVision'}
                   </span>
 

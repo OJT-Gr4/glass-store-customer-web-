@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, User, Phone, Mail, MapPin, Check, AlertCircle, Loader2, Award } from 'lucide-react';
+import { X, User, Phone, Mail, MapPin, Check, AlertCircle, Loader2, Award, Upload, RotateCcw, Image as ImageIcon } from 'lucide-react';
 import { authApi } from '../api/authApi';
+import { compressImageToDataUrl, DEFAULT_AVATAR_URL, isValidImageInput } from './imageUploadUtils';
 
 export default function CustomerProfileModal({ isOpen, onClose, currentUser, onProfileUpdated }) {
   const [fullName, setFullName] = useState('');
@@ -8,6 +9,7 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
   const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
   const [gender, setGender] = useState('Nam');
+  const [avatarUrl, setAvatarUrl] = useState(DEFAULT_AVATAR_URL);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -19,12 +21,27 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
       setEmail(currentUser.email || '');
       setAddress(currentUser.address || '');
       setGender(currentUser.gender || 'Nam');
+      setAvatarUrl(currentUser.avatarUrl || DEFAULT_AVATAR_URL);
       setError('');
       setSuccess('');
     }
   }, [currentUser, isOpen]);
 
   if (!isOpen || !currentUser) return null;
+
+  const handleAvatarFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setError('');
+    try {
+      const compressed = await compressImageToDataUrl(file, 256, 0.85);
+      setAvatarUrl(compressed);
+    } catch (err) {
+      setError(err.message || 'Không thể xử lý ảnh đại diện đã chọn.');
+    } finally {
+      e.target.value = '';
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,8 +52,16 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
       setError('Vui lòng nhập họ và tên.');
       return;
     }
-    if (!phone.trim()) {
-      setError('Vui lòng nhập số điện thoại.');
+    if (!phone.trim() || !/^0\d{8,10}$/.test(phone.trim())) {
+      setError('Vui lòng nhập số điện thoại hợp lệ (9–11 chữ số, bắt đầu bằng số 0).');
+      return;
+    }
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('Địa chỉ email không đúng định dạng.');
+      return;
+    }
+    if (avatarUrl.trim() && !isValidImageInput(avatarUrl)) {
+      setError('Link ảnh đại diện phải là http(s)://... hoặc ảnh tải lên hợp lệ.');
       return;
     }
 
@@ -47,7 +72,8 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
         phoneNumber: phone.trim(),
         email: email.trim() || null,
         address: address.trim() || null,
-        gender: gender || 'Nam'
+        gender: gender || 'Nam',
+        avatarUrl: avatarUrl.trim() || DEFAULT_AVATAR_URL
       };
 
       const updated = await authApi.updateProfile(currentUser.id, payload);
@@ -55,7 +81,7 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
       if (onProfileUpdated) onProfileUpdated(updated);
       setTimeout(() => {
         onClose();
-      }, 1200);
+      }, 1000);
     } catch (err) {
       setError(err.message || 'Không thể lưu thông tin. Vui lòng thử lại!');
     } finally {
@@ -63,10 +89,12 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
     }
   };
 
+  const previewAvatar = avatarUrl?.trim() || DEFAULT_AVATAR_URL;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-      <div 
-        className="bg-white w-full max-w-md rounded-2xl border border-slate-200 shadow-xl overflow-hidden flex flex-col"
+      <div
+        className="bg-white w-full max-w-md rounded-2xl border border-slate-200 shadow-xl overflow-hidden flex flex-col max-h-[92vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -77,7 +105,7 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
             </div>
             <div>
               <h2 className="text-sm sm:text-base font-bold text-slate-900">Hồ Sơ Tài Khoản</h2>
-              <p className="text-xs text-slate-500">Quản lý thông tin cá nhân và sổ địa chỉ nhận hàng</p>
+              <p className="text-xs text-slate-500">Quản lý ảnh đại diện, thông tin cá nhân &amp; địa chỉ</p>
             </div>
           </div>
           <button
@@ -90,22 +118,33 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
         </div>
 
         {/* Member Tier Card */}
-        <div className="p-4 bg-gradient-to-r from-[#004967] to-[#086288] text-white flex items-center justify-between">
-          <div>
-            <span className="text-[10px] uppercase font-bold text-[#cae6ff] tracking-wider block">Hạng Thành Viên</span>
-            <div className="text-sm font-extrabold flex items-center gap-1.5 mt-0.5">
-              <Award className="w-4 h-4 text-amber-300" />
-              <span>{currentUser.membershipTier || 'Thành Viên'}</span>
+        <div className="p-4 bg-gradient-to-r from-[#004967] to-[#086288] text-white flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <img
+              src={previewAvatar}
+              alt={fullName || 'Avatar'}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = DEFAULT_AVATAR_URL;
+              }}
+              className="w-12 h-12 rounded-full object-cover ring-2 ring-[#8bcef9] bg-white shrink-0"
+            />
+            <div className="min-w-0">
+              <span className="text-[10px] uppercase font-bold text-[#cae6ff] tracking-wider block">Hạng Thành Viên</span>
+              <div className="text-sm font-extrabold flex items-center gap-1.5 mt-0.5 truncate">
+                <Award className="w-4 h-4 text-sky-300 shrink-0" />
+                <span className="truncate">{currentUser.membershipTier || 'Thành Viên'}</span>
+              </div>
             </div>
           </div>
-          <div className="text-right">
+          <div className="text-right shrink-0">
             <span className="text-[10px] text-[#cae6ff] block">Mã khách hàng</span>
             <span className="font-mono text-xs font-bold">CUS-{String(currentUser.id).padStart(5, '0')}</span>
           </div>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-3.5">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-3.5 overflow-y-auto">
           {error && (
             <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
@@ -119,6 +158,37 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
               <span>{success}</span>
             </div>
           )}
+
+          {/* Avatar URL + File Upload */}
+          <div className="p-3 rounded-xl bg-[#f8fbff] border border-[#dceafa] space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                <ImageIcon className="w-3.5 h-3.5 text-[#086288]" />
+                <span>Ảnh đại diện (Link ảnh hoặc tải từ máy)</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setAvatarUrl(DEFAULT_AVATAR_URL)}
+                className="text-[11px] font-semibold text-[#086288] hover:text-[#004967] inline-flex items-center gap-1 cursor-pointer"
+              >
+                <RotateCcw className="w-3 h-3" /> Mặc định
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={avatarUrl.startsWith('data:image/') ? '' : avatarUrl}
+                onChange={(e) => setAvatarUrl(e.target.value)}
+                placeholder={avatarUrl.startsWith('data:image/') ? 'Đã tải ảnh từ thiết bị (hoặc dán link URL mới)' : 'https://...'}
+                className="flex-1 text-xs bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none focus:border-[#086288]"
+              />
+              <label className="px-3 py-2 rounded-xl bg-[#e7eeff] hover:bg-[#dee8ff] text-[#004967] text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer shrink-0 transition">
+                <Upload className="w-3.5 h-3.5" />
+                <span>Tải ảnh</span>
+                <input type="file" accept="image/*" className="hidden" onChange={handleAvatarFile} />
+              </label>
+            </div>
+          </div>
 
           <div>
             <label className="text-xs font-semibold text-slate-700 block mb-1">

@@ -1,6 +1,7 @@
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || '';
 const TOKEN_KEY = 'optivision_customer_token';
 const USER_KEY = 'optivision_customer_user';
+const DEFAULT_AVATAR_URL = 'https://i.pinimg.com/236x/3e/f1/fc/3ef1fcc3b6cbb97199f961bb0b3ead3f.jpg';
 
 async function request(path, options = {}) {
   const response = await fetch(`${API_BASE_URL}/api/v1/auth/${path}`, options);
@@ -16,7 +17,12 @@ async function request(path, options = {}) {
 function customerProfile(data) {
   if (!data?.id || !Array.isArray(data.roles) || !data.roles.some(role => role === 'ROLE_CUSTOMER' || role === 'CUSTOMER'))
     throw new Error('Tài khoản không có quyền truy cập cổng khách hàng.');
-  return { ...data, name: data.fullName || data.username, phone: data.phoneNumber || '' };
+  return {
+    ...data,
+    name: data.fullName || data.username,
+    phone: data.phoneNumber || '',
+    avatarUrl: data.avatarUrl || DEFAULT_AVATAR_URL,
+  };
 }
 
 export const authApi = {
@@ -97,6 +103,25 @@ export const authApi = {
     const envelope = await res.json().catch(() => null);
     if (!res.ok || !envelope || (envelope.code != null && envelope.code >= 400)) {
       throw new Error(envelope?.message || 'Không thể cập nhật hồ sơ cá nhân.');
+    }
+    const updated = customerProfile(envelope.data);
+    localStorage.setItem(USER_KEY, JSON.stringify(updated));
+    return updated;
+  },
+
+  async updateMyAvatar(avatarUrl) {
+    const token = authApi.getToken();
+    const res = await fetch(`${API_BASE_URL}/api/v1/auth/me/avatar`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify({ avatarUrl })
+    });
+    const envelope = await res.json().catch(() => null);
+    if (!res.ok || !envelope || (envelope.code != null && envelope.code >= 400)) {
+      throw new Error(envelope?.message || 'Không thể cập nhật ảnh đại diện.');
     }
     const updated = customerProfile(envelope.data);
     localStorage.setItem(USER_KEY, JSON.stringify(updated));

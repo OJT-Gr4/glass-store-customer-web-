@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Eye, Bell, ShoppingBag, User, LogOut, ChevronDown, Phone, MapPin } from 'lucide-react';
+import { DEFAULT_AVATAR_URL } from './imageUploadUtils';
 
 export default function Navbar({ activeTab, setActiveTab, cartCount, unreadCount = 0, openAuthModal, openCart, openProfileModal, currentUser, onLogout }) {
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
@@ -177,9 +178,15 @@ export default function Navbar({ activeTab, setActiveTab, cartCount, unreadCount
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-[#f0f3ff] transition cursor-pointer"
               >
-                <div className="w-7 h-7 rounded-full bg-[#004967] text-white flex items-center justify-center text-xs font-bold shrink-0">
-                  <User className="w-3.5 h-3.5 text-[#cae6ff]" />
-                </div>
+                <img
+                  src={currentUser.avatarUrl || DEFAULT_AVATAR_URL}
+                  alt={currentUser.name || currentUser.fullName || 'Khách hàng'}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = DEFAULT_AVATAR_URL;
+                  }}
+                  className="w-7 h-7 rounded-full object-cover ring-1 ring-[#cde5f5] bg-[#f0f3ff] shrink-0"
+                />
                 <div className="hidden md:block text-left leading-tight">
                   <div className="text-xs font-bold text-[#111c2d] max-w-[120px] truncate">
                     {currentUser.name || currentUser.fullName || 'Khách Hàng'}

@@ -3,6 +3,7 @@ import { ArrowLeft, Sparkles, AlertCircle, ShieldCheck, Check, Info } from 'luci
 import { productApi } from '../api/productApi';
 import { catalogVariants, money, validatePrescription } from './purchaseUtils';
 import './purchase.css';
+import { DEFAULT_PRODUCT_IMAGE } from './imageUploadUtils';
 
 const emptyRx = { odSph: '', odCyl: '0', odAxis: '0', odAdd: '0', osSph: '', osCyl: '0', osAxis: '0', osAdd: '0', pd: '', confirmed: false };
 
@@ -108,19 +109,17 @@ export default function ProductDetailPage({ product, onAddToCart, setActiveTab }
           {/* Left Column: Product Visuals & Description */}
           <div className="purchase-card space-y-5">
             <div className="relative rounded-xl overflow-hidden bg-slate-50 border border-slate-100 p-4 flex items-center justify-center min-h-[300px]">
-              {selected?.imageUrl ? (
-                <img 
-                  className="purchase-detail-image w-full max-h-[380px] object-contain rounded-xl" 
-                  src={selected.imageUrl} 
-                  alt={record.name} 
-                />
-              ) : (
-                <div className="h-64 flex flex-col items-center justify-center text-slate-400 gap-2">
-                  <span className="text-sm font-bold text-slate-400">OptiVision Eyewear</span>
-                </div>
-              )}
+              <img 
+                className="purchase-detail-image w-full max-h-[380px] object-contain rounded-xl" 
+                src={selected?.imageUrl || DEFAULT_PRODUCT_IMAGE} 
+                alt={record.name} 
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = DEFAULT_PRODUCT_IMAGE;
+                }}
+              />
 
-              <span className="absolute top-4 left-4 bg-[#FFEFC4] text-[#086288] text-[11px] font-extrabold px-3 py-1 rounded-full border border-[#f5dfa2] shadow-xs">
+              <span className="absolute top-4 left-4 bg-[#f0f7ff]/95 backdrop-blur-xs text-[#004967] text-[11px] font-bold px-3 py-1 rounded-full border border-[#c7e0f7] shadow-xs">
                 {record.brandName || 'OptiVision'}
               </span>
             </div>

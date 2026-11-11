@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { productApi } from '../api/productApi';
 import { locationApi } from '../api/locationApi';
+import { DEFAULT_PRODUCT_IMAGE } from './imageUploadUtils';
 
 export default function HomePage({ setActiveTab, openBooking, openAuth, onAddToCart, onViewDetail }) {
   const [selectedBestSellerTab, setSelectedBestSellerTab] = useState('ALL');
@@ -120,18 +121,13 @@ export default function HomePage({ setActiveTab, openBooking, openAuth, onAddToC
   const displayedBestSellers = products.length > 0 
     ? products.slice(0, 8).map((p) => {
         const firstVariant = p.variants?.[0];
-        const defaultImg = p.productType === 'LENS' 
-          ? 'https://images.unsplash.com/photo-1508296695146-257a814070b4?auto=format&fit=crop&w=600&q=80'
-          : p.productType === 'SUNGLASSES'
-            ? 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=600&q=80'
-            : 'https://images.unsplash.com/photo-1591076482161-42ce6da69f67?auto=format&fit=crop&w=600&q=80';
         return {
           id: p.id,
           brand: p.brandName || p.brand || 'OptiVision',
           name: p.name,
           sku: firstVariant?.sku || p.sku || `SKU-${p.id}`,
           price: firstVariant?.price || p.price || 0,
-          image: p.imageUrl || p.image || defaultImg,
+          image: firstVariant?.imageUrl || p.imageUrl || p.image || DEFAULT_PRODUCT_IMAGE,
           tag: p.productType === 'FRAME' ? 'Gọng kính' : p.productType === 'LENS' ? 'Tròng kính' : 'Bán chạy',
           productType: p.productType,
           raw: p
