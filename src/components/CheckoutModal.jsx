@@ -1,12 +1,14 @@
-import React, { useRef, useState } from 'react';
-import { X, ShieldCheck, FileText, AlertCircle, ShoppingBag, Check } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { X, ShieldCheck, FileText, AlertCircle, ShoppingBag, Check, QrCode, CreditCard } from 'lucide-react';
 import { checkoutApi } from '../api/checkoutApi';
 import { checkoutPayload, money } from './purchaseUtils';
+import { checkoutClaim } from './checkoutSession';
 import './purchase.css';
 
 export default function CheckoutModal({ cart, user, requestRef, onClose, onSuccess }) {
   const [deliveryMethod, setDeliveryMethod] = useState('DOOR');
   const [selectedShowroom, setSelectedShowroom] = useState('Flagship Q.1 (TP.HCM) - 123 Lê Lợi, P. Bến Thành, Q.1');
+  const [paymentMethod, setPaymentMethod] = useState('VIETQR');
   const [contact, setContact] = useState({
     name: user?.fullName || '',
     phone: user?.phoneNumber || '',
@@ -16,16 +18,43 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
   const [saving, setSaving] = useState(false);
   const [priceChange, setPriceChange] = useState(null);
   const [acceptPriceChange, setAcceptPriceChange] = useState(false);
+  const [configuration, setConfiguration] = useState(null);
+  const [configurationError, setConfigurationError] = useState('');
+
   const localRequest = useRef(null);
   const request = requestRef || localRequest;
   const locked = useRef(false);
+  const dialog = useRef(null);
   const rx = cart.find(item => item.prescription)?.prescription;
+
+  useEffect(() => {
+    const controller = new AbortController();
+    checkoutApi.configuration(controller.signal).then(setConfiguration).catch(err => {
+      if (!controller.signal.aborted) setConfigurationError(err.message);
+    });
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    const previous = document.activeElement;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = overflow; previous?.focus(); };
+  }, []);
+
+  useEffect(() => {
+    const handleKey = event => {
+      if (event.key === 'Escape' && !locked.current) onClose();
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [onClose]);
 
   async function submit(event) {
     event.preventDefault();
     if (locked.current) return;
     locked.current = true;
-    setSaving(true); 
+    setSaving(true);
     setError('');
     try {
       const contactWithDelivery = {
@@ -34,21 +63,22 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
         storePickupLocation: deliveryMethod === 'SHOWROOM' ? selectedShowroom : null,
         address: deliveryMethod === 'SHOWROOM' ? selectedShowroom : contact.address
       };
-      const payload = checkoutPayload(cart, contactWithDelivery, user);
+      const payload = checkoutPayload(cart, contactWithDelivery, user, 'VIETQR');
+      payload.paymentProvider = paymentMethod;
       if (priceChange && acceptPriceChange) payload.acceptPriceChange = true;
-      const fingerprint = JSON.stringify(payload);
-      if (request.current?.fingerprint !== fingerprint) request.current = { fingerprint, key: crypto.randomUUID() };
+      request.current = checkoutClaim(payload, request.current);
       const order = await checkoutApi.createOrder(payload, request.current.key);
+      order.paymentProvider = paymentMethod;
       onSuccess(order);
     } catch (err) {
       setError(err.message);
-      if (err.code === 'ORDER_PRICE_CHANGED') { 
-        setPriceChange(err.details); 
-        setAcceptPriceChange(false); 
+      if (err.code === 'ORDER_PRICE_CHANGED') {
+        setPriceChange(err.details);
+        setAcceptPriceChange(false);
       }
-    } finally { 
-      locked.current = false; 
-      setSaving(false); 
+    } finally {
+      locked.current = false;
+      setSaving(false);
     }
   }
 
@@ -56,10 +86,11 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
 
   return (
     <div className="purchase-overlay">
-      <section 
-        role="dialog" 
-        aria-modal="true" 
-        aria-labelledby="checkout-title" 
+      <section
+        ref={dialog}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="checkout-title"
         className="purchase-modal bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 relative animate-in zoom-in-95 duration-150"
       >
         {/* Header */}
@@ -111,12 +142,12 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
             <div className="purchase-fields space-y-3">
               <label className="flex flex-col gap-1.5 text-xs font-bold text-slate-700">
                 <span>Họ và tên người nhận <span className="text-red-500">*</span></span>
-                <input 
-                  required 
-                  maxLength={120} 
-                  type="text" 
-                  value={contact.name} 
-                  onChange={event => setContact({ ...contact, name: event.target.value })} 
+                <input
+                  required
+                  maxLength={120}
+                  type="text"
+                  value={contact.name}
+                  onChange={event => setContact({ ...contact, name: event.target.value })}
                   className="p-2.5 rounded-xl border border-slate-300 text-sm focus:border-[#086288] focus:ring-2 focus:ring-[#086288]/15 outline-none transition"
                   placeholder="Nhập họ và tên..."
                 />
@@ -124,12 +155,12 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
 
               <label className="flex flex-col gap-1.5 text-xs font-bold text-slate-700">
                 <span>Số điện thoại liên hệ <span className="text-red-500">*</span></span>
-                <input 
-                  required 
-                  maxLength={30} 
-                  type="tel" 
-                  value={contact.phone} 
-                  onChange={event => setContact({ ...contact, phone: event.target.value })} 
+                <input
+                  required
+                  maxLength={30}
+                  type="tel"
+                  value={contact.phone}
+                  onChange={event => setContact({ ...contact, phone: event.target.value })}
                   className="p-2.5 rounded-xl border border-slate-300 text-sm focus:border-[#086288] focus:ring-2 focus:ring-[#086288]/15 outline-none transition"
                   placeholder="Nhập số điện thoại..."
                 />
@@ -138,12 +169,12 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
               {deliveryMethod === 'DOOR' ? (
                 <label className="flex flex-col gap-1.5 text-xs font-bold text-slate-700">
                   <span>Địa chỉ giao hàng chi tiết <span className="text-red-500">*</span></span>
-                  <input 
-                    required 
-                    maxLength={500} 
-                    type="text" 
-                    value={contact.address} 
-                    onChange={event => setContact({ ...contact, address: event.target.value })} 
+                  <input
+                    required
+                    maxLength={500}
+                    type="text"
+                    value={contact.address}
+                    onChange={event => setContact({ ...contact, address: event.target.value })}
                     className="p-2.5 rounded-xl border border-slate-300 text-sm focus:border-[#086288] focus:ring-2 focus:ring-[#086288]/15 outline-none transition"
                     placeholder="Nhập số nhà, tên đường, phường/xã, quận/huyện..."
                   />
@@ -162,6 +193,52 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
                   </select>
                 </label>
               )}
+            </div>
+
+            {/* Payment Method Choice (SePay + VietQR Sandbox) */}
+            <div className="flex flex-col gap-2 text-xs font-bold text-slate-700">
+              <span>Phương thức thanh toán <span className="text-red-500">*</span></span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <label className={`p-3 rounded-xl border cursor-pointer flex items-start gap-2.5 transition ${paymentMethod === 'VIETQR' ? 'border-[#086288] bg-sky-50/50' : 'border-slate-200 hover:border-slate-300'}`}>
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="VIETQR"
+                    checked={paymentMethod === 'VIETQR'}
+                    onChange={e => setPaymentMethod(e.target.value)}
+                    className="mt-0.5 accent-[#086288]"
+                  />
+                  <div className="flex-1">
+                    <span className="font-bold text-slate-800 flex items-center gap-1">
+                      <QrCode className="w-3.5 h-3.5 text-[#086288]" />
+                      VietQR / Sandbox QR
+                    </span>
+                    <span className="text-[11px] text-slate-500 block font-normal mt-0.5">
+                      Chuyển khoản QR ngân hàng (mô phỏng sandbox)
+                    </span>
+                  </div>
+                </label>
+
+                <label className={`p-3 rounded-xl border cursor-pointer flex items-start gap-2.5 transition ${paymentMethod === 'SEPAY' ? 'border-[#086288] bg-sky-50/50' : 'border-slate-200 hover:border-slate-300'}`}>
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="SEPAY"
+                    checked={paymentMethod === 'SEPAY'}
+                    onChange={e => setPaymentMethod(e.target.value)}
+                    className="mt-0.5 accent-[#086288]"
+                  />
+                  <div className="flex-1">
+                    <span className="font-bold text-slate-800 flex items-center gap-1">
+                      <CreditCard className="w-3.5 h-3.5 text-[#086288]" />
+                      Cổng SePay Gateway
+                    </span>
+                    <span className="text-[11px] text-slate-500 block font-normal mt-0.5">
+                      Đối soát tự động qua cổng SePay &amp; biên lai điện tử
+                    </span>
+                  </div>
+                </label>
+              </div>
             </div>
 
             {/* Cart Summary */}
@@ -206,11 +283,11 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
                   Tổng tiền cập nhật: {money(priceChange.newTotal)}
                 </strong>
                 <label className="purchase-check flex items-start gap-2 text-xs cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    required 
-                    checked={acceptPriceChange} 
-                    onChange={event => setAcceptPriceChange(event.target.checked)} 
+                  <input
+                    type="checkbox"
+                    required
+                    checked={acceptPriceChange}
+                    onChange={event => setAcceptPriceChange(event.target.checked)}
                     className="accent-[#086288] mt-0.5"
                   />
                   <span>Tôi đồng ý với số tiền cập nhật trước khi đặt hàng.</span>
@@ -228,15 +305,15 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
 
             {/* Actions */}
             <div className="purchase-actions pt-2 flex items-center justify-end gap-3">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={onClose}
                 className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition"
               >
                 Quay lại
               </button>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="purchase-primary px-6 py-2.5 rounded-xl text-xs font-bold bg-[#086288] hover:bg-[#064e6d] text-white shadow-sm transition active:scale-95"
               >
                 {saving ? 'Đang đặt hàng…' : 'Xác nhận đặt hàng'}
