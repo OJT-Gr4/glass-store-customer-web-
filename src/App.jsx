@@ -115,7 +115,6 @@ export default function App() {
     setIsCartOpen(false);
     setUnreadNotificationCount(0);
   }, [currentUser?.id]);
-  }, [currentUser?.id]);
 
   useEffect(() => {
     const uid = currentUser?.id;

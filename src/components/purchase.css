@@ -177,11 +177,29 @@
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.purchase-fields > * {
+  min-width: 0;
+}
+
+.purchase-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
 .purchase-field input,
 .purchase-field select,
 .purchase-field textarea,
+.purchase-fields input,
+.purchase-fields select,
+.purchase-fields textarea,
 .purchase-toolbar input,
 .purchase-toolbar select {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   border: 1px solid #dee8ff;
   border-radius: 10px;
   padding: 8px 12px;
@@ -192,9 +210,17 @@
   transition: all 0.15s ease;
 }
 
+.purchase-field select,
+.purchase-fields select {
+  text-overflow: ellipsis;
+}
+
 .purchase-field input:focus,
 .purchase-field select:focus,
 .purchase-field textarea:focus,
+.purchase-fields input:focus,
+.purchase-fields select:focus,
+.purchase-fields textarea:focus,
 .purchase-toolbar input:focus,
 .purchase-toolbar select:focus {
   border-color: #086288;
@@ -364,9 +390,13 @@
 /* --- Product Detail Layout --- */
 .purchase-detail-grid {
   display: grid;
-  grid-template-columns: 1fr 1.25fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
   gap: 24px;
   margin-top: 16px;
+}
+
+.purchase-detail-grid > * {
+  min-width: 0;
 }
 
 .purchase-detail-image {
@@ -425,6 +455,25 @@
   background: #fef3c7;
   color: #92400e;
   font-weight: 700;
+}
+
+.purchase-rx input {
+  width: 100%;
+  min-width: 60px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 13px;
+  color: #111c2d;
+  background: #ffffff;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.purchase-rx input:focus {
+  border-color: #086288;
+  box-shadow: 0 0 0 2px rgba(8, 98, 136, 0.15);
 }
 
 .purchase-check {
