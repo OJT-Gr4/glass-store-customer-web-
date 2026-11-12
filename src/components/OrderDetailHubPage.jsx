@@ -90,6 +90,26 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
     return () => clearInterval(timer);
   }, [paymentData, customerId, orderId, order?.status]);
 
+  const handleCheckPaymentStatus = async () => {
+    if (!order?.id || checkingPayment) return;
+    try {
+      setCheckingPayment(true);
+      setPaymentNotice('Đang kiểm tra trạng thái thanh toán từ hệ thống ngân hàng...');
+      const updated = await customerOrdersApi.checkPaymentStatus(orderId, customerId);
+      if (updated && updated.status !== 'PENDING_PAYMENT') {
+        setState({ owner: customerId, id: orderId, loading: false, order: updated, error: '' });
+        setPaymentData(null);
+        setPaymentNotice('Thanh toán thành công! Đơn hàng đã chuyển sang trạng thái: Đã thanh toán.');
+      } else {
+        setPaymentNotice('Chưa ghi nhận biến động số dư. Nếu bạn vừa chuyển khoản, vui lòng thử lại sau 2-3 giây.');
+      }
+    } catch (err) {
+      setPaymentNotice(err.message || 'Lỗi khi kiểm tra thanh toán.');
+    } finally {
+      setCheckingPayment(false);
+    }
+  };
+
   const handleVerifyPayment = async () => {
     if (!order?.orderCode || checkingPayment) return;
     try {
@@ -212,17 +232,17 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
                         className="vietqr-image"
                       />
                       <div className="bank-account-details">
-                        <div>Ngân hàng: <strong>MBBank (Ngân Hàng Quân Đội)</strong></div>
-                        <div>Số tài khoản: <strong>0987654321</strong></div>
-                        <div>Chủ tài khoản: <strong>OPTI VISION CLINICAL</strong></div>
+                        <div>Ngân hàng: <strong>{paymentData?.formFields?.bankName || 'MBBank (Ngân Hàng Quân Đội)'}</strong></div>
+                        <div>Số tài khoản: <strong>{paymentData?.formFields?.accountNo || '0987654321'}</strong></div>
+                        <div>Chủ tài khoản: <strong>{paymentData?.formFields?.accountName || 'OPTIVISION GLASS STORE'}</strong></div>
                         <div>Số tiền: <strong>{money(order.finalAmount)}</strong></div>
-                        <div>Nội dung: <strong>DH {order.orderCode}</strong></div>
+                        <div>Nội dung: <strong>{paymentData?.formFields?.addInfo || order.orderCode}</strong></div>
                       </div>
                       <div className="payment-action-btns">
                         <button
                           type="button"
                           className="txn-btn secondary txn-btn-compact"
-                          onClick={handleVerifyPayment}
+                          onClick={handleCheckPaymentStatus}
                           disabled={checkingPayment}
                         >
                           {checkingPayment ? 'Đang kiểm tra...' : 'Đã thanh toán? Nhấn để kiểm tra'}

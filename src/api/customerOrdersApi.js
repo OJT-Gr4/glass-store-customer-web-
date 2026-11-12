@@ -80,6 +80,20 @@ export const customerOrdersApi = {
     }
     return envelope?.data;
   },
+  async checkPaymentStatus(id, customerId) {
+    requireId(customerId);
+    const token = localStorage.getItem('optivision_customer_token');
+    const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+    try {
+      await fetch(`${baseUrl}/api/payments/order/${requireId(id)}/sync`, {
+        method: 'POST',
+        headers
+      });
+    } catch (e) {
+      console.warn('Payment sync check attempt:', e);
+    }
+    return await this.get(id, customerId);
+  },
   async verifyAndConfirmPayment(id, customerId, orderCode) {
     requireId(customerId);
     const token = localStorage.getItem('optivision_customer_token');
