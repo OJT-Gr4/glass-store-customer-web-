@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { X, ShieldCheck, FileText, AlertCircle, ShoppingBag, Check, QrCode, CreditCard } from 'lucide-react';
+import { X, ShieldCheck, FileText, AlertCircle, ShoppingBag, Check, QrCode } from 'lucide-react';
 import { checkoutApi } from '../api/checkoutApi';
 import { checkoutPayload, money } from './purchaseUtils';
 import { checkoutClaim } from './checkoutSession';
@@ -195,50 +195,28 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
               )}
             </div>
 
-            {/* Payment Method Choice (SePay + VietQR Sandbox) */}
+            {/* Payment Method (VietQR + SePay Auto Reconciliation) */}
             <div className="flex flex-col gap-2 text-xs font-bold text-slate-700">
               <span>Phương thức thanh toán <span className="text-red-500">*</span></span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <label className={`p-3 rounded-xl border cursor-pointer flex items-start gap-2.5 transition ${paymentMethod === 'VIETQR' ? 'border-[#086288] bg-sky-50/50' : 'border-slate-200 hover:border-slate-300'}`}>
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="VIETQR"
-                    checked={paymentMethod === 'VIETQR'}
-                    onChange={e => setPaymentMethod(e.target.value)}
-                    className="mt-0.5 accent-[#086288]"
-                  />
-                  <div className="flex-1">
-                    <span className="font-bold text-slate-800 flex items-center gap-1">
-                      <QrCode className="w-3.5 h-3.5 text-[#086288]" />
-                      VietQR / Sandbox QR
-                    </span>
-                    <span className="text-[11px] text-slate-500 block font-normal mt-0.5">
-                      Chuyển khoản QR ngân hàng (mô phỏng sandbox)
-                    </span>
-                  </div>
-                </label>
-
-                <label className={`p-3 rounded-xl border cursor-pointer flex items-start gap-2.5 transition ${paymentMethod === 'SEPAY' ? 'border-[#086288] bg-sky-50/50' : 'border-slate-200 hover:border-slate-300'}`}>
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="SEPAY"
-                    checked={paymentMethod === 'SEPAY'}
-                    onChange={e => setPaymentMethod(e.target.value)}
-                    className="mt-0.5 accent-[#086288]"
-                  />
-                  <div className="flex-1">
-                    <span className="font-bold text-slate-800 flex items-center gap-1">
-                      <CreditCard className="w-3.5 h-3.5 text-[#086288]" />
-                      Cổng SePay Gateway
-                    </span>
-                    <span className="text-[11px] text-slate-500 block font-normal mt-0.5">
-                      Đối soát tự động qua cổng SePay &amp; biên lai điện tử
-                    </span>
-                  </div>
-                </label>
-              </div>
+              <label className="p-3.5 rounded-xl border border-[#086288] bg-sky-50/50 cursor-pointer flex items-start gap-2.5 transition">
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="VIETQR"
+                  checked={paymentMethod === 'VIETQR'}
+                  onChange={e => setPaymentMethod(e.target.value)}
+                  className="mt-0.5 accent-[#086288]"
+                />
+                <div className="flex-1">
+                  <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                    <QrCode className="w-4 h-4 text-[#086288]" />
+                    Thanh toán QR Ngân hàng (VietQR · SePay Tự động)
+                  </span>
+                  <span className="text-[11px] text-slate-500 block font-normal mt-0.5">
+                    Quét mã QR bằng App ngân hàng bất kỳ (MBBank, VCB, BIDV...), hệ thống tự động xác thực giao dịch qua SePay.
+                  </span>
+                </div>
+              </label>
             </div>
 
             {/* Cart Summary */}

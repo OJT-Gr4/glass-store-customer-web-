@@ -253,7 +253,7 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
                           onClick={handleVerifyPayment}
                           disabled={checkingPayment}
                         >
-                          ⚡ Giả lập thanh toán VietQR thành công
+                          Test thanh toán VietQR thành công
                         </button>
                       </div>
                       {paymentNotice && (
