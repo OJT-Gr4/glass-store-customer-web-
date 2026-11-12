@@ -22,6 +22,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { checkoutApi } from '../api/checkoutApi';
 import { money } from './purchaseUtils';
 import { canPay, ORDER_LABELS, paymentState, submitCheckoutForm } from './paymentUtils';
+import { copyToClipboard } from './browserSafe';
 import './purchase.css';
 
 const STATES = {
@@ -113,7 +114,7 @@ export default function OrderPaymentPage({ orderCode, currentUser, authLoading, 
 
   const copyText = (text, fieldName) => {
     if (!text) return;
-    navigator.clipboard.writeText(text);
+    copyToClipboard(text);
     setCopiedField(fieldName);
     setTimeout(() => setCopiedField(null), 2000);
   };

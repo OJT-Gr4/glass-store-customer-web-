@@ -3,6 +3,7 @@ import {
   Award, Gift, Sparkles, Clock, Copy, Check, Filter, 
   Tag, ShieldCheck, Eye, Users, Percent, ArrowRight, Loader2, AlertCircle 
 } from 'lucide-react';
+import { copyToClipboard } from './browserSafe';
 
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || '';
 
@@ -138,7 +139,7 @@ export default function VoucherLoyaltyPage({ setActiveTab, currentUser }) {
   };
 
   const handleCopyCode = (code) => {
-    navigator.clipboard?.writeText(code);
+    copyToClipboard(code);
     setCopiedCode(code);
     setTimeout(() => setCopiedCode(null), 2000);
   };
