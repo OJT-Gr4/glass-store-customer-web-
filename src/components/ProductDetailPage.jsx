@@ -161,14 +161,14 @@ export default function ProductDetailPage({ product, onAddToCart, setActiveTab }
             </div>
 
             {/* Variant & Frame Mode Options */}
-            <div className="purchase-fields space-y-4">
-              <label>
+            <div className="space-y-4">
+              <label className="purchase-field mb-0">
                 <span className="font-bold text-slate-800 text-xs uppercase tracking-wide">Chọn Biến Thể</span>
-                <select 
-                  aria-label="Biến thể kính" 
-                  value={selectedSku} 
+                <select
+                  aria-label="Biến thể kính"
+                  value={selectedSku}
                   onChange={event => setSelectedSku(event.target.value)}
-                  className="mt-1"
+                  className="mt-1 w-full max-w-full min-w-0 truncate"
                 >
                   {variants.map(v => (
                     <option key={v.sku} value={v.sku} disabled={v.stock <= 0}>
@@ -179,12 +179,13 @@ export default function ProductDetailPage({ product, onAddToCart, setActiveTab }
               </label>
 
               {record.productType === 'FRAME' && (
-                <label>
+                <label className="purchase-field mb-0">
                   <span className="font-bold text-slate-800 text-xs uppercase tracking-wide">Cấu Hình Kính</span>
-                  <select 
-                    value={mode} 
+                  <select
+                    aria-label="Cấu hình kính"
+                    value={mode}
                     onChange={event => setMode(event.target.value)}
-                    className="mt-1"
+                    className="mt-1 w-full max-w-full min-w-0 truncate"
                   >
                     <option value="WITH_LENS">Lắp tròng kỹ thuật số theo toa (Khuyên dùng)</option>
                     <option value="FRAME_ONLY">Chỉ mua gọng kính</option>
@@ -278,7 +279,7 @@ export default function ProductDetailPage({ product, onAddToCart, setActiveTab }
                       aria-label="Chọn tròng kính" 
                       value={lensSku} 
                       onChange={event => setLensSku(event.target.value)}
-                      className="mt-1"
+                      className="mt-1 w-full max-w-full min-w-0 truncate"
                     >
                       <option value="">-- Vui lòng chọn loại tròng --</option>
                       {sortedLenses.map(v => (

@@ -139,8 +139,8 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
             </div>
 
             {/* Contact Info Fields */}
-            <div className="purchase-fields space-y-3">
-              <label className="flex flex-col gap-1.5 text-xs font-bold text-slate-700">
+            <div className="purchase-fields">
+              <label className="min-w-0 flex flex-col gap-1.5 text-xs font-bold text-slate-700">
                 <span>Họ và tên người nhận <span className="text-red-500">*</span></span>
                 <input
                   required
@@ -180,12 +180,12 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
                   />
                 </label>
               ) : (
-                <label className="flex flex-col gap-1.5 text-xs font-bold text-slate-700">
+                <label className="min-w-0 flex flex-col gap-1.5 text-xs font-bold text-slate-700">
                   <span>Chọn Showroom tiếp nhận <span className="text-red-500">*</span></span>
                   <select
                     value={selectedShowroom}
                     onChange={event => setSelectedShowroom(event.target.value)}
-                    className="p-2.5 rounded-xl border border-slate-300 text-sm focus:border-[#086288] focus:ring-2 focus:ring-[#086288]/15 outline-none transition bg-white"
+                    className="w-full max-w-full min-w-0 truncate p-2.5 rounded-xl border border-slate-300 text-sm focus:border-[#086288] focus:ring-2 focus:ring-[#086288]/15 outline-none transition bg-white"
                   >
                     <option value="Flagship Q.1 (TP.HCM) - 123 Lê Lợi, P. Bến Thành, Q.1">Flagship Q.1 (TP.HCM) - 123 Lê Lợi, P. Bến Thành, Q.1</option>
                     <option value="Tràng Tiền Plaza (Hà Nội) - 24 Hai Bà Trưng, Q. Hoàn Kiếm">Tràng Tiền Plaza (Hà Nội) - 24 Hai Bà Trưng, Q. Hoàn Kiếm</option>
