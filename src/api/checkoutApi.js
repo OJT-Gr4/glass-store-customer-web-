@@ -34,6 +34,8 @@ async function request(path, { signal, headers, ...options } = {}) {
 }
 
 export const checkoutApi = {
+  vouchers: signal => request('vouchers', { signal }),
+  quoteVoucher: (code, total) => request(`vouchers/${encodeURIComponent(code)}/quote?total=${encodeURIComponent(total)}&channel=ONLINE`),
   async createOrder(payload, idempotencyKey) {
     const order = await request('orders', {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },

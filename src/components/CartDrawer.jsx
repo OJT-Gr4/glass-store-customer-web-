@@ -1,5 +1,6 @@
 import React from 'react';
 import { ShoppingBag, X, Plus, Minus, Trash2, ArrowRight } from 'lucide-react';
+import { DEFAULT_PRODUCT_IMAGE } from './imageUploadUtils';
 
 export default function CartDrawer({ isOpen, onClose, cart, updateQty, removeFromCart, checkout }) {
   if (!isOpen) return null;
@@ -24,10 +25,10 @@ export default function CartDrawer({ isOpen, onClose, cart, updateQty, removeFro
           {/* Header */}
           <div className="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-[#086288] text-white flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-[#30483b] text-white flex items-center justify-center">
                 <ShoppingBag className="w-4 h-4 text-[#97D7FF]" />
               </div>
-              <h2 className="text-base font-black text-[#086288]">
+              <h2 className="text-base font-black text-[#30483b]">
                 Giỏ Hàng ({totalCount})
               </h2>
             </div>
@@ -54,11 +55,15 @@ export default function CartDrawer({ isOpen, onClose, cart, updateQty, removeFro
               </div>
             ) : (
               cart.map((item) => (
-                <div key={item.sku} className="flex gap-3.5 p-3.5 bg-slate-50/80 rounded-2xl border border-slate-200/80 hover:border-[#086288]/40 transition">
+                <div key={item.sku} className="flex gap-3.5 p-3.5 bg-slate-50/80 rounded-2xl border border-slate-200/80 hover:border-[#30483b]/40 transition">
                   <img
-                    src={item.image}
+                    src={item.image || item.imageUrl || DEFAULT_PRODUCT_IMAGE}
                     alt={item.name}
                     className="w-16 h-16 object-cover rounded-xl border border-slate-200 bg-white shrink-0"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = DEFAULT_PRODUCT_IMAGE;
+                    }}
                   />
                   <div className="flex-1 flex flex-col justify-between text-xs">
                     <div>
@@ -72,7 +77,7 @@ export default function CartDrawer({ isOpen, onClose, cart, updateQty, removeFro
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
-                      <span className="text-xs font-extrabold text-[#086288] mt-0.5 block">
+                      <span className="text-xs font-extrabold text-[#30483b] mt-0.5 block">
                         {formatPrice(item.price)}
                       </span>
                     </div>
@@ -88,11 +93,15 @@ export default function CartDrawer({ isOpen, onClose, cart, updateQty, removeFro
                         <span className="px-2.5 font-bold text-xs text-slate-900">{item.quantity}</span>
                         <button
                           onClick={() => updateQty(item.sku, 1)}
-                          className="px-2 py-1 text-slate-600 hover:bg-slate-100 transition"
+                          disabled={item.stock != null && item.quantity >= item.stock}
+                          className="px-2 py-1 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
                         >
                           <Plus className="w-3 h-3" />
                         </button>
                       </div>
+                      {item.stock != null && (
+                        <span className="text-[11px] text-slate-400 font-medium">Còn {item.stock}</span>
+                      )}
                       <span className="font-black text-slate-900">
                         {formatPrice(item.price * item.quantity)}
                       </span>
@@ -117,13 +126,13 @@ export default function CartDrawer({ isOpen, onClose, cart, updateQty, removeFro
                 </div>
                 <div className="border-t border-slate-200 pt-2.5 flex justify-between items-center text-sm">
                   <span className="font-bold text-slate-800">Tổng thanh toán:</span>
-                  <span className="text-lg font-black text-[#086288]">{formatPrice(totalAmount)}</span>
+                  <span className="text-lg font-black text-[#30483b]">{formatPrice(totalAmount)}</span>
                 </div>
               </div>
 
               <button
                 onClick={checkout}
-                className="w-full bg-[#086288] hover:bg-[#064e6d] text-white py-3.5 rounded-xl font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition active:scale-98"
+                className="w-full bg-[#30483b] hover:bg-[#064e6d] text-white py-3.5 rounded-xl font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition active:scale-98"
               >
                 <span>Tiến Hành Đặt Hàng</span>
                 <ArrowRight className="w-4 h-4" />

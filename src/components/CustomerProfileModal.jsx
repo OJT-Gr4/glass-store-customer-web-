@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, User, Phone, Mail, MapPin, Check, AlertCircle, Loader2, Award, Upload, RotateCcw, Image as ImageIcon } from 'lucide-react';
 import { authApi } from '../api/authApi';
-import { compressImageToDataUrl, DEFAULT_AVATAR_URL, isValidImageInput } from './imageUploadUtils';
+import { uploadImageFile, compressImageToDataUrl, DEFAULT_AVATAR_URL, isValidImageInput } from './imageUploadUtils';
 
 export default function CustomerProfileModal({ isOpen, onClose, currentUser, onProfileUpdated }) {
   const [fullName, setFullName] = useState('');
@@ -13,6 +13,9 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [loyalty, setLoyalty] = useState(null);
+  const [loyaltyLoading, setLoyaltyLoading] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
     if (currentUser) {
@@ -27,18 +30,38 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
     }
   }, [currentUser, isOpen]);
 
+  useEffect(() => {
+    if (!isOpen || !currentUser?.id) return;
+    let active = true;
+    setLoyaltyLoading(true);
+    const token = localStorage.getItem('optivision_customer_token');
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    fetch(`/api/loyalty/accounts/${currentUser.id}`, { headers })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (active && data) setLoyalty(data);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (active) setLoyaltyLoading(false);
+      });
+    return () => { active = false; };
+  }, [isOpen, currentUser?.id]);
+
   if (!isOpen || !currentUser) return null;
 
   const handleAvatarFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setError('');
+    setUploadingAvatar(true);
     try {
-      const compressed = await compressImageToDataUrl(file, 256, 0.85);
-      setAvatarUrl(compressed);
+      const uploadedUrl = await uploadImageFile(file, 320);
+      setAvatarUrl(uploadedUrl);
     } catch (err) {
-      setError(err.message || 'Không thể xử lý ảnh đại diện đã chọn.');
+      setError(err.message || 'Không thể tải ảnh đại diện lên Cloudinary.');
     } finally {
+      setUploadingAvatar(false);
       e.target.value = '';
     }
   };
@@ -100,7 +123,7 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#e7eeff] text-[#086288] flex items-center justify-center font-bold">
+            <div className="w-9 h-9 rounded-xl bg-[#eceee7] text-[#30483b] flex items-center justify-center font-bold">
               <User className="w-5 h-5" />
             </div>
             <div>
@@ -111,6 +134,7 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
           <button
             type="button"
             onClick={onClose}
+            aria-label="Đóng thông tin cá nhân"
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
           >
             <X className="w-4 h-4" />
@@ -118,7 +142,7 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
         </div>
 
         {/* Member Tier Card */}
-        <div className="p-4 bg-gradient-to-r from-[#004967] to-[#086288] text-white flex items-center justify-between gap-3">
+        <div className="p-4 bg-gradient-to-r from-[#253c33] to-[#30483b] text-white flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <img
               src={previewAvatar}
@@ -130,21 +154,25 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
               className="w-12 h-12 rounded-full object-cover ring-2 ring-[#8bcef9] bg-white shrink-0"
             />
             <div className="min-w-0">
-              <span className="text-[10px] uppercase font-bold text-[#cae6ff] tracking-wider block">Hạng Thành Viên</span>
+              <span className="text-[10px] uppercase font-bold text-[#dce5d9] tracking-wider block">Hạng Thành Viên</span>
               <div className="text-sm font-extrabold flex items-center gap-1.5 mt-0.5 truncate">
                 <Award className="w-4 h-4 text-sky-300 shrink-0" />
-                <span className="truncate">{currentUser.membershipTier || 'Thành Viên'}</span>
+                <span className="truncate">{loyalty?.tier || (loyaltyLoading ? 'Đang tải…' : 'Chưa tải được hạng')}</span>
+              </div>
+              <div className="text-[11px] text-[#dce5d9] mt-0.5 flex items-center gap-1.5">
+                <span>{loyaltyLoading ? 'Đang tải điểm…' : loyalty ? `${Number(loyalty.balance).toLocaleString('vi-VN')} điểm thân thiết` : 'Chưa tải được điểm'}</span>
               </div>
             </div>
           </div>
           <div className="text-right shrink-0">
-            <span className="text-[10px] text-[#cae6ff] block">Mã khách hàng</span>
-            <span className="font-mono text-xs font-bold">CUS-{String(currentUser.id).padStart(5, '0')}</span>
+            <span className="text-[10px] text-[#dce5d9] block">Mã khách hàng</span>
+            <span className="font-mono text-xs font-bold block">CUS-{String(currentUser.id).padStart(5, '0')}</span>
+            <span className="text-[9px] text-[#dce5d9]/80 block mt-0.5">1.000đ = +1 điểm</span>
           </div>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-3.5 overflow-y-auto">
+        <form noValidate onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-3.5 overflow-y-auto">
           {error && (
             <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
@@ -163,13 +191,13 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
           <div className="p-3 rounded-xl bg-[#f8fbff] border border-[#dceafa] space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                <ImageIcon className="w-3.5 h-3.5 text-[#086288]" />
+                <ImageIcon className="w-3.5 h-3.5 text-[#30483b]" />
                 <span>Ảnh đại diện (Link ảnh hoặc tải từ máy)</span>
               </label>
               <button
                 type="button"
                 onClick={() => setAvatarUrl(DEFAULT_AVATAR_URL)}
-                className="text-[11px] font-semibold text-[#086288] hover:text-[#004967] inline-flex items-center gap-1 cursor-pointer"
+                className="text-[11px] font-semibold text-[#30483b] hover:text-[#253c33] inline-flex items-center gap-1 cursor-pointer"
               >
                 <RotateCcw className="w-3 h-3" /> Mặc định
               </button>
@@ -180,12 +208,12 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
                 value={avatarUrl.startsWith('data:image/') ? '' : avatarUrl}
                 onChange={(e) => setAvatarUrl(e.target.value)}
                 placeholder={avatarUrl.startsWith('data:image/') ? 'Đã tải ảnh từ thiết bị (hoặc dán link URL mới)' : 'https://...'}
-                className="flex-1 text-xs bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none focus:border-[#086288]"
+                className="flex-1 text-xs bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none focus:border-[#30483b]"
               />
-              <label className="px-3 py-2 rounded-xl bg-[#e7eeff] hover:bg-[#dee8ff] text-[#004967] text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer shrink-0 transition">
-                <Upload className="w-3.5 h-3.5" />
-                <span>Tải ảnh</span>
-                <input type="file" accept="image/*" className="hidden" onChange={handleAvatarFile} />
+              <label className="px-3 py-2 rounded-xl bg-[#eceee7] hover:bg-[#e4e4db] text-[#253c33] text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer shrink-0 transition">
+                {uploadingAvatar ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                <span>{uploadingAvatar ? 'Đang tải…' : 'Tải ảnh'}</span>
+                <input type="file" accept="image/*" className="hidden" disabled={uploadingAvatar} onChange={handleAvatarFile} />
               </label>
             </div>
           </div>
@@ -201,7 +229,7 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Nguyễn Văn A"
-                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-slate-900 outline-none focus:border-[#086288] focus:bg-white"
+                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-slate-900 outline-none focus:border-[#30483b] focus:bg-white"
                 required
               />
             </div>
@@ -219,7 +247,7 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="0912345678"
-                  className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-slate-900 outline-none focus:border-[#086288] focus:bg-white"
+                  className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-slate-900 outline-none focus:border-[#30483b] focus:bg-white"
                   required
                 />
               </div>
@@ -232,7 +260,7 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
               <select
                 value={gender}
                 onChange={(e) => setGender(e.target.value)}
-                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none focus:border-[#086288] focus:bg-white"
+                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none focus:border-[#30483b] focus:bg-white"
               >
                 <option value="Nam">Nam</option>
                 <option value="Nữ">Nữ</option>
@@ -252,7 +280,7 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="example@gmail.com"
-                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-slate-900 outline-none focus:border-[#086288] focus:bg-white"
+                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-slate-900 outline-none focus:border-[#30483b] focus:bg-white"
               />
             </div>
           </div>
@@ -268,7 +296,7 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="Số nhà, đường, phường/xã, quận/huyện, TP..."
-                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-slate-900 outline-none focus:border-[#086288] focus:bg-white"
+                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-slate-900 outline-none focus:border-[#30483b] focus:bg-white"
               />
             </div>
           </div>
@@ -285,7 +313,7 @@ export default function CustomerProfileModal({ isOpen, onClose, currentUser, onP
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 rounded-xl bg-[#086288] hover:bg-[#004967] text-white text-xs font-bold shadow-sm transition cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+              className="px-5 py-2 rounded-xl bg-[#30483b] hover:bg-[#253c33] text-white text-xs font-bold shadow-sm transition cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
             >
               {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
               <span>Lưu Thay Đổi</span>

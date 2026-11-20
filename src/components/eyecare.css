@@ -1,13 +1,13 @@
 /* ==========================================================================
-   OptiVision Customer Web - Eyecare & Clinical Records Design System
-   Exact match to Internal Portal Design System (#086288, #004967, #e7eeff, #dee8ff)
+   GlassStore Customer Web - Eyecare & Clinical Records Design System
+   Exact match to Internal Portal Design System (#30483b, #253c33, #eceee7, #e4e4db)
    ========================================================================== */
 
 .eyecare-page {
   max-width: 1440px;
   margin: 0 auto;
   padding: 24px 20px;
-  color: #111c2d;
+  color: #202924;
   font-family: inherit;
 }
 
@@ -22,7 +22,7 @@
 .eyecare-page h1 {
   font-size: 22px;
   font-weight: 700;
-  color: #111c2d;
+  color: #202924;
   margin: 0 0 4px;
   letter-spacing: -0.01em;
 }
@@ -30,7 +30,7 @@
 .eyecare-page h2 {
   font-size: 16px;
   font-weight: 700;
-  color: #111c2d;
+  color: #202924;
   margin: 0 0 12px;
 }
 
@@ -48,7 +48,7 @@
 
 .eyecare-panel {
   background: #ffffff;
-  border: 1px solid #dee8ff;
+  border: 1px solid #e4e4db;
   border-radius: 12px;
   padding: 20px;
   margin: 16px 0;
@@ -61,19 +61,19 @@
   justify-content: center;
   gap: 6px;
   cursor: pointer;
-  border: 1px solid #dee8ff;
+  border: 1px solid #e4e4db;
   border-radius: 10px;
-  background: #e7eeff;
+  background: #eceee7;
   padding: 8px 14px;
   font-size: 12px;
   font-weight: 600;
-  color: #004967;
+  color: #253c33;
   transition: all 0.15s ease;
 }
 
 .eyecare-page button:hover:not(:disabled) {
-  background: #dee8ff;
-  color: #111c2d;
+  background: #e4e4db;
+  color: #202924;
 }
 
 .eyecare-page button:disabled {
@@ -83,14 +83,14 @@
 
 .eyecare-page .eyecare-primary {
   color: #ffffff;
-  background: #086288;
-  border-color: #086288;
+  background: #30483b;
+  border-color: #30483b;
   box-shadow: 0 1px 2px rgba(8, 98, 136, 0.2);
 }
 
 .eyecare-page .eyecare-primary:hover:not(:disabled) {
-  background: #004967;
-  border-color: #004967;
+  background: #253c33;
+  border-color: #253c33;
   color: #ffffff;
 }
 
@@ -112,25 +112,25 @@
 .eyecare-table td {
   padding: 10px 12px;
   text-align: left;
-  border-bottom: 1px solid #e7eeff;
+  border-bottom: 1px solid #eceee7;
 }
 
 .eyecare-table th {
   font-weight: 700;
   color: #40484e;
-  background: #f0f3ff;
+  background: #f1f2ec;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .eyecare-table tbody tr:hover td {
-  background: #f9f9ff;
+  background: #f9f8f4;
 }
 
 .eyecare-overflow {
   overflow-x: auto;
-  border: 1px solid #dee8ff;
+  border: 1px solid #e4e4db;
   border-radius: 10px;
   background: #ffffff;
   margin: 12px 0;
@@ -143,20 +143,20 @@
   gap: 6px;
   font-size: 12px;
   font-weight: 600;
-  color: #111c2d;
+  color: #202924;
   margin: 12px 0;
 }
 
 .eyecare-page input,
 .eyecare-page textarea,
 .eyecare-page select {
-  border: 1px solid #dee8ff;
+  border: 1px solid #e4e4db;
   border-radius: 10px;
   padding: 8px 12px;
   background: #ffffff;
   width: 100%;
   font-size: 12.5px;
-  color: #111c2d;
+  color: #202924;
   outline: none;
   transition: all 0.15s ease;
 }
@@ -164,7 +164,7 @@
 .eyecare-page input:focus,
 .eyecare-page textarea:focus,
 .eyecare-page select:focus {
-  border-color: #086288;
+  border-color: #30483b;
   box-shadow: 0 0 0 2px rgba(8, 98, 136, 0.15);
 }
 
@@ -194,7 +194,7 @@
 }
 
 .eyecare-versions {
-  border-top: 1px solid #dee8ff;
+  border-top: 1px solid #e4e4db;
   margin-top: 16px;
   padding-top: 12px;
 }
@@ -202,13 +202,13 @@
 .eyecare-versions summary {
   cursor: pointer;
   font-weight: 700;
-  color: #086288;
+  color: #30483b;
   padding: 6px 0;
   user-select: none;
 }
 
 .eyecare-versions summary:hover {
-  color: #004967;
+  color: #253c33;
 }
 
 @media (max-width: 640px) {

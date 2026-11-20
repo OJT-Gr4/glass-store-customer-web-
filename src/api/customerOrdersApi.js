@@ -1,3 +1,4 @@
+import { repairDisplayText } from './textEncoding.js';
 const baseUrl = import.meta.env?.VITE_API_BASE_URL || '';
 
 function requireId(id) {
@@ -18,7 +19,7 @@ async function request(path, options = {}) {
     error.status = response.status;
     throw error;
   }
-  return envelope?.data;
+  return repairDisplayText(envelope?.data);
 }
 
 function ownedOrder(order, customerId) {

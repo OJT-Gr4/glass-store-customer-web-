@@ -40,7 +40,9 @@ export default function ProductCatalogPage({ onAddToCart, onViewDetail }) {
 
   const filtered = useMemo(() => {
     const keyword = query.trim().toLocaleLowerCase('vi-VN');
-    return products.filter(p => p.status === 'ACTIVE' && (type === 'ALL' || p.productType === type)
+    return products.filter(p => p.status === 'ACTIVE'
+      && catalogVariants([p]).some(v => v.stock > 0)
+      && (type === 'ALL' || p.productType === type)
       && (!keyword || [p.name, p.brandName, ...(p.variants || []).map(v => v.sku)].some(value => String(value || '').toLocaleLowerCase('vi-VN').includes(keyword))));
   }, [products, query, type]);
 
@@ -61,11 +63,11 @@ export default function ProductCatalogPage({ onAddToCart, onViewDetail }) {
             Danh Mục Sản Phẩm
           </h1>
           <p className="purchase-muted mt-1">
-            Gọng kính chính hãng, tròng kính chuẩn y khoa và phụ kiện chuyên dụng OptiVision.
+            Gọng kính chính hãng, tròng kính chuẩn y khoa và phụ kiện chuyên dụng GlassStore.
           </p>
         </div>
         <div className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg shrink-0 self-start sm:self-auto">
-          Hiển thị: <strong className="text-[#086288]">{filtered.length}</strong> sản phẩm
+          Hiển thị: <strong className="text-[#30483b]">{filtered.length}</strong> sản phẩm
         </div>
       </div>
 
@@ -78,12 +80,12 @@ export default function ProductCatalogPage({ onAddToCart, onViewDetail }) {
             placeholder="Tìm theo tên kính, thương hiệu (Ray-Ban, Bolon...) hoặc SKU..."
             value={query}
             onChange={event => setQuery(event.target.value)}
-            className="pl-10 text-xs sm:text-sm"
+            className="catalog-search-input text-xs sm:text-sm"
           />
         </div>
 
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-[#086288] hidden sm:block shrink-0" />
+          <Filter className="w-4 h-4 text-[#30483b] hidden sm:block shrink-0" />
           <select
             aria-label="Loại sản phẩm"
             value={type}
@@ -100,7 +102,7 @@ export default function ProductCatalogPage({ onAddToCart, onViewDetail }) {
       {/* Content State */}
       {loading ? (
         <div role="status" className="py-20 text-center space-y-3">
-          <div className="w-8 h-8 border-3 border-[#086288] border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="w-8 h-8 border-3 border-[#30483b] border-t-transparent rounded-full animate-spin mx-auto"></div>
           <p className="text-sm font-semibold text-slate-500">Đang tải danh mục sản phẩm…</p>
         </div>
       ) : error ? (
@@ -125,7 +127,7 @@ export default function ProductCatalogPage({ onAddToCart, onViewDetail }) {
           </p>
           <button
             onClick={() => { setQuery(''); setType('ALL'); }}
-            className="mt-2 text-xs font-bold text-[#086288] bg-[#f0f9ff] px-4 py-2 rounded-xl border border-[#97D7FF]"
+            className="mt-2 text-xs font-bold text-[#30483b] bg-[#f0f9ff] px-4 py-2 rounded-xl border border-[#97D7FF]"
           >
             Xóa bộ lọc
           </button>
@@ -133,14 +135,15 @@ export default function ProductCatalogPage({ onAddToCart, onViewDetail }) {
       ) : (
         <div className="purchase-grid">
           {filtered.map(p => {
-            const variants = catalogVariants([p]);
-            const variant = variants.find(v => v.stock > 0) || variants[0];
+            const variants = catalogVariants([p]).filter(v => v.stock > 0);
+            const variant = variants[0];
             if (!variant) return null;
-            const isOutOfStock = variant.stock <= 0;
+            const totalStock = variants.reduce((sum, v) => sum + v.stock, 0);
+            const isOutOfStock = totalStock <= 0;
 
             return (
               <article 
-                className="purchase-product group hover:border-[#086288] transition-all duration-200" 
+                className="purchase-product group hover:border-[#30483b] transition-all duration-200" 
                 key={p.id}
               >
                 {/* Product Image Area */}
@@ -156,15 +159,13 @@ export default function ProductCatalogPage({ onAddToCart, onViewDetail }) {
                   />
 
                   {/* Brand Tag (Clean Ice-Blue Clinical Pill) */}
-                  <span className="absolute top-3 left-3 bg-[#f0f7ff]/95 backdrop-blur-xs text-[#004967] text-[10.5px] font-bold px-2.5 py-0.5 rounded-full border border-[#c7e0f7] shadow-xs">
-                    {p.brandName || 'OptiVision'}
+                  <span className="absolute top-3 left-3 bg-[#f0f7ff]/95 backdrop-blur-xs text-[#253c33] text-[10.5px] font-bold px-2.5 py-0.5 rounded-full border border-[#c7e0f7] shadow-xs">
+                    {p.brandName || 'GlassStore'}
                   </span>
 
-                  {isOutOfStock && (
-                    <span className="absolute top-3 right-3 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-xs">
-                      Hết hàng
-                    </span>
-                  )}
+                  <span className={`absolute top-3 right-3 text-[10.5px] font-bold px-2.5 py-0.5 rounded-full backdrop-blur-xs border shadow-xs ${totalStock < 5 ? 'bg-amber-50/95 text-amber-800 border-amber-200' : 'bg-white/95 text-slate-700 border-slate-200'}`}>
+                    Còn {totalStock}
+                  </span>
                 </div>
 
                 {/* Info & Action */}
@@ -173,7 +174,7 @@ export default function ProductCatalogPage({ onAddToCart, onViewDetail }) {
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[#4D8DBA] block">
                       {p.productType === 'FRAME' ? 'Gọng Kính' : p.productType === 'LENS' ? 'Tròng Kính' : p.productType === 'SUNGLASSES' ? 'Kính Mát' : 'Phụ Kiện'}
                     </span>
-                    <h2 className="text-sm font-bold text-slate-900 mt-1 line-clamp-2 min-h-[40px] group-hover:text-[#086288] transition">
+                    <h2 className="text-sm font-bold text-slate-900 mt-1 line-clamp-2 min-h-[40px] group-hover:text-[#30483b] transition">
                       {p.name}
                     </h2>
                   </div>
@@ -181,7 +182,7 @@ export default function ProductCatalogPage({ onAddToCart, onViewDetail }) {
                   <div className="pt-3 border-t border-slate-100 space-y-2.5">
                     <div className="flex items-baseline justify-between">
                       <span className="text-xs text-slate-500 font-medium">Giá từ:</span>
-                      <strong className="text-base font-extrabold text-[#086288]">
+                      <strong className="text-base font-extrabold text-[#30483b]">
                         {money(Math.min(...variants.map(v => v.price)))}
                       </strong>
                     </div>
@@ -189,7 +190,7 @@ export default function ProductCatalogPage({ onAddToCart, onViewDetail }) {
                     <div className="grid grid-cols-1 gap-1.5">
                       <button 
                         onClick={() => onViewDetail(p)}
-                        className="w-full text-xs font-bold py-2 px-3 rounded-xl bg-slate-100 hover:bg-[#f0f9ff] text-[#086288] hover:border-[#97D7FF] transition flex items-center justify-center gap-1.5"
+                        className="w-full text-xs font-bold py-2 px-3 rounded-xl bg-slate-100 hover:bg-[#f0f9ff] text-[#30483b] hover:border-[#97D7FF] transition flex items-center justify-center gap-1.5"
                       >
                         <Eye className="w-3.5 h-3.5" /> Xem &amp; chọn kính
                       </button>

@@ -81,71 +81,71 @@ export default function ReviewFeedbackPage({ setActiveTab, currentUser, orderId 
           />
         </button>
       ))}
-      <span className="text-xs font-bold text-[#111c2d] ml-1.5">{rating}/5</span>
+      <span className="text-xs font-bold text-[#202924] ml-1.5">{rating}/5</span>
     </div>
   );
 
   return (
     <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 space-y-6">
       {/* 1. Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#dee8ff]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#e4e4db]">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#e7eeff] text-[#004967] text-[11px] font-semibold mb-1">
-            <Sparkles className="w-3 h-3 text-[#086288]" />
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#eceee7] text-[#253c33] text-[11px] font-semibold mb-1">
+            <Sparkles className="w-3 h-3 text-[#30483b]" />
             Khảo sát chất lượng dịch vụ nhãn khoa
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-[#111c2d] tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#202924] tracking-tight">
             Đánh Giá Trải Nghiệm Mua Kính &amp; Đo Mắt
           </h1>
           <p className="text-xs text-[#40484e] mt-0.5">
-            Ý kiến phản hồi thực tế từ đơn hàng của bạn giúp phòng khám OptiVision không ngừng hoàn thiện dịch vụ.
+            Ý kiến phản hồi thực tế từ đơn hàng của bạn giúp phòng khám GlassStore không ngừng hoàn thiện dịch vụ.
           </p>
         </div>
 
         <button
           onClick={() => setActiveTab('orders')}
-          className="px-3.5 py-2 rounded-xl bg-[#e7eeff] hover:bg-[#dee8ff] text-[#004967] text-xs font-bold transition shrink-0 cursor-pointer"
+          className="px-3.5 py-2 rounded-xl bg-[#eceee7] hover:bg-[#e4e4db] text-[#253c33] text-xs font-bold transition shrink-0 cursor-pointer"
         >
           Quay Lại Đơn Hàng
         </button>
       </div>
 
       {feedbackSuccess ? (
-        <div className="bg-white p-8 rounded-xl border border-[#dee8ff] shadow-sm max-w-md mx-auto text-center space-y-4">
+        <div className="bg-white p-8 rounded-xl border border-[#e4e4db] shadow-sm max-w-md mx-auto text-center space-y-4">
           <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-6 h-6" />
           </div>
-          <h2 className="text-base font-bold text-[#111c2d]">Cảm Ơn Quý Khách Đã Đánh Giá!</h2>
+          <h2 className="text-base font-bold text-[#202924]">Cảm Ơn Quý Khách Đã Đánh Giá!</h2>
           <p className="text-xs text-[#40484e]">
-            Ý kiến đóng góp quý báu của bạn giúp OptiVision không ngừng nâng cao chất lượng dịch vụ và sản phẩm.
+            Ý kiến đóng góp quý báu của bạn giúp GlassStore không ngừng nâng cao chất lượng dịch vụ và sản phẩm.
           </p>
           <button
             onClick={() => setActiveTab('orders')}
-            className="w-full py-2.5 rounded-xl bg-[#086288] hover:bg-[#004967] text-white text-xs font-bold transition cursor-pointer"
+            className="w-full py-2.5 rounded-xl bg-[#30483b] hover:bg-[#253c33] text-white text-xs font-bold transition cursor-pointer"
           >
             Về Danh Sách Đơn Hàng
           </button>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <form noValidate onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Left: Select Real Order & Items */}
           <div className="lg:col-span-5 space-y-4">
-            <div className="bg-white p-5 rounded-xl border border-[#dee8ff] shadow-sm space-y-3">
-              <h3 className="font-bold text-xs text-[#111c2d]">
+            <div className="bg-white p-5 rounded-xl border border-[#e4e4db] shadow-sm space-y-3">
+              <h3 className="font-bold text-xs text-[#202924]">
                 Chọn đơn hàng cần đánh giá trong CSDL
               </h3>
 
               {loadingOrders ? (
                 <div className="py-4 text-center text-xs text-[#40484e]">Đang tải danh sách đơn hàng…</div>
               ) : orders.length === 0 ? (
-                <div className="py-4 text-center text-xs text-[#40484e] bg-[#f9f9ff] rounded-lg border border-[#dee8ff]">
+                <div className="py-4 text-center text-xs text-[#40484e] bg-[#f9f8f4] rounded-lg border border-[#e4e4db]">
                   {currentUser ? 'Chưa có đơn hàng nào trong tài khoản.' : 'Vui lòng đăng nhập để nạp đơn hàng của bạn.'}
                 </div>
               ) : (
                 <select
                   value={selectedOrderId}
                   onChange={(e) => setSelectedOrderId(e.target.value)}
-                  className="w-full bg-[#f9f9ff] border border-[#dee8ff] rounded-lg p-2.5 text-xs text-[#111c2d] outline-none"
+                  className="w-full bg-[#f9f8f4] border border-[#e4e4db] rounded-lg p-2.5 text-xs text-[#202924] outline-none"
                 >
                   {orders.map((o) => (
                     <option key={o.id} value={o.id}>
@@ -157,8 +157,8 @@ export default function ReviewFeedbackPage({ setActiveTab, currentUser, orderId 
 
               {/* Order preview */}
               {selectedOrderObj && (
-                <div className="p-3 bg-[#f0f3ff] rounded-lg border border-[#dee8ff] text-xs space-y-2">
-                  <div className="flex justify-between font-bold text-[#004967]">
+                <div className="p-3 bg-[#f1f2ec] rounded-lg border border-[#e4e4db] text-xs space-y-2">
+                  <div className="flex justify-between font-bold text-[#253c33]">
                     <span>Đơn hàng: #{selectedOrderObj.orderCode}</span>
                     <span>{selectedOrderObj.status}</span>
                   </div>
@@ -166,7 +166,7 @@ export default function ReviewFeedbackPage({ setActiveTab, currentUser, orderId 
                     Sản phẩm: {selectedOrderObj.items?.map(i => `${i.productName || i.skuId} (x${i.quantity})`).join(', ') || 'Kính mắt'}
                   </div>
                   {selectedOrderObj.prescription && (
-                    <div className="text-[11px] font-mono text-[#086288] pt-1.5 border-t border-[#dee8ff]">
+                    <div className="text-[11px] font-mono text-[#30483b] pt-1.5 border-t border-[#e4e4db]">
                       OD: SPH {selectedOrderObj.prescription.odSph} / CYL {selectedOrderObj.prescription.odCyl} · OS: SPH {selectedOrderObj.prescription.osSph} / CYL {selectedOrderObj.prescription.osCyl}
                     </div>
                   )}
@@ -176,29 +176,29 @@ export default function ReviewFeedbackPage({ setActiveTab, currentUser, orderId 
           </div>
 
           {/* Right: Feedback Form */}
-          <div className="lg:col-span-7 bg-white p-5 rounded-xl border border-[#dee8ff] shadow-sm space-y-4">
-            <h3 className="font-bold text-xs text-[#111c2d]">
+          <div className="lg:col-span-7 bg-white p-5 rounded-xl border border-[#e4e4db] shadow-sm space-y-4">
+            <h3 className="font-bold text-xs text-[#202924]">
               Mức độ hài lòng về chất lượng quang học
             </h3>
 
-            <div className="space-y-3 pb-3 border-b border-[#f0f3ff]">
+            <div className="space-y-3 pb-3 border-b border-[#f1f2ec]">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-[#111c2d] font-semibold">Độ êm dịu &amp; vừa vặn của gọng:</span>
+                <span className="text-xs text-[#202924] font-semibold">Độ êm dịu &amp; vừa vặn của gọng:</span>
                 {renderStars(frameComfort, setFrameComfort)}
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-[#111c2d] font-semibold">Độ trong suốt &amp; sắc nét của tròng:</span>
+                <span className="text-xs text-[#202924] font-semibold">Độ trong suốt &amp; sắc nét của tròng:</span>
                 {renderStars(lensClarity, setLensClarity)}
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-[#111c2d] font-semibold">Thái độ kỹ thuật viên &amp; bác sĩ đo mắt:</span>
+                <span className="text-xs text-[#202924] font-semibold">Thái độ kỹ thuật viên &amp; bác sĩ đo mắt:</span>
                 {renderStars(staffService, setStaffService)}
               </div>
             </div>
 
             {/* Quick tags */}
             <div>
-              <label className="block text-xs font-semibold text-[#111c2d] mb-1.5">
+              <label className="block text-xs font-semibold text-[#202924] mb-1.5">
                 Nhận xét nhanh về sản phẩm
               </label>
               <div className="flex flex-wrap gap-1.5">
@@ -212,8 +212,8 @@ export default function ReviewFeedbackPage({ setActiveTab, currentUser, orderId 
                     onClick={() => toggleTag(tag)}
                     className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition cursor-pointer ${
                       selectedTags.includes(tag)
-                        ? 'bg-[#e7eeff] border-[#086288] text-[#004967] font-semibold'
-                        : 'bg-[#f9f9ff] border-[#dee8ff] text-[#40484e]'
+                        ? 'bg-[#eceee7] border-[#30483b] text-[#253c33] font-semibold'
+                        : 'bg-[#f9f8f4] border-[#e4e4db] text-[#40484e]'
                     }`}
                   >
                     {tag}
@@ -224,7 +224,7 @@ export default function ReviewFeedbackPage({ setActiveTab, currentUser, orderId 
 
             {/* Comment */}
             <div>
-              <label className="block text-xs font-semibold text-[#111c2d] mb-1">
+              <label className="block text-xs font-semibold text-[#202924] mb-1">
                 Chia sẻ chi tiết trải nghiệm của bạn
               </label>
               <textarea
@@ -233,14 +233,14 @@ export default function ReviewFeedbackPage({ setActiveTab, currentUser, orderId 
                 placeholder="VD: Gọng titan đeo rất nhẹ, tròng chống chói đêm xe tốt, KTV chỉnh càng kính vừa khít khuôn mặt..."
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                className="w-full bg-[#f9f9ff] border border-[#dee8ff] rounded-lg p-3 text-xs text-[#111c2d] outline-none"
+                className="w-full bg-[#f9f8f4] border border-[#e4e4db] rounded-lg p-3 text-xs text-[#202924] outline-none"
               />
             </div>
 
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-2.5 rounded-xl bg-[#086288] hover:bg-[#004967] disabled:opacity-50 text-white font-bold text-xs shadow-sm transition active:scale-[0.98] cursor-pointer"
+              className="w-full py-2.5 rounded-xl bg-[#30483b] hover:bg-[#253c33] disabled:opacity-50 text-white font-bold text-xs shadow-sm transition active:scale-[0.98] cursor-pointer"
             >
               {submitting ? 'Đang gửi đánh giá…' : 'Gửi Đánh Giá Trải Nghiệm'}
             </button>

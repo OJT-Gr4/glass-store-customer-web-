@@ -4,6 +4,8 @@ import {
   MapPin, Check, ArrowRight, AlertCircle, Phone, Award, Loader2, Sparkles
 } from 'lucide-react';
 import { warrantyApi } from '../api/warrantyApi';
+import WarrantyHandoverFields, { useWarrantyHandover } from './WarrantyHandoverFields';
+import { warrantyHandoverPayload } from './warrantyHandover';
 
 export default function WarrantyCenterPage({ setActiveTab, currentUser }) {
   const userPhone = currentUser?.phoneNumber || currentUser?.phone || '';
@@ -37,29 +39,37 @@ export default function WarrantyCenterPage({ setActiveTab, currentUser }) {
   // Form bảo dưỡng nhanh
   const [selectedProduct, setSelectedProduct] = useState('');
   const [selectedService, setSelectedService] = useState('ALIGN');
-  const [deliveryMethod, setDeliveryMethod] = useState('SHOWROOM');
+  const handover=useWarrantyHandover(currentUser);
+  const [handoverError,setHandoverError]=useState('');
   const [notes, setNotes] = useState('');
   const [submittingService, setSubmittingService] = useState(false);
 
-  // Tự động tìm kiếm nếu có tài khoản hoặc nạp danh sách
+  // Tự động nạp toàn bộ phiếu bảo hành của tài khoản đang đăng nhập (hoặc tải danh sách công khai)
   useEffect(() => {
     if (userPhone) {
       setSearchCode(userPhone);
-      performSearch(userPhone, false);
-    } else {
-      // Load all visible warranties for current user/public
-      setLoading(true);
-      warrantyApi.getAllWarranties()
-        .then((data) => {
-          if (Array.isArray(data) && data.length > 0) {
-            setWarranties(data);
-            setSelectedProduct(data[0]?.warrantyCode || '');
-          }
-        })
-        .catch((err) => console.warn('Lỗi tải danh sách bảo hành:', err))
-        .finally(() => setLoading(false));
     }
-  }, [userPhone]);
+    let active = true;
+    setLoading(true);
+    warrantyApi.getAllWarranties()
+      .then((data) => {
+        if (!active) return;
+        const rows = Array.isArray(data) ? data : [];
+        if (rows.length > 0) {
+          setWarranties(rows);
+          setSelectedProduct(rows[0]?.warrantyCode || '');
+        } else if (userPhone) {
+          performSearch(userPhone, false);
+        } else {
+          setWarranties([]);
+        }
+      })
+      .catch((err) => console.warn('Lỗi tải danh sách bảo hành:', err))
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
+  }, [currentUser?.id, userPhone]);
 
   const performSearch = async (query, showNotification = true) => {
     const q = (query || '').replace(/\s+/g, '').trim();
@@ -118,15 +128,18 @@ export default function WarrantyCenterPage({ setActiveTab, currentUser }) {
 
   const handleSubmitWarrantyRequest = async (e) => {
     e.preventDefault();
+    if(submittingService)return;
+    setHandoverError('');
     setSubmittingService(true);
     try {
+      const delivery=warrantyHandoverPayload(handover,handover.locations);
       const selectedItem = warranties.find(w => w.warrantyCode === selectedProduct) || warranties[0];
       const payload = {
         warrantyCode: `WAR-${Date.now().toString().slice(-4)}`,
         originalOrderCode: selectedItem ? (selectedItem.originalOrderCode || selectedItem.orderCode || 'ORD-COUNTER') : 'ORD-COUNTER',
         customerName: currentUser?.fullName || currentUser?.name || selectedItem?.customerName || 'Khách Hàng',
         customerPhone: userPhone || searchCode.replace(/\s+/g, '') || selectedItem?.customerPhone || '0900000000',
-        productName: selectedItem ? selectedItem.productName : 'Kính mắt OptiVision',
+        productName: selectedItem ? selectedItem.productName : 'Kính mắt GlassStore',
         productSku: selectedItem ? (selectedItem.productSku || 'SKU-OPT') : 'SKU-OPT',
         claimType: selectedService === 'RX_INSURANCE' ? 'RX_INSURANCE' : 'FRAME_TECH',
         issueDescription: `[Dịch vụ: ${selectedService}] ${notes.trim() || 'Yêu cầu bảo dưỡng / căn chỉnh'}`,
@@ -135,7 +148,7 @@ export default function WarrantyCenterPage({ setActiveTab, currentUser }) {
         statusLabel: 'Chờ tiếp nhận',
         statusColor: '#f59e0b',
         cost: '0 đ (Miễn phí)',
-        techNote: `Hình thức: ${deliveryMethod === 'SHOWROOM' ? 'Tại Showroom' : 'Đưa đón tận nơi 2 chiều'}`
+        ...delivery
       };
 
       const result = await warrantyApi.createClaim(payload);
@@ -147,10 +160,15 @@ export default function WarrantyCenterPage({ setActiveTab, currentUser }) {
         'Kỹ thuật viên phòng Lab sẽ liên hệ xác nhận trong vòng 30 phút.'
       );
       setNotes('');
-      // Reload from database
-      performSearch(searchCode, false);
+      // Reload warranties from database for authenticated user or search
+      const refreshed = await warrantyApi.getAllWarranties();
+      if (Array.isArray(refreshed) && refreshed.length > 0) {
+        setWarranties(refreshed);
+      } else {
+        performSearch(searchCode, false);
+      }
     } catch (err) {
-      alert(err.message || 'Không thể gửi yêu cầu bảo dưỡng. Vui lòng thử lại!');
+      setHandoverError(err.message || 'Không thể gửi yêu cầu bảo dưỡng. Vui lòng thử lại!');
     } finally {
       setSubmittingService(false);
     }
@@ -159,13 +177,13 @@ export default function WarrantyCenterPage({ setActiveTab, currentUser }) {
   return (
     <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 space-y-6">
       {/* 1. Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#dee8ff]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#e4e4db]">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#e7eeff] text-[#004967] text-[11px] font-semibold mb-1">
-            <ShieldCheck className="w-3 h-3 text-[#086288]" />
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#eceee7] text-[#253c33] text-[11px] font-semibold mb-1">
+            <ShieldCheck className="w-3 h-3 text-[#30483b]" />
             Hệ thống bảo hành điện tử E-Warranty CRM
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-[#111c2d] tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#202924] tracking-tight">
             Trung Tâm Bảo Hành &amp; Tra Cứu Hậu Mãi
           </h1>
           <p className="text-xs text-[#40484e] mt-0.5">
@@ -175,15 +193,15 @@ export default function WarrantyCenterPage({ setActiveTab, currentUser }) {
 
         <button
           onClick={() => setActiveTab('claim-warranty')}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#086288] hover:bg-[#004967] text-white text-xs font-bold shadow-sm transition active:scale-[0.98] shrink-0 cursor-pointer"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#30483b] hover:bg-[#253c33] text-white text-xs font-bold shadow-sm transition active:scale-[0.98] shrink-0 cursor-pointer"
         >
-          <Wrench className="w-3.5 h-3.5 text-[#cae6ff]" />
+          <Wrench className="w-3.5 h-3.5 text-[#dce5d9]" />
           <span>Gửi Yêu Cầu Bảo Hành / Đổi Trả</span>
         </button>
       </div>
 
       {/* 2. Search Toolbar */}
-      <div className="bg-white p-4 rounded-xl border border-[#dee8ff] shadow-sm">
+      <div className="bg-white p-4 rounded-xl border border-[#e4e4db] shadow-sm">
         <form onSubmit={handleSearchWarranty} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-[#40484e] absolute left-3 top-2.5" />
@@ -192,13 +210,13 @@ export default function WarrantyCenterPage({ setActiveTab, currentUser }) {
               placeholder="Nhập số điện thoại đặt hàng, mã bảo hành (VD: WAR-...) hoặc mã đơn hàng..."
               value={searchCode}
               onChange={(e) => setSearchCode(e.target.value)}
-              className="w-full text-xs bg-[#f9f9ff] border border-[#dee8ff] rounded-xl pl-9 pr-3 py-2 text-[#111c2d] outline-none focus:border-[#086288] focus:ring-1 focus:ring-[#086288]"
+              className="w-full text-xs bg-[#f9f8f4] border border-[#e4e4db] rounded-xl pl-9 pr-3 py-2 text-[#202924] outline-none focus:border-[#30483b] focus:ring-1 focus:ring-[#30483b]"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="px-5 py-2 rounded-xl bg-[#086288] hover:bg-[#004967] disabled:opacity-50 text-white text-xs font-bold shadow-sm transition shrink-0 cursor-pointer flex items-center justify-center gap-1.5"
+            className="px-5 py-2 rounded-xl bg-[#30483b] hover:bg-[#253c33] disabled:opacity-50 text-white text-xs font-bold shadow-sm transition shrink-0 cursor-pointer flex items-center justify-center gap-1.5"
           >
             {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
             <span>Tra Cứu Bảo Hành</span>
@@ -222,7 +240,7 @@ export default function WarrantyCenterPage({ setActiveTab, currentUser }) {
         {/* Left: Grouped Warranties List */}
         <div className="lg:col-span-7 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-[#111c2d]">
+            <h2 className="text-sm font-bold text-[#202924]">
               Sản Phẩm Đang Được Bảo Hành ({groupedWarranties.length})
             </h2>
             <span className="text-[11px] text-[#40484e]">
@@ -231,13 +249,13 @@ export default function WarrantyCenterPage({ setActiveTab, currentUser }) {
           </div>
 
           {loading ? (
-            <div className="py-12 text-center text-xs text-[#40484e] bg-white rounded-xl border border-[#dee8ff]">
+            <div className="py-12 text-center text-xs text-[#40484e] bg-white rounded-xl border border-[#e4e4db]">
               Đang tra cứu dữ liệu bảo hành chính hãng…
             </div>
           ) : groupedWarranties.length === 0 ? (
-            <div className="py-12 text-center text-xs text-[#40484e] bg-white rounded-xl border border-[#dee8ff] p-6 space-y-2">
+            <div className="py-12 text-center text-xs text-[#40484e] bg-white rounded-xl border border-[#e4e4db] p-6 space-y-2">
               <ShieldCheck className="w-8 h-8 text-[#40484e] mx-auto opacity-40" />
-              <p className="font-semibold text-[#111c2d]">Chưa tìm thấy sản phẩm bảo hành nào</p>
+              <p className="font-semibold text-[#202924]">Chưa tìm thấy sản phẩm bảo hành nào</p>
               <p>Hãy nhập đúng số điện thoại đặt hàng để hệ thống truy xuất hồ sơ.</p>
             </div>
           ) : (
@@ -245,11 +263,11 @@ export default function WarrantyCenterPage({ setActiveTab, currentUser }) {
               {groupedWarranties.map((item, idx) => (
                 <div
                   key={idx}
-                  className="bg-white p-4 rounded-xl border border-[#dee8ff] shadow-xs space-y-3 hover:border-[#086288] transition"
+                  className="bg-white p-4 rounded-xl border border-[#e4e4db] shadow-xs space-y-3 hover:border-[#30483b] transition"
                 >
-                  <div className="flex items-center justify-between pb-2 border-b border-[#f0f3ff]">
+                  <div className="flex items-center justify-between pb-2 border-b border-[#f1f2ec]">
                     <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-xs text-[#086288]">
+                      <span className="font-mono font-bold text-xs text-[#30483b]">
                         Đơn: {item.orderCode}
                       </span>
                       <span className="text-[11px] text-[#40484e]">· Khách: {item.customerName}</span>
@@ -260,7 +278,7 @@ export default function WarrantyCenterPage({ setActiveTab, currentUser }) {
                   </div>
 
                   <div>
-                    <h3 className="font-bold text-xs text-[#111c2d] leading-snug">
+                    <h3 className="font-bold text-xs text-[#202924] leading-snug">
                       {item.productName}
                     </h3>
                   </div>
@@ -279,16 +297,26 @@ export default function WarrantyCenterPage({ setActiveTab, currentUser }) {
                             key={pol.id || pol.warrantyCode}
                             className="p-2 rounded-lg bg-[#f8fafc] border border-slate-200/80 flex items-start gap-2"
                           >
-                            <div className="w-5 h-5 rounded-md bg-[#e7eeff] text-[#086288] flex items-center justify-center shrink-0 mt-0.5">
+                            <div className="w-5 h-5 rounded-md bg-[#eceee7] text-[#30483b] flex items-center justify-center shrink-0 mt-0.5">
                               {isExchange ? <Award className="w-3 h-3" /> : isAdjustment ? <Wrench className="w-3 h-3" /> : <ShieldCheck className="w-3 h-3" />}
                             </div>
-                            <div className="text-[11px] leading-tight flex-1">
-                              <span className="font-bold text-[#111c2d] block">
+                            <div className="text-[11px] leading-tight flex-1 space-y-0.5">
+                              <span className="font-bold text-[#202924] block">
                                 {isExchange ? 'Đổi mới 30 ngày (Lỗi NSX)' : isAdjustment ? 'Nắn chỉnh gọng trọn đời' : (pol.policyRef || 'Bảo hành tiêu chuẩn')}
                               </span>
-                              <span className="text-[10px] text-[#086288] font-mono">
-                                #{pol.warrantyCode.slice(0, 16)}...
-                              </span>
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <span className="text-[10px] text-[#30483b] font-mono">
+                                  #{pol.warrantyCode}
+                                </span>
+                                {pol.statusLabel && (
+                                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
+                                    {pol.statusLabel}
+                                  </span>
+                                )}
+                              </div>
+                              {pol.issueDescription && (
+                                <p className="text-[10px] text-[#40484e] line-clamp-2">{pol.issueDescription}</p>
+                              )}
                             </div>
                           </div>
                         );
@@ -297,13 +325,13 @@ export default function WarrantyCenterPage({ setActiveTab, currentUser }) {
                   </div>
 
                   {item.prescriptionNote && (
-                    <div className="p-2.5 bg-[#f0f3ff] rounded-lg border border-[#dee8ff] text-[11px] text-[#004967] font-mono">
+                    <div className="p-2.5 bg-[#f1f2ec] rounded-lg border border-[#e4e4db] text-[11px] text-[#253c33] font-mono">
                       <div>OD: {item.prescriptionNote.od || '—'}</div>
                       <div>OS: {item.prescriptionNote.os || '—'}</div>
                     </div>
                   )}
 
-                  <div className="pt-2 border-t border-[#f0f3ff] flex items-center justify-between text-[11px] text-[#40484e]">
+                  <div className="pt-2 border-t border-[#f1f2ec] flex items-center justify-between text-[11px] text-[#40484e]">
                     <span>Thời hạn: 12 Tháng chính hãng</span>
                     <button
                       onClick={() => {
@@ -311,7 +339,7 @@ export default function WarrantyCenterPage({ setActiveTab, currentUser }) {
                         const formEl = document.getElementById('quick-service-form');
                         if (formEl) formEl.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className="text-xs font-bold text-[#086288] hover:underline cursor-pointer flex items-center gap-1"
+                      className="text-xs font-bold text-[#30483b] hover:underline cursor-pointer flex items-center gap-1"
                     >
                       Bảo dưỡng sản phẩm này →
                     </button>
@@ -323,9 +351,9 @@ export default function WarrantyCenterPage({ setActiveTab, currentUser }) {
         </div>
 
         {/* Right: Quick Service Request Form */}
-        <div id="quick-service-form" className="lg:col-span-5 bg-white p-5 rounded-xl border border-[#dee8ff] shadow-sm space-y-4">
+        <div id="quick-service-form" className="lg:col-span-5 bg-white p-5 rounded-xl border border-[#e4e4db] shadow-sm space-y-4">
           <div>
-            <h3 className="text-sm font-bold text-[#111c2d]">
+            <h3 className="text-sm font-bold text-[#202924]">
               Đăng Ký Bảo Dưỡng Kính Nhanh
             </h3>
             <p className="text-xs text-[#40484e] mt-0.5">
@@ -336,13 +364,13 @@ export default function WarrantyCenterPage({ setActiveTab, currentUser }) {
           <form onSubmit={handleSubmitWarrantyRequest} className="space-y-3 text-xs">
             {/* Select Product */}
             <div>
-              <label className="block font-semibold text-[#111c2d] mb-1">
+              <label className="block font-semibold text-[#202924] mb-1">
                 Sản phẩm kính cần chăm sóc
               </label>
               <select
                 value={selectedProduct}
                 onChange={(e) => setSelectedProduct(e.target.value)}
-                className="w-full bg-[#f9f9ff] border border-[#dee8ff] rounded-lg p-2 text-xs text-[#111c2d] outline-none"
+                className="w-full bg-[#f9f8f4] border border-[#e4e4db] rounded-lg p-2 text-xs text-[#202924] outline-none"
               >
                 {warranties.length > 0 ? (
                   warranties.map((w) => (
@@ -351,14 +379,14 @@ export default function WarrantyCenterPage({ setActiveTab, currentUser }) {
                     </option>
                   ))
                 ) : (
-                  <option value="GENERAL">Kính mắt OptiVision bất kỳ</option>
+                  <option value="GENERAL">Kính mắt GlassStore bất kỳ</option>
                 )}
               </select>
             </div>
 
             {/* Service Type */}
             <div>
-              <label className="block font-semibold text-[#111c2d] mb-1">
+              <label className="block font-semibold text-[#202924] mb-1">
                 Dịch vụ kỹ thuật yêu cầu
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -374,8 +402,8 @@ export default function WarrantyCenterPage({ setActiveTab, currentUser }) {
                     onClick={() => setSelectedService(s.id)}
                     className={`p-2 rounded-lg text-left text-xs font-semibold border transition cursor-pointer ${
                       selectedService === s.id
-                        ? 'bg-[#e7eeff] border-[#086288] text-[#004967]'
-                        : 'bg-[#f9f9ff] border-[#dee8ff] text-[#40484e]'
+                        ? 'bg-[#eceee7] border-[#30483b] text-[#253c33]'
+                        : 'bg-[#f9f8f4] border-[#e4e4db] text-[#40484e]'
                     }`}
                   >
                     {s.label}
@@ -384,40 +412,12 @@ export default function WarrantyCenterPage({ setActiveTab, currentUser }) {
               </div>
             </div>
 
-            {/* Delivery Method */}
-            <div>
-              <label className="block font-semibold text-[#111c2d] mb-1">
-                Hình thức tiếp nhận
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setDeliveryMethod('SHOWROOM')}
-                  className={`p-2 rounded-lg text-xs font-semibold border transition cursor-pointer ${
-                    deliveryMethod === 'SHOWROOM'
-                      ? 'bg-[#e7eeff] border-[#086288] text-[#004967]'
-                      : 'bg-[#f9f9ff] border-[#dee8ff] text-[#40484e]'
-                  }`}
-                >
-                  Mang tới Showroom
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDeliveryMethod('DOOR')}
-                  className={`p-2 rounded-lg text-xs font-semibold border transition cursor-pointer ${
-                    deliveryMethod === 'DOOR'
-                      ? 'bg-[#e7eeff] border-[#086288] text-[#004967]'
-                      : 'bg-[#f9f9ff] border-[#dee8ff] text-[#40484e]'
-                  }`}
-                >
-                  Giao nhận tận nơi
-                </button>
-              </div>
-            </div>
+            <WarrantyHandoverFields handover={handover} />
+            {handoverError && <p role="alert" className="text-red-700">{handoverError}</p>}
 
             {/* Notes */}
             <div>
-              <label className="block font-semibold text-[#111c2d] mb-1">
+              <label className="block font-semibold text-[#202924] mb-1">
                 Ghi chú tình trạng kính
               </label>
               <textarea
@@ -425,14 +425,14 @@ export default function WarrantyCenterPage({ setActiveTab, currentUser }) {
                 placeholder="Mô tả tình trạng: lỏng ốc, lệch sống mũi, hoặc độ nhìn mờ..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full bg-[#f9f9ff] border border-[#dee8ff] rounded-lg p-2 text-xs text-[#111c2d] outline-none"
+                className="w-full bg-[#f9f8f4] border border-[#e4e4db] rounded-lg p-2 text-xs text-[#202924] outline-none"
               />
             </div>
 
             <button
               type="submit"
               disabled={submittingService}
-              className="w-full py-2.5 rounded-xl bg-[#086288] hover:bg-[#004967] disabled:opacity-50 text-white font-bold text-xs shadow-sm transition cursor-pointer"
+              className="w-full py-2.5 rounded-xl bg-[#30483b] hover:bg-[#253c33] disabled:opacity-50 text-white font-bold text-xs shadow-sm transition cursor-pointer"
             >
               {submittingService ? 'Đang gửi yêu cầu bảo dưỡng…' : 'Xác Nhận Đăng Ký Bảo Dưỡng (0đ)'}
             </button>

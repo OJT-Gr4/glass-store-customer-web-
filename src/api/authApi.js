@@ -1,7 +1,8 @@
+import { repairDisplayText } from './textEncoding.js';
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || '';
 const TOKEN_KEY = 'optivision_customer_token';
 const USER_KEY = 'optivision_customer_user';
-const DEFAULT_AVATAR_URL = 'https://i.pinimg.com/236x/3e/f1/fc/3ef1fcc3b6cbb97199f961bb0b3ead3f.jpg';
+const DEFAULT_AVATAR_URL = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJAy3MrvYrmubxOdwfv33LI41s2yC06qjU4-qkqMyF4w&s';
 
 async function request(path, options = {}) {
   const response = await fetch(`${API_BASE_URL}/api/v1/auth/${path}`, options);
@@ -11,7 +12,7 @@ async function request(path, options = {}) {
     error.status = response.status;
     throw error;
   }
-  return envelope.data;
+  return repairDisplayText(envelope.data);
 }
 
 function customerProfile(data) {

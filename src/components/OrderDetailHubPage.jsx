@@ -214,15 +214,21 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
                   </p>
 
                   {!paymentData ? (
-                    <div style={{ display: 'flex', justifyContent: 'center', margin: '16px 0' }}>
-                      <button
-                        type="button"
-                        onClick={handleInitiatePayment}
-                        disabled={initiatingPayment}
-                        className="txn-btn primary"
-                      >
-                        {initiatingPayment ? 'Đang khởi tạo cổng VietQR…' : 'Mở Mã Thanh Toán VietQR'}
-                      </button>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: '20px 0' }}>
+                      {initiatingPayment ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', padding: '16px' }}>
+                          <div style={{ width: '32px', height: '32px', border: '3px solid #30483b', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                          <span style={{ fontSize: '12px', color: '#30483b', fontWeight: 600 }}>Đang khởi tạo mã VietQR SePay tự động…</span>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleInitiatePayment}
+                          className="txn-btn primary"
+                        >
+                          Mở Mã Thanh Toán VietQR
+                        </button>
+                      )}
                     </div>
                   ) : (
                     <div className="vietqr-presentation">
@@ -232,9 +238,9 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
                         className="vietqr-image"
                       />
                       <div className="bank-account-details">
-                        <div>Ngân hàng: <strong>{paymentData?.formFields?.bankName || 'MBBank (Ngân Hàng Quân Đội)'}</strong></div>
-                        <div>Số tài khoản: <strong>{paymentData?.formFields?.accountNo || '0987654321'}</strong></div>
-                        <div>Chủ tài khoản: <strong>{paymentData?.formFields?.accountName || 'OPTIVISION GLASS STORE'}</strong></div>
+                        <div>Ngân hàng: <strong>{paymentData?.formFields?.bankName || 'MBBank'}</strong></div>
+                        <div>Số tài khoản: <strong>{paymentData?.formFields?.accountNo || '3906122006'}</strong></div>
+                        <div>Chủ tài khoản: <strong>{paymentData?.formFields?.accountName || 'TRAN HUU TRUNG PHONG'}</strong></div>
                         <div>Số tiền: <strong>{money(order.finalAmount)}</strong></div>
                         <div>Nội dung: <strong>{paymentData?.formFields?.addInfo || order.orderCode}</strong></div>
                       </div>
@@ -281,7 +287,7 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
                   <p className="purchase-muted">Ngày tạo: {orderDate(order.createdAt)} · Kênh: Cửa hàng trực tuyến</p>
                   <p><strong>Khách hàng:</strong> {order.customerName} ({order.customerPhone})</p>
                   {order.deliveryMethod && (
-                    <p><strong>Hình thức nhận:</strong> {order.deliveryMethod === 'SHOWROOM' ? `Showroom (${order.storePickupLocation || 'Showroom OptiVision'})` : 'Giao hàng tận nơi'}</p>
+                    <p><strong>Hình thức nhận:</strong> {order.deliveryMethod === 'SHOWROOM' ? `Showroom (${order.storePickupLocation || 'Showroom GlassStore'})` : 'Giao hàng tận nơi'}</p>
                   )}
                   {order.shippingAddress && <p><strong>Địa chỉ:</strong> {order.shippingAddress}</p>}
                 </div>
@@ -337,7 +343,7 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
               <p className="purchase-muted">Ngày tạo: {orderDate(order.createdAt)}</p>
               <p>{order.customerName} · {order.customerPhone}</p>
               {order.deliveryMethod && (
-                <p><strong>Hình thức nhận:</strong> {order.deliveryMethod === 'SHOWROOM' ? `Nhận tại showroom (${order.storePickupLocation || 'Showroom OptiVision'})` : 'Giao hàng tận nơi'}</p>
+                <p><strong>Hình thức nhận:</strong> {order.deliveryMethod === 'SHOWROOM' ? `Nhận tại showroom (${order.storePickupLocation || 'Showroom GlassStore'})` : 'Giao hàng tận nơi'}</p>
               )}
               {order.shippingAddress && <p><strong>Địa chỉ:</strong> {order.shippingAddress}</p>}
               {order.branchName && <p>Chi nhánh: {order.branchName}</p>}
@@ -387,7 +393,7 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
                   </p>
                   {returnSuccess ? (
                     <div style={{ padding: '0.75rem', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', color: '#166534', fontSize: '0.85rem' }}>
-                      ✓ Đã tiếp nhận yêu cầu đổi / trả hàng thành công! Đội ngũ CSKH OptiVision sẽ liên hệ với bạn trong vòng 24 giờ.
+                      ✓ Đã tiếp nhận yêu cầu đổi / trả hàng thành công! Đội ngũ CSKH GlassStore sẽ liên hệ với bạn trong vòng 24 giờ.
                     </div>
                   ) : (
                     <form onSubmit={handleReturn} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -419,7 +425,7 @@ export default function OrderDetailHubPage({ setActiveTab, currentUser, openAuth
                       <button
                         type="submit"
                         disabled={submittingReturn}
-                        style={{ alignSelf: 'flex-start', padding: '0.4rem 0.9rem', background: '#086288', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
+                        style={{ alignSelf: 'flex-start', padding: '0.4rem 0.9rem', background: '#30483b', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
                       >
                         {submittingReturn ? 'Đang gửi yêu cầu…' : 'Gửi yêu cầu đổi / trả'}
                       </button>
