@@ -1,3 +1,5 @@
+import { createUuid } from './browserSafe.js';
+
 const REQUEST_KEY = 'optivision_checkout_request';
 const CART_KEY = 'optivision_customer_cart';
 
@@ -13,7 +15,7 @@ export function checkoutClaim(payload, current) {
   const fingerprint = JSON.stringify(payload);
   const previous = current || read(REQUEST_KEY, null);
   const claim = previous?.fingerprint === fingerprint && previous?.key
-    ? previous : { fingerprint, key: crypto.randomUUID() };
+    ? previous : { fingerprint, key: createUuid() };
   write(REQUEST_KEY, claim);
   return claim;
 }

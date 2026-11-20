@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { X, ShieldCheck, FileText, AlertCircle, ShoppingBag, Check, QrCode, CreditCard } from 'lucide-react';
+import { X, ShieldCheck, FileText, AlertCircle, ShoppingBag, Check, QrCode } from 'lucide-react';
 import { checkoutApi } from '../api/checkoutApi';
 import { checkoutPayload, money } from './purchaseUtils';
 import { checkoutClaim } from './checkoutSession';
+import { checkoutVoucherOptions } from './voucherDisplay';
 import './purchase.css';
 
 export default function CheckoutModal({ cart, user, requestRef, onClose, onSuccess }) {
@@ -15,17 +16,66 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
     address: user?.address || ''
   });
   const [error, setError] = useState('');
+  const [formErrors, setFormErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [priceChange, setPriceChange] = useState(null);
   const [acceptPriceChange, setAcceptPriceChange] = useState(false);
   const [configuration, setConfiguration] = useState(null);
   const [configurationError, setConfigurationError] = useState('');
+  const [voucherCode, setVoucherCode] = useState('');
+  const [voucherQuote, setVoucherQuote] = useState(null);
+  const [availableVouchers, setAvailableVouchers] = useState([]);
+  const [voucherListLoading, setVoucherListLoading] = useState(true);
+  const [voucherListError, setVoucherListError] = useState('');
+  const [voucherRefresh, setVoucherRefresh] = useState(0);
+  const [voucherError, setVoucherError] = useState('');
+  const [voucherLoading, setVoucherLoading] = useState(false);
+  const voucherAttempt = useRef(0);
 
   const localRequest = useRef(null);
   const request = requestRef || localRequest;
   const locked = useRef(false);
   const dialog = useRef(null);
   const rx = cart.find(item => item.prescription)?.prescription;
+  const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const voucherOptions = checkoutVoucherOptions(availableVouchers, totalAmount);
+  const appliedVoucher = voucherQuote?.totalAmount === totalAmount && voucherQuote?.code === voucherCode.trim() ? voucherQuote : null;
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setVoucherListLoading(true); setVoucherListError(''); setAvailableVouchers([]);
+    checkoutApi.vouchers(controller.signal).then(rows => {
+      if (!controller.signal.aborted && Array.isArray(rows)) setAvailableVouchers(rows);
+    }).catch(err => { if (!controller.signal.aborted) setVoucherListError(err.message); })
+      .finally(() => { if (!controller.signal.aborted) setVoucherListLoading(false); });
+    return () => { controller.abort(); voucherAttempt.current += 1; };
+  }, [user?.id, user?.userId, voucherRefresh]);
+
+  useEffect(() => {
+    voucherAttempt.current += 1;
+    setVoucherQuote(null); setVoucherLoading(false); setVoucherError('');
+  }, [totalAmount]);
+
+  function changeVoucher(value) {
+    voucherAttempt.current += 1;
+    setVoucherCode(value.toUpperCase()); setVoucherQuote(null); setVoucherError(''); setVoucherLoading(false);
+  }
+  async function applyVoucher(input = voucherCode) {
+    const attempt = ++voucherAttempt.current;
+    const code = input.trim().toUpperCase();
+    if (!code) return;
+    setVoucherLoading(true); setVoucherError(''); setVoucherQuote(null);
+    try {
+      const quote = await checkoutApi.quoteVoucher(code, totalAmount);
+      if (attempt === voucherAttempt.current) setVoucherQuote({ ...quote, totalAmount });
+    } catch (err) { if (attempt === voucherAttempt.current) setVoucherError(err.message); }
+    finally { if (attempt === voucherAttempt.current) setVoucherLoading(false); }
+  }
+
+  function selectVoucher(code) {
+    changeVoucher(code);
+    if (code) applyVoucher(code);
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -53,9 +103,49 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
   async function submit(event) {
     event.preventDefault();
     if (locked.current) return;
+    setError('');
+
+    // Detailed field-by-field validation with user-friendly Vietnamese messages
+    const errors = {};
+    const trimmedName = (contact.name || '').trim();
+    const trimmedPhone = (contact.phone || '').trim().replace(/\s+/g, '');
+    const trimmedAddress = (contact.address || '').trim();
+
+    if (!trimmedName) {
+      errors.name = 'Vui lòng nhập họ và tên người nhận.';
+    }
+    if (!trimmedPhone) {
+      errors.phone = 'Vui lòng nhập số điện thoại liên hệ.';
+    } else {
+      const phoneRegex = /^(0[3|5|7|8|9])[0-9]{8}$/;
+      if (!phoneRegex.test(trimmedPhone)) {
+        errors.phone = 'Số điện thoại không hợp lệ (cần 10 chữ số, bắt đầu bằng 03, 05, 07, 08, 09).';
+      }
+    }
+    if (deliveryMethod === 'DOOR' && !trimmedAddress) {
+      errors.address = 'Vui lòng nhập địa chỉ giao hàng chi tiết (số nhà, đường, phường/xã, quận/huyện).';
+    }
+    if (deliveryMethod === 'SHOWROOM' && !selectedShowroom) {
+      errors.showroom = 'Vui lòng chọn showroom tiếp nhận kính.';
+    }
+    if (!cart || cart.length === 0) {
+      errors.cart = 'Giỏ hàng của bạn đang trống.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      setError(Object.values(errors)[0]);
+      return;
+    }
+    setFormErrors({});
+
+    if (voucherCode.trim() && (voucherLoading || !voucherQuote || voucherQuote.code !== voucherCode.trim() || voucherQuote.totalAmount !== totalAmount)) {
+      setError('Vui lòng áp dụng mã giảm giá thành công hoặc xóa mã trước khi đặt hàng.');
+      return;
+    }
+
     locked.current = true;
     setSaving(true);
-    setError('');
     try {
       const contactWithDelivery = {
         ...contact,
@@ -65,6 +155,7 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
       };
       const payload = checkoutPayload(cart, contactWithDelivery, user, 'VIETQR');
       payload.paymentProvider = paymentMethod;
+      if (appliedVoucher) payload.voucherCode = appliedVoucher.code;
       if (priceChange && acceptPriceChange) payload.acceptPriceChange = true;
       request.current = checkoutClaim(payload, request.current);
       const order = await checkoutApi.createOrder(payload, request.current.key);
@@ -82,8 +173,6 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
     }
   }
 
-  const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
   return (
     <div className="purchase-overlay">
       <section
@@ -96,7 +185,7 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#086288] text-white flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-[#30483b] text-white flex items-center justify-center">
               <ShoppingBag className="w-4 h-4 text-[#97D7FF]" />
             </div>
             <h2 id="checkout-title" className="text-xl font-black text-slate-900 tracking-tight m-0">
@@ -113,7 +202,7 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
           </button>
         </div>
 
-        <form onSubmit={submit}>
+        <form noValidate onSubmit={submit}>
           <fieldset disabled={saving} className="space-y-5">
             {/* Delivery Method Choice (S3-15) */}
             <div className="flex flex-col gap-1.5 text-xs font-bold text-slate-700">
@@ -122,7 +211,7 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
                 <button
                   type="button"
                   onClick={() => setDeliveryMethod('DOOR')}
-                  className={`py-2 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${deliveryMethod === 'DOOR' ? 'bg-white text-[#086288] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+                  className={`py-2 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${deliveryMethod === 'DOOR' ? 'bg-white text-[#30483b] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
                 >
                   <ShoppingBag className="w-3.5 h-3.5" />
                   <span>Giao tận nơi</span>
@@ -130,7 +219,7 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
                 <button
                   type="button"
                   onClick={() => setDeliveryMethod('SHOWROOM')}
-                  className={`py-2 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${deliveryMethod === 'SHOWROOM' ? 'bg-white text-[#086288] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+                  className={`py-2 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${deliveryMethod === 'SHOWROOM' ? 'bg-white text-[#30483b] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
                 >
                   <ShieldCheck className="w-3.5 h-3.5" />
                   <span>Nhận tại Showroom</span>
@@ -147,10 +236,21 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
                   maxLength={120}
                   type="text"
                   value={contact.name}
-                  onChange={event => setContact({ ...contact, name: event.target.value })}
-                  className="p-2.5 rounded-xl border border-slate-300 text-sm focus:border-[#086288] focus:ring-2 focus:ring-[#086288]/15 outline-none transition"
+                  onChange={event => {
+                    setContact({ ...contact, name: event.target.value });
+                    if (formErrors.name) setFormErrors(prev => ({ ...prev, name: '' }));
+                  }}
+                  className={`p-2.5 rounded-xl border text-sm outline-none transition ${
+                    formErrors.name ? 'border-red-500 bg-red-50/15 focus:ring-2 focus:ring-red-300' : 'border-slate-300 focus:border-[#30483b] focus:ring-2 focus:ring-[#30483b]/15'
+                  }`}
                   placeholder="Nhập họ và tên..."
                 />
+                {formErrors.name && (
+                  <span className="text-red-500 text-[11px] font-normal flex items-center gap-1 mt-0.5">
+                    <AlertCircle className="w-3 h-3 shrink-0" />
+                    {formErrors.name}
+                  </span>
+                )}
               </label>
 
               <label className="flex flex-col gap-1.5 text-xs font-bold text-slate-700">
@@ -160,10 +260,21 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
                   maxLength={30}
                   type="tel"
                   value={contact.phone}
-                  onChange={event => setContact({ ...contact, phone: event.target.value })}
-                  className="p-2.5 rounded-xl border border-slate-300 text-sm focus:border-[#086288] focus:ring-2 focus:ring-[#086288]/15 outline-none transition"
-                  placeholder="Nhập số điện thoại..."
+                  onChange={event => {
+                    setContact({ ...contact, phone: event.target.value });
+                    if (formErrors.phone) setFormErrors(prev => ({ ...prev, phone: '' }));
+                  }}
+                  className={`p-2.5 rounded-xl border text-sm outline-none transition ${
+                    formErrors.phone ? 'border-red-500 bg-red-50/15 focus:ring-2 focus:ring-red-300' : 'border-slate-300 focus:border-[#30483b] focus:ring-2 focus:ring-[#30483b]/15'
+                  }`}
+                  placeholder="Nhập số điện thoại (10 chữ số, ví dụ 0901234567)..."
                 />
+                {formErrors.phone && (
+                  <span className="text-red-500 text-[11px] font-normal flex items-center gap-1 mt-0.5">
+                    <AlertCircle className="w-3 h-3 shrink-0" />
+                    {formErrors.phone}
+                  </span>
+                )}
               </label>
 
               {deliveryMethod === 'DOOR' ? (
@@ -174,72 +285,94 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
                     maxLength={500}
                     type="text"
                     value={contact.address}
-                    onChange={event => setContact({ ...contact, address: event.target.value })}
-                    className="p-2.5 rounded-xl border border-slate-300 text-sm focus:border-[#086288] focus:ring-2 focus:ring-[#086288]/15 outline-none transition"
+                    onChange={event => {
+                      setContact({ ...contact, address: event.target.value });
+                      if (formErrors.address) setFormErrors(prev => ({ ...prev, address: '' }));
+                    }}
+                    className={`p-2.5 rounded-xl border text-sm outline-none transition ${
+                      formErrors.address ? 'border-red-500 bg-red-50/15 focus:ring-2 focus:ring-red-300' : 'border-slate-300 focus:border-[#30483b] focus:ring-2 focus:ring-[#30483b]/15'
+                    }`}
                     placeholder="Nhập số nhà, tên đường, phường/xã, quận/huyện..."
                   />
+                  {formErrors.address && (
+                    <span className="text-red-500 text-[11px] font-normal flex items-center gap-1 mt-0.5">
+                      <AlertCircle className="w-3 h-3 shrink-0" />
+                      {formErrors.address}
+                    </span>
+                  )}
                 </label>
               ) : (
                 <label className="min-w-0 flex flex-col gap-1.5 text-xs font-bold text-slate-700">
                   <span>Chọn Showroom tiếp nhận <span className="text-red-500">*</span></span>
                   <select
                     value={selectedShowroom}
-                    onChange={event => setSelectedShowroom(event.target.value)}
-                    className="w-full max-w-full min-w-0 truncate p-2.5 rounded-xl border border-slate-300 text-sm focus:border-[#086288] focus:ring-2 focus:ring-[#086288]/15 outline-none transition bg-white"
+                    onChange={event => {
+                      setSelectedShowroom(event.target.value);
+                      if (formErrors.showroom) setFormErrors(prev => ({ ...prev, showroom: '' }));
+                    }}
+                    className={`w-full max-w-full min-w-0 truncate p-2.5 rounded-xl border text-sm outline-none transition bg-white ${
+                      formErrors.showroom ? 'border-red-500 bg-red-50/15 focus:ring-2 focus:ring-red-300' : 'border-slate-300 focus:border-[#30483b] focus:ring-2 focus:ring-[#30483b]/15'
+                    }`}
                   >
                     <option value="Flagship Q.1 (TP.HCM) - 123 Lê Lợi, P. Bến Thành, Q.1">Flagship Q.1 (TP.HCM) - 123 Lê Lợi, P. Bến Thành, Q.1</option>
                     <option value="Tràng Tiền Plaza (Hà Nội) - 24 Hai Bà Trưng, Q. Hoàn Kiếm">Tràng Tiền Plaza (Hà Nội) - 24 Hai Bà Trưng, Q. Hoàn Kiếm</option>
                     <option value="Thảo Điền Store (Q.2) - 88 Xuân Thủy, P. Thảo Điền, TP. Thủ Đức">Thảo Điền Store (Q.2) - 88 Xuân Thủy, P. Thảo Điền, TP. Thủ Đức</option>
                   </select>
+                  {formErrors.showroom && (
+                    <span className="text-red-500 text-[11px] font-normal flex items-center gap-1 mt-0.5">
+                      <AlertCircle className="w-3 h-3 shrink-0" />
+                      {formErrors.showroom}
+                    </span>
+                  )}
                 </label>
               )}
             </div>
 
-            {/* Payment Method Choice (SePay + VietQR Sandbox) */}
+            {/* Payment Method (VietQR + SePay Auto Reconciliation) */}
             <div className="flex flex-col gap-2 text-xs font-bold text-slate-700">
               <span>Phương thức thanh toán <span className="text-red-500">*</span></span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <label className={`p-3 rounded-xl border cursor-pointer flex items-start gap-2.5 transition ${paymentMethod === 'VIETQR' ? 'border-[#086288] bg-sky-50/50' : 'border-slate-200 hover:border-slate-300'}`}>
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="VIETQR"
-                    checked={paymentMethod === 'VIETQR'}
-                    onChange={e => setPaymentMethod(e.target.value)}
-                    className="mt-0.5 accent-[#086288]"
-                  />
-                  <div className="flex-1">
-                    <span className="font-bold text-slate-800 flex items-center gap-1">
-                      <QrCode className="w-3.5 h-3.5 text-[#086288]" />
-                      VietQR / Sandbox QR
-                    </span>
-                    <span className="text-[11px] text-slate-500 block font-normal mt-0.5">
-                      Chuyển khoản QR ngân hàng (mô phỏng sandbox)
-                    </span>
-                  </div>
-                </label>
-
-                <label className={`p-3 rounded-xl border cursor-pointer flex items-start gap-2.5 transition ${paymentMethod === 'SEPAY' ? 'border-[#086288] bg-sky-50/50' : 'border-slate-200 hover:border-slate-300'}`}>
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="SEPAY"
-                    checked={paymentMethod === 'SEPAY'}
-                    onChange={e => setPaymentMethod(e.target.value)}
-                    className="mt-0.5 accent-[#086288]"
-                  />
-                  <div className="flex-1">
-                    <span className="font-bold text-slate-800 flex items-center gap-1">
-                      <CreditCard className="w-3.5 h-3.5 text-[#086288]" />
-                      Cổng SePay Gateway
-                    </span>
-                    <span className="text-[11px] text-slate-500 block font-normal mt-0.5">
-                      Đối soát tự động qua cổng SePay &amp; biên lai điện tử
-                    </span>
-                  </div>
-                </label>
-              </div>
+              <label className="p-3.5 rounded-xl border border-[#30483b] bg-sky-50/50 cursor-pointer flex items-start gap-2.5 transition">
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="VIETQR"
+                  checked={paymentMethod === 'VIETQR'}
+                  onChange={e => setPaymentMethod(e.target.value)}
+                  className="mt-0.5 accent-[#30483b]"
+                />
+                <div className="flex-1">
+                  <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                    <QrCode className="w-4 h-4 text-[#30483b]" />
+                    Thanh toán QR Ngân hàng (VietQR · SePay Tự động)
+                  </span>
+                  <span className="text-[11px] text-slate-500 block font-normal mt-0.5">
+                    Quét mã QR bằng App ngân hàng bất kỳ (MBBank, VCB, BIDV...), hệ thống tự động xác thực giao dịch qua SePay.
+                  </span>
+                </div>
+              </label>
             </div>
+
+            <section className="checkout-voucher" aria-label="Mã giảm giá">
+              <label htmlFor="checkout-voucher-select">Ưu đãi dành cho bạn</label>
+              <div className="checkout-voucher-picker">
+                <select id="checkout-voucher-select" aria-label="Voucher của bạn" aria-describedby="checkout-voucher-help" disabled={voucherListLoading || !!voucherListError || !voucherOptions.length}
+                  value={voucherOptions.some(v => v.code === voucherCode) ? voucherCode : ''} onChange={e => selectVoucher(e.target.value)}>
+                  <option value="">{voucherListLoading ? 'Đang tải voucher của bạn…' : voucherListError ? 'Chưa tải được danh sách voucher' : voucherOptions.length ? `Chọn voucher của bạn (${voucherOptions.length} mã)` : 'Bạn chưa có voucher khả dụng'}</option>
+                  {voucherOptions.map(v => <option key={v.id} value={v.code} disabled={!v.eligible}>{v.label}</option>)}
+                </select>
+                <small id="checkout-voucher-help">Chọn mã để tự động áp dụng. Mã chưa đủ giá trị đơn hàng sẽ hiện điều kiện sử dụng.</small>
+              </div>
+              {voucherListError && <div role="alert" className="checkout-voucher-list-error"><span>{voucherListError}</span><button type="button" onClick={() => setVoucherRefresh(value => value + 1)}>Tải lại voucher</button></div>}
+              <label htmlFor="checkout-voucher-code" className="checkout-voucher-manual-label">Hoặc nhập mã đã được cấp</label>
+              <div className="checkout-voucher-input"><input id="checkout-voucher-code" value={voucherCode} maxLength={50} onChange={e => changeVoucher(e.target.value)} placeholder="Nhập mã giảm giá" autoComplete="off" />
+                <button type="button" disabled={!voucherCode.trim() || voucherLoading} onClick={() => applyVoucher()}>{voucherLoading ? 'Đang kiểm tra…' : 'Áp dụng'}</button>
+                {voucherCode && <button type="button" onClick={() => changeVoucher('')}>Bỏ mã</button>}
+              </div>
+              {voucherError && <p role="alert" className="purchase-error">{voucherError}</p>}
+              {voucherLoading && <p role="status">Đang kiểm tra voucher…</p>}
+              {appliedVoucher && <p role="status">Đã áp dụng {appliedVoucher.code}: giảm {money(appliedVoucher.discountAmount)}.</p>}
+              <small>Mỗi voucher được cấp chỉ dùng một lần. Mã được giữ khi tạo đơn và sử dụng khi thanh toán thành công.</small>
+            </section>
 
             {/* Cart Summary */}
             <div className="purchase-summary bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2 text-xs">
@@ -254,15 +387,19 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
               ))}
               <div className="border-t border-slate-200 pt-2 flex justify-between items-center text-sm font-bold text-slate-900 mt-2">
                 <span>Tạm tính</span>
-                <strong className="text-base font-black text-[#086288]">{money(totalAmount)}</strong>
+                <strong className="text-base font-black text-[#30483b]">{money(totalAmount)}</strong>
               </div>
+              {appliedVoucher && <>
+                <p><span>Giảm giá · {appliedVoucher.code}</span><strong>−{money(appliedVoucher.discountAmount)}</strong></p>
+                <p><span>Tổng thanh toán</span><strong>{money(appliedVoucher.finalAmount)}</strong></p>
+              </>}
             </div>
 
             {/* Prescription Snapshot Callout */}
             {rx && (
               <div className="purchase-rx-summary p-4 bg-[#f0f9ff] border border-[#97D7FF] rounded-2xl space-y-1.5 text-xs text-[#0369a1]">
-                <strong className="text-xs font-bold text-[#086288] flex items-center gap-1.5">
-                  <FileText className="w-4 h-4 text-[#086288]" /> Thông số khách cung cấp
+                <strong className="text-xs font-bold text-[#30483b] flex items-center gap-1.5">
+                  <FileText className="w-4 h-4 text-[#30483b]" /> Thông số khách cung cấp
                 </strong>
                 <p className="m-0">OD: SPH {rx.odSph} / CYL {rx.odCyl} / AXIS {rx.odAxis}°</p>
                 <p className="m-0">OS: SPH {rx.osSph} / CYL {rx.osCyl} / AXIS {rx.osAxis}° · PD {rx.pd} mm</p>
@@ -288,7 +425,7 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
                     required
                     checked={acceptPriceChange}
                     onChange={event => setAcceptPriceChange(event.target.checked)}
-                    className="accent-[#086288] mt-0.5"
+                    className="accent-[#30483b] mt-0.5"
                   />
                   <span>Tôi đồng ý với số tiền cập nhật trước khi đặt hàng.</span>
                 </label>
@@ -314,7 +451,7 @@ export default function CheckoutModal({ cart, user, requestRef, onClose, onSucce
               </button>
               <button
                 type="submit"
-                className="purchase-primary px-6 py-2.5 rounded-xl text-xs font-bold bg-[#086288] hover:bg-[#064e6d] text-white shadow-sm transition active:scale-95"
+                className="purchase-primary px-6 py-2.5 rounded-xl text-xs font-bold bg-[#30483b] hover:bg-[#064e6d] text-white shadow-sm transition active:scale-95"
               >
                 {saving ? 'Đang đặt hàng…' : 'Xác nhận đặt hàng'}
               </button>

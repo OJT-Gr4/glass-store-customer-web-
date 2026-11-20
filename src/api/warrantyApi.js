@@ -63,7 +63,7 @@ export const warrantyApi = {
    * Gửi yêu cầu bảo hành / đổi trả mới
    */
   async createClaim(warrantyData) {
-    const res = await fetch(`${API_BASE_URL}/api/warranties`, {
+    const res = await fetch(`${API_BASE_URL}/api/warranties/claims`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify(warrantyData)

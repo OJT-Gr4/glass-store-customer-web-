@@ -86,6 +86,8 @@ export default function App() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedProductDetail, setSelectedProductDetail] = useState(null);
+  const [shoppingPrescription, setShoppingPrescription] = useState(null);
+  const [bookingLocation, setBookingLocation] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const authGeneration = useRef(0);
@@ -94,7 +96,25 @@ export default function App() {
     let active = true;
     const run = ++authGeneration.current;
     authApi.getMe()
-      .then(user => { if (active && authGeneration.current === run) setCurrentUser(user); })
+      .then(async user => {
+        if (!active || authGeneration.current !== run) return;
+        if (user?.id) {
+          try {
+            const token = localStorage.getItem('optivision_customer_token');
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            const res = await fetch(`/api/loyalty/accounts/${user.id}`, { headers });
+            if (res.ok) {
+              const loyalty = await res.json();
+              user.membershipTier = loyalty.tier || 'Thành Viên';
+              user.loyaltyPoints = Number(loyalty.balance ?? 0);
+            }
+          } catch {
+            user.membershipTier = 'Thành Viên';
+            user.loyaltyPoints = 0;
+          }
+        }
+        if (active && authGeneration.current === run) setCurrentUser(user);
+      })
       .catch(() => { if (active && authGeneration.current === run) setCurrentUser(null); })
       .finally(() => { if (active && authGeneration.current === run) setAuthLoading(false); });
     return () => { active = false; };
@@ -111,6 +131,7 @@ export default function App() {
 
   useEffect(() => {
     checkoutRequest.current = null;
+    setShoppingPrescription(null);
     setCheckoutOpen(false);
     setIsCartOpen(false);
     setUnreadNotificationCount(0);
@@ -182,6 +203,10 @@ export default function App() {
         .map(item => {
           if (item.sku === sku) {
             const newQty = item.quantity + delta;
+            if (delta > 0 && item.stock != null && newQty > item.stock) {
+              setCartNotice(`Không đủ tồn kho cho ${item.name} (còn ${item.stock}).`);
+              return item;
+            }
             return newQty > 0 ? { ...item, quantity: newQty } : null;
           }
           return item;
@@ -205,7 +230,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d] font-sans flex flex-col justify-between selection:bg-[#e7eeff] selection:text-[#004967]">
+    <div className="store-app min-h-screen flex flex-col justify-between">
       {/* 1. Header Navigation Bar */}
       <Navbar
         activeTab={activeTab === 'order-payment' ? 'orders' : activeTab}
@@ -220,7 +245,7 @@ export default function App() {
       />
 
       {/* 2. Main Content Screens */}
-      <main className="flex-1 w-full">
+      <main className={`flex-1 w-full customer-content customer-content--${activeTab}`}>
         {(cartError || cartNotice) && (
           <p role="alert" className="purchase-page purchase-error">
             {cartNotice || cartError}
@@ -250,7 +275,12 @@ export default function App() {
         {/* Screen 3: Chi Tiết Sản Phẩm & Cấu Hình Lắp Tròng Y Khoa */}
         {activeTab === 'product-detail' && (
           <ProductDetailPage
+            key={currentUser?.id || 'guest'}
             product={selectedProductDetail}
+            currentUser={currentUser}
+            initialPrescription={shoppingPrescription?.customerId === currentUser?.id ? shoppingPrescription.prescription : null}
+            onPrescriptionChange={prescription => setShoppingPrescription(prescription && currentUser?.id ? { customerId: currentUser.id, prescription } : null)}
+            openAuth={() => setIsAuthOpen(true)}
             onAddToCart={handleAddToCart}
             setActiveTab={setActiveTab}
           />
@@ -259,15 +289,22 @@ export default function App() {
         {/* Screen 4: Đặt Lịch Đo Mắt */}
         {activeTab === 'booking' && (
           <OptometryBookingPage
+            key={bookingLocation || 'booking'}
             setActiveTab={setActiveTab}
             currentUser={currentUser}
             openAuth={() => setIsAuthOpen(true)}
+            initialLocationCode={bookingLocation}
           />
         )}
 
         {/* Screen 5: Hồ Sơ Thị Lực Điện Tử & Toa Kính Lâm Sàng */}
         {activeTab === 'records' && (
           <VisionRecordPage
+            onChooseGlasses={prescription => {
+              setShoppingPrescription({ customerId: currentUser.id, prescription });
+              setActiveTab('products');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
             setActiveTab={setActiveTab}
             onAddToCart={handleAddToCart}
             currentUser={currentUser}
@@ -276,7 +313,7 @@ export default function App() {
         )}
 
         {/* Screen 6: Trung Tâm Bảo Hành & Tra Cứu Hậu Mãi */}
-        {activeTab === 'warranty' && (
+        {activeTab === 'warranty' && currentUser && (
           <WarrantyCenterPage
             setActiveTab={setActiveTab}
             currentUser={currentUser}
@@ -346,6 +383,7 @@ export default function App() {
         {activeTab === 'stores' && (
           <StoreLocationsPage
             setActiveTab={setActiveTab}
+            onBookLocation={code => { setBookingLocation(code); setActiveTab('booking'); }}
           />
         )}
 
@@ -364,11 +402,19 @@ export default function App() {
         )}
 
         {/* Screen 14: Kho Voucher & Trung Tâm Điểm Thưởng OptiVIP */}
-        {activeTab === 'vouchers' && (
+        {activeTab === 'vouchers' && currentUser && (
           <VoucherLoyaltyPage
             setActiveTab={setActiveTab}
             currentUser={currentUser}
           />
+        )}
+        {['warranty', 'vouchers'].includes(activeTab) && !currentUser && (
+          <section className="customer-auth-gate" aria-live="polite">
+            <p className="store-eyebrow">TÀI KHOẢN GLASSSTORE</p>
+            <h1>{activeTab === 'warranty' ? 'Bảo hành của bạn' : 'Ưu đãi của bạn'}</h1>
+            <p>{authLoading ? 'Đang kiểm tra tài khoản…' : 'Đăng nhập để xem thông tin dành riêng cho tài khoản của bạn.'}</p>
+            {!authLoading && <button className="store-button store-button-dark" onClick={() => setIsAuthOpen(true)}>Đăng nhập</button>}
+          </section>
         )}
       </main>
 
@@ -403,7 +449,7 @@ export default function App() {
       )}
 
       {/* 3. Footer Chuẩn Nhãn Khoa */}
-      <Footer />
+      <Footer setActiveTab={setActiveTab} />
 
       {/* 4. Slide-Over Cart Drawer */}
       <CartDrawer
@@ -419,11 +465,26 @@ export default function App() {
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
-        onLoginSuccess={user => {
+        onLoginSuccess={async user => {
           authGeneration.current++;
           activeCustomerId.current = user.id;
           if (!currentUser?.id) setCartNotice(claimGuestCart(user.id, addSelection));
-          setCurrentUser(user);
+          if (user?.id) {
+            try {
+              const token = localStorage.getItem('optivision_customer_token');
+              const headers = token ? { Authorization: `Bearer ${token}` } : {};
+              const res = await fetch(`/api/loyalty/accounts/${user.id}`, { headers });
+              if (res.ok) {
+                const loyalty = await res.json();
+                user.membershipTier = loyalty.tier || 'Thành Viên';
+                user.loyaltyPoints = Number(loyalty.balance ?? 0);
+              }
+            } catch {
+              user.membershipTier = 'Thành Viên';
+              user.loyaltyPoints = 0;
+            }
+          }
+          setCurrentUser({ ...user });
         }}
       />
 

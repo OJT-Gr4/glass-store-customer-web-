@@ -15,7 +15,7 @@ export default function PolicyPage({ setActiveTab }) {
     },
     {
       q: 'Tôi ở tỉnh xa muốn bảo hành gọng kính thì gửi về đâu và ai chịu phí vận chuyển?',
-      a: 'OptiVision áp dụng chính sách Bảo Hành Vận Chuyển 0đ hai chiều toàn quốc. Bạn chỉ cần gửi yêu cầu trực tuyến trên web, nhân viên bưu tá sẽ đến tận nhà nhận kính nguyên hộp và giao trả lại sau khi hoàn tất kỹ thuật.',
+      a: 'GlassStore áp dụng chính sách Bảo Hành Vận Chuyển 0đ hai chiều toàn quốc. Bạn chỉ cần gửi yêu cầu trực tuyến trên web, nhân viên bưu tá sẽ đến tận nhà nhận kính nguyên hộp và giao trả lại sau khi hoàn tất kỹ thuật.',
     },
     {
       q: 'Tôi bị mất hóa đơn và biên nhận giấy thì có được hưởng chính sách bảo hành không?',
@@ -28,12 +28,12 @@ export default function PolicyPage({ setActiveTab }) {
   ];
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+    <div className="policy-page max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
       {/* 1. Header Banner (Ảnh 5 chuẩn xác) */}
-      <div className="bg-gradient-to-r from-sky-50 via-white to-indigo-50/40 rounded-3xl border border-sky-200 p-6 sm:p-10 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-8">
+      <div className="bg-gradient-to-r from-[#e9ece4] via-[#f8f8f2] to-[#e9ece4] rounded-3xl border border-[#d8e0d5] p-6 sm:p-10 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div className="space-y-4 max-w-2xl">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-[#086288] text-white">
-            TIÊU CHUẨN LÂM SÀNG BẢO PHỦ WAR & BR-365 / 00
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-[#30483b] text-white">
+            CHĂM SÓC SAU MUA
           </span>
           <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
             Chính Sách Bảo Hành & Quyền Lợi Hậu Mãi Toàn Diện
@@ -44,7 +44,7 @@ export default function PolicyPage({ setActiveTab }) {
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <button
               onClick={() => setActiveTab('warranty')}
-              className="bg-[#086288] hover:bg-[#064e6d] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-sm active:scale-95 flex items-center gap-1.5"
+              className="bg-[#30483b] hover:bg-[#415a4c] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-sm active:scale-95 flex items-center gap-1.5"
             >
               <span>Tra Cứu Bảo Hành Điện Tử</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -62,13 +62,13 @@ export default function PolicyPage({ setActiveTab }) {
         </div>
 
         {/* E-WAR Card */}
-        <div className="bg-white p-6 rounded-3xl border border-sky-200 shadow-md text-center shrink-0 space-y-2">
-          <span className="text-[10px] font-bold text-sky-700 bg-sky-50 px-3 py-1 rounded-full uppercase tracking-wider block">
+        <div className="bg-white p-6 rounded-3xl border border-[#d8e0d5] shadow-md text-center shrink-0 space-y-2">
+          <span className="text-[10px] font-bold text-[#30483b] bg-[#eef1e9] px-3 py-1 rounded-full uppercase tracking-wider block">
             E-WAR ACTIVE
           </span>
-          <div className="text-3xl font-black text-[#086288]">100% Số Hóa</div>
+          <div className="text-3xl font-black text-[#30483b]">100% Số Hóa</div>
           <p className="text-[11px] text-slate-400 max-w-[200px] leading-relaxed">
-            Liên kết tự động hồ sơ bệnh án & đơn hàng theo số điện thoại (FR-CRM).
+            Liên kết tự động hồ sơ bệnh án & đơn hàng theo số điện thoại.
           </p>
           <div className="pt-2 border-t border-slate-100 flex items-center justify-center gap-2 text-[10px] text-slate-500 font-semibold">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Tiêu chuẩn ISO 9001
@@ -79,11 +79,11 @@ export default function PolicyPage({ setActiveTab }) {
       {/* 2. 4 Đặc Quyền Vàng Dành Riêng Khách Hàng (Ảnh 5) */}
       <section className="space-y-6">
         <div>
-          <span className="text-[10px] font-bold text-[#4D8DBA] uppercase tracking-wider block">
+          <span className="text-[10px] font-bold text-[#61776a] uppercase tracking-wider block">
             CAM KẾT ĐỘC QUYỀN
           </span>
           <h2 className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5">
-            4 Đặc Quyền Vàng Dành Riêng Khách Hàng OptiVision
+            4 Đặc Quyền Vàng Dành Riêng Khách Hàng GlassStore
           </h2>
           <p className="text-xs text-slate-500 mt-1">
             Bảo chứng lâm sàng cao nhất trên từng cặp tròng và gọng kính được lắp ráp theo quy trình.
@@ -92,9 +92,9 @@ export default function PolicyPage({ setActiveTab }) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* 1. 180 NGÀY */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-[#4D8DBA] transition space-y-3 flex flex-col justify-between">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-[#829486] transition space-y-3 flex flex-col justify-between">
             <div>
-              <span className="bg-sky-100 text-[#086288] text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase">
+              <span className="bg-[#e5ebe1] text-[#30483b] text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase">
                 180 NGÀY
               </span>
               <h3 className="font-extrabold text-sm text-slate-900 mt-2">
@@ -106,7 +106,7 @@ export default function PolicyPage({ setActiveTab }) {
             </div>
             <button
               onClick={() => setActiveTab('claim-warranty')}
-              className="text-xs font-bold text-[#086288] hover:text-[#4D8DBA] flex items-center gap-1 pt-2"
+              className="text-xs font-bold text-[#30483b] hover:text-[#61776a] flex items-center gap-1 pt-2"
             >
               <span>Áp dụng mọi loại tròng đơn/đa tròng</span>
               <ArrowRight className="w-3 h-3" />
@@ -114,9 +114,9 @@ export default function PolicyPage({ setActiveTab }) {
           </div>
 
           {/* 2. 365 NGÀY */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-[#4D8DBA] transition space-y-3 flex flex-col justify-between">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-[#829486] transition space-y-3 flex flex-col justify-between">
             <div>
-              <span className="bg-sky-100 text-[#086288] text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase">
+              <span className="bg-[#e5ebe1] text-[#30483b] text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase">
                 365 NGÀY
               </span>
               <h3 className="font-extrabold text-sm text-slate-900 mt-2">
@@ -128,7 +128,7 @@ export default function PolicyPage({ setActiveTab }) {
             </div>
             <button
               onClick={() => setActiveTab('claim-warranty')}
-              className="text-xs font-bold text-[#086288] hover:text-[#4D8DBA] flex items-center gap-1 pt-2"
+              className="text-xs font-bold text-[#30483b] hover:text-[#61776a] flex items-center gap-1 pt-2"
             >
               <span>Tiêu chuẩn phụ kiện chính hãng</span>
               <ArrowRight className="w-3 h-3" />
@@ -136,9 +136,9 @@ export default function PolicyPage({ setActiveTab }) {
           </div>
 
           {/* 3. 07 NGÀY */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-[#4D8DBA] transition space-y-3 flex flex-col justify-between">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-[#829486] transition space-y-3 flex flex-col justify-between">
             <div>
-              <span className="bg-sky-100 text-[#086288] text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase">
+              <span className="bg-[#e5ebe1] text-[#30483b] text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase">
                 07 NGÀY
               </span>
               <h3 className="font-extrabold text-sm text-slate-900 mt-2">
@@ -150,7 +150,7 @@ export default function PolicyPage({ setActiveTab }) {
             </div>
             <button
               onClick={() => setActiveTab('claim-warranty')}
-              className="text-xs font-bold text-[#086288] hover:text-[#4D8DBA] flex items-center gap-1 pt-2"
+              className="text-xs font-bold text-[#30483b] hover:text-[#61776a] flex items-center gap-1 pt-2"
             >
               <span>Không thu phụ phí thẩm định</span>
               <ArrowRight className="w-3 h-3" />
@@ -158,9 +158,9 @@ export default function PolicyPage({ setActiveTab }) {
           </div>
 
           {/* 4. TRỌN ĐỜI */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-[#4D8DBA] transition space-y-3 flex flex-col justify-between">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-[#829486] transition space-y-3 flex flex-col justify-between">
             <div>
-              <span className="bg-sky-100 text-[#086288] text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase">
+              <span className="bg-[#e5ebe1] text-[#30483b] text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase">
                 TRỌN ĐỜI
               </span>
               <h3 className="font-extrabold text-sm text-slate-900 mt-2">
@@ -172,7 +172,7 @@ export default function PolicyPage({ setActiveTab }) {
             </div>
             <button
               onClick={() => setActiveTab('booking')}
-              className="text-xs font-bold text-[#086288] hover:text-[#4D8DBA] flex items-center gap-1 pt-2"
+              className="text-xs font-bold text-[#30483b] hover:text-[#61776a] flex items-center gap-1 pt-2"
             >
               <span>Áp dụng không giới hạn lượt dùng</span>
               <ArrowRight className="w-3 h-3" />
@@ -185,12 +185,12 @@ export default function PolicyPage({ setActiveTab }) {
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="relative rounded-3xl overflow-hidden aspect-16/9 bg-slate-900 group">
           <img
-            src="https://images.unsplash.com/photo-1582142839970-2b9da988941f?w=800"
+            src="https://images.unsplash.com/photo-1574258495973-f010dfbb5371?auto=format&fit=crop&w=800&q=80"
             alt="Kiểm tra quang học"
             className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition duration-500"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent p-6 flex flex-col justify-end text-white space-y-1.5">
-            <span className="text-[10px] font-bold text-sky-300 uppercase tracking-wider">
+            <span className="text-[10px] font-bold text-[#dce5d9] uppercase tracking-wider">
               TRANG THIẾT BỊ CHUYÊN BIỆT
             </span>
             <h4 className="font-bold text-sm sm:text-base">
@@ -209,7 +209,7 @@ export default function PolicyPage({ setActiveTab }) {
             className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition duration-500"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent p-6 flex flex-col justify-end text-white space-y-1.5">
-            <span className="text-[10px] font-bold text-sky-300 uppercase tracking-wider">
+            <span className="text-[10px] font-bold text-[#dce5d9] uppercase tracking-wider">
               ĐỘI NGŨ KỸ THUẬT VIÊN
             </span>
             <h4 className="font-bold text-sm sm:text-base">
@@ -226,7 +226,7 @@ export default function PolicyPage({ setActiveTab }) {
       <section className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
           <div>
-            <span className="text-[10px] font-bold text-[#4D8DBA] uppercase tracking-wider block">
+            <span className="text-[10px] font-bold text-[#61776a] uppercase tracking-wider block">
               NỘI DUNG QUY ĐỊNH
             </span>
             <h3 className="text-lg font-black text-slate-900 mt-0.5">
@@ -245,7 +245,7 @@ export default function PolicyPage({ setActiveTab }) {
                 key={tab.id}
                 onClick={() => setActiveTabTerm(tab.id)}
                 className={`px-3 py-1.5 rounded-lg transition ${activeTabTerm === tab.id
-                    ? 'bg-[#086288] text-white shadow-xs'
+                    ? 'bg-[#30483b] text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                   }`}
               >
@@ -280,7 +280,7 @@ export default function PolicyPage({ setActiveTab }) {
         </div>
 
         {/* Pro Tip Callout */}
-        <div className="p-4 rounded-2xl bg-sky-50 border border-sky-100 text-xs text-slate-600 leading-relaxed">
+        <div className="p-4 rounded-2xl bg-[#eef1e9] border border-[#d8e0d5] text-xs text-slate-600 leading-relaxed">
           <strong>Lưu ý chuyên môn:</strong> Không áp dụng bảo hành cho các trường hợp để kính ở nhiệt độ trên 60°C (như để trong cốp xe máy, taplo ô tô dưới trời nắng gắt) hoặc các tiếp xúc hóa chất tẩy rửa công nghiệp mạnh có tính kiềm/axit.
         </div>
       </section>
@@ -288,14 +288,14 @@ export default function PolicyPage({ setActiveTab }) {
       {/* 5. Câu Hỏi Thường Gặp Về Bảo Hành Kính Mắt (Accordion - Ảnh 5) */}
       <section id="faq-section" className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-xs">
         <div>
-          <span className="text-[10px] font-bold text-[#4D8DBA] uppercase tracking-wider block">
+          <span className="text-[10px] font-bold text-[#61776a] uppercase tracking-wider block">
             GIẢI ĐÁP THẮC MẮC
           </span>
           <h3 className="text-xl font-black text-slate-900 mt-0.5">
             Câu Hỏi Thường Gặp Về Bảo Hành Kính Mắt
           </h3>
           <p className="text-xs text-slate-500 mt-1">
-            Những câu hỏi phổ biến được quy định chi tiết theo tiêu chuẩn dịch vụ khách hàng OptiVision.
+            Những câu hỏi phổ biến được quy định chi tiết theo tiêu chuẩn dịch vụ khách hàng GlassStore.
           </p>
         </div>
 
@@ -313,7 +313,7 @@ export default function PolicyPage({ setActiveTab }) {
                   className="w-full p-4 text-left font-bold text-xs sm:text-sm text-slate-800 flex items-center justify-between hover:bg-slate-50"
                 >
                   <span>{faq.q}</span>
-                  {isOpen ? <ChevronUp className="w-4 h-4 text-[#086288]" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                  {isOpen ? <ChevronUp className="w-4 h-4 text-[#30483b]" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
                 </button>
                 {isOpen && (
                   <div className="p-4 pt-0 text-xs text-slate-600 leading-relaxed border-t border-slate-100 bg-slate-50/50">
@@ -327,9 +327,9 @@ export default function PolicyPage({ setActiveTab }) {
       </section>
 
       {/* 6. Banner Hỗ Trợ Khẩn Cấp Cuối Trang (Ảnh 5) */}
-      <section className="bg-[#053752] text-white p-8 rounded-3xl shadow-lg flex flex-col md:flex-row items-center justify-between gap-6">
+      <section className="bg-[#253c33] text-white p-8 rounded-3xl shadow-lg flex flex-col md:flex-row items-center justify-between gap-6">
         <div>
-          <span className="text-[10px] font-bold text-sky-300 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+          <span className="text-[10px] font-bold text-[#dce5d9] uppercase tracking-wider flex items-center gap-1.5 mb-1">
             <Phone className="w-3.5 h-3.5" /> HỖ TRỢ KỸ THUẬT NHÃN KHOA 24/7
           </span>
           <h3 className="text-xl sm:text-2xl font-black">
@@ -343,9 +343,9 @@ export default function PolicyPage({ setActiveTab }) {
         <div className="flex flex-wrap items-center gap-3 shrink-0">
           <a
             href="tel:19006868"
-            className="bg-white text-[#053752] px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm hover:bg-sky-50 transition"
+            className="bg-white text-[#253c33] px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm hover:bg-[#eef1e9] transition"
           >
-            <Phone className="w-4 h-4 text-[#053752]" />
+            <Phone className="w-4 h-4 text-[#253c33]" />
             <span>Hotline: 1900 6868</span>
           </a>
           <button

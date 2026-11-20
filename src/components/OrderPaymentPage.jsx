@@ -22,6 +22,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { checkoutApi } from '../api/checkoutApi';
 import { money } from './purchaseUtils';
 import { canPay, ORDER_LABELS, paymentState, submitCheckoutForm } from './paymentUtils';
+import { copyToClipboard } from './browserSafe';
 import './purchase.css';
 
 const STATES = {
@@ -113,7 +114,7 @@ export default function OrderPaymentPage({ orderCode, currentUser, authLoading, 
 
   const copyText = (text, fieldName) => {
     if (!text) return;
-    navigator.clipboard.writeText(text);
+    copyToClipboard(text);
     setCopiedField(fieldName);
     setTimeout(() => setCopiedField(null), 2000);
   };
@@ -345,7 +346,7 @@ export default function OrderPaymentPage({ orderCode, currentUser, authLoading, 
             <p className="dashboard-subtitle">
               {phase === 'PAID'
                 ? 'Giao dịch thanh toán đã hoàn tất thành công. Đơn hàng đang được chuẩn bị để gia công.'
-                : 'Cảm ơn bạn đã đặt hàng! Vui lòng hoàn tất thanh toán để OptiVision tiến hành xử lý đơn hàng.'}
+                : 'Cảm ơn bạn đã đặt hàng! Vui lòng hoàn tất thanh toán để GlassStore tiến hành xử lý đơn hàng.'}
             </p>
           </div>
           <div className="dashboard-status-box">
@@ -592,7 +593,7 @@ export default function OrderPaymentPage({ orderCode, currentUser, authLoading, 
               </div>
               <div className="meta-item">
                 <span className="meta-label">Địa chỉ nhận hàng:</span>
-                <span className="meta-value text-slate-800">{order.shippingAddress || order.branchName || 'Nhận tại cửa hàng OptiVision'}</span>
+                <span className="meta-value text-slate-800">{order.shippingAddress || order.branchName || 'Nhận tại cửa hàng GlassStore'}</span>
               </div>
             </div>
           </div>

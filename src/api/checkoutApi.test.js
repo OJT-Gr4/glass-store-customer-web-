@@ -48,3 +48,14 @@ test('reading an inaccessible order or failed payment history remains an error',
   await assert.rejects(checkoutApi.getOrder('ORD-OTHER'), error => error.status === 403);
   await assert.rejects(checkoutApi.paymentHistory(15), error => error.status === 403);
 });
+
+test('voucher quote sends the customer session and preserves a rejected entitlement', async context => {
+  let sent;
+  context.mock.method(globalThis, 'fetch', async (url, options) => {
+    sent = {url, options};
+    return {ok:false,status:400,json:async()=>({message:'Voucher đã sử dụng'})};
+  });
+  await assert.rejects(checkoutApi.quoteVoucher('GOLD2027',1000000), /Voucher đã sử dụng/);
+  assert.equal(sent.url,'/api/vouchers/GOLD2027/quote?total=1000000&channel=ONLINE');
+  assert.equal(sent.options.headers.Authorization,'Bearer customer-token');
+});

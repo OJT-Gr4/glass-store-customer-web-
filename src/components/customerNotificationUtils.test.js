@@ -39,6 +39,9 @@ test('filterCustomerNotifications filters by UNREAD and category accurately', ()
 test('resolveCustomerActionTab maps category and actionTab safely', () => {
   assert.equal(resolveCustomerActionTab({ actionTab: 'booking', category: 'APPOINTMENT' }), 'booking');
   assert.equal(resolveCustomerActionTab({ category: 'LAB_READY' }), 'orders');
+  assert.equal(resolveCustomerActionTab({ category: 'WARRANTY' }), 'warranty');
+  assert.equal(resolveCustomerActionTab({ category: 'LOYALTY' }), 'vouchers');
+  assert.equal(resolveCustomerActionTab({ actionTab: 'vouchers' }), 'vouchers');
   assert.equal(resolveCustomerActionTab({ actionTab: 'order-hub', category: 'ORDER' }), 'orders');
 });
 

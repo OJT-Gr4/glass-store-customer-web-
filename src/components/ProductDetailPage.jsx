@@ -4,10 +4,13 @@ import { productApi } from '../api/productApi';
 import { catalogVariants, money, validatePrescription } from './purchaseUtils';
 import './purchase.css';
 import { DEFAULT_PRODUCT_IMAGE } from './imageUploadUtils';
+import { eyecareApi } from '../api/eyecareApi';
+import { appointmentDate } from './eyecareUtils';
+import { savedPrescriptionForm } from './savedPrescription';
 
 const emptyRx = { odSph: '', odCyl: '0', odAxis: '0', odAdd: '0', osSph: '', osCyl: '0', osAxis: '0', osAdd: '0', pd: '', confirmed: false };
 
-export default function ProductDetailPage({ product, onAddToCart, setActiveTab }) {
+export default function ProductDetailPage({ product, onAddToCart, setActiveTab, currentUser, initialPrescription, onPrescriptionChange, openAuth }) {
   const [record, setRecord] = useState(null);
   const [lenses, setLenses] = useState([]);
   const [selectedSku, setSelectedSku] = useState('');
@@ -18,6 +21,40 @@ export default function ProductDetailPage({ product, onAddToCart, setActiveTab }
   const [error, setError] = useState('');
   const [recommendation, setRecommendation] = useState(null);
   const [recommendationError, setRecommendationError] = useState('');
+  const [savedRecords, setSavedRecords] = useState({ owner:null, rows:[], loading:false, error:'' });
+  const [selectedRecordId, setSelectedRecordId] = useState('');
+  const [recordRetry, setRecordRetry] = useState(0);
+
+  useEffect(() => {
+    setRx(emptyRx); setSelectedRecordId('');
+  }, [currentUser?.id]);
+
+  useEffect(() => {
+    if (!initialPrescription || !currentUser?.id) return;
+    try {
+      setRx(savedPrescriptionForm(initialPrescription,currentUser.id));
+      setSelectedRecordId(String(initialPrescription.id)); setError('');
+    } catch (err) { setError(err.message); }
+  }, [initialPrescription?.id, initialPrescription?.version, currentUser?.id]);
+
+  useEffect(() => {
+    const owner=currentUser?.id;
+    if (!owner) { setSavedRecords({owner:null,rows:[],loading:false,error:''}); return; }
+    let active=true;
+    setSavedRecords({owner,rows:[],loading:true,error:''});
+    eyecareApi.getPrescriptions(owner).then(rows => {
+      if (active) setSavedRecords({owner,rows:rows.filter(row => String(row.customerId) === String(owner)),loading:false,error:''});
+    }).catch(err => { if (active) setSavedRecords({owner,rows:[],loading:false,error:err.message}); });
+    return () => { active=false; };
+  }, [currentUser?.id, recordRetry]);
+
+  function selectSavedRecord(id) {
+    setSelectedRecordId(id); setError('');
+    if (!id) { setRx(previous=>({...previous,confirmed:false})); onPrescriptionChange?.(null); return; }
+    const selected=savedRecords.rows.find(row=>String(row.id)===id);
+    try { setRx(savedPrescriptionForm(selected,currentUser?.id)); onPrescriptionChange?.(selected); }
+    catch (err) { setSelectedRecordId(''); setError(err.message); }
+  }
 
   const id = product?.productId || product?.id;
 
@@ -31,10 +68,10 @@ export default function ProductDetailPage({ product, onAddToCart, setActiveTab }
     Promise.all([productApi.getProductById(id), productApi.getAllProducts({ productType: 'LENS', status: 'ACTIVE' })])
       .then(([p, list]) => {
         if (!active) return;
-        const available = catalogVariants([p]);
+        const available = catalogVariants([p]).filter(v => v.stock > 0);
         setRecord(p); 
-        setLenses(catalogVariants(list));
-        setSelectedSku((available.find(v => v.stock > 0) || available[0])?.sku || '');
+        setLenses(catalogVariants(list).filter(v => v.stock > 0));
+        setSelectedSku(available[0]?.sku || '');
       })
       .catch(() => { 
         if (active) setError('Không tải được chi tiết sản phẩm. Vui lòng quay lại danh mục và thử lại.'); 
@@ -58,14 +95,17 @@ export default function ProductDetailPage({ product, onAddToCart, setActiveTab }
     return () => { active = false; clearTimeout(timer); };
   }, [rx.odSph, rx.osSph]);
 
-  const variants = useMemo(() => record ? catalogVariants([record]) : [], [record]);
+  const variants = useMemo(() => record ? catalogVariants([record]).filter(v => v.stock > 0) : [], [record]);
   const selected = variants.find(v => v.sku === selectedSku);
   const lens = lenses.find(v => v.sku === lensSku);
   const withRx = record?.productType === 'LENS' || (record?.productType === 'FRAME' && mode === 'WITH_LENS');
   const withExtraLens = record?.productType === 'FRAME' && withRx;
   const sortedLenses = [...lenses].sort((a, b) => Number(recommendation?.variants?.some(v => v.sku === b.sku)) - Number(recommendation?.variants?.some(v => v.sku === a.sku)));
 
-  const changeRx = (field, value) => setRx(previous => ({ ...previous, [field]: value, confirmed: false }));
+  const changeRx = (field, value) => {
+    setRx(previous => ({ ...previous, [field]: value, confirmed: false }));
+    setSelectedRecordId(''); onPrescriptionChange?.(null);
+  };
 
   function add(event) {
     event.preventDefault(); 
@@ -88,16 +128,16 @@ export default function ProductDetailPage({ product, onAddToCart, setActiveTab }
       <div>
         <button 
           onClick={() => setActiveTab('products')}
-          className="inline-flex items-center gap-2 text-xs font-bold text-[#086288] hover:text-[#064e6d] bg-white border border-slate-200 hover:bg-slate-50 px-3.5 py-2 rounded-xl transition shadow-2xs"
+          className="inline-flex items-center gap-2 text-xs font-bold text-[#30483b] hover:text-[#064e6d] bg-white border border-slate-200 hover:bg-slate-50 px-3.5 py-2 rounded-xl transition shadow-2xs"
         >
-          <ArrowLeft className="w-4 h-4 text-[#086288]" />
+          <ArrowLeft className="w-4 h-4 text-[#30483b]" />
           <span>Quay lại danh mục</span>
         </button>
       </div>
 
       {loading ? (
         <div role="status" className="py-24 text-center space-y-3">
-          <div className="w-8 h-8 border-3 border-[#086288] border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="w-8 h-8 border-3 border-[#30483b] border-t-transparent rounded-full animate-spin mx-auto"></div>
           <p className="text-sm font-semibold text-slate-500">Đang tải thông tin sản phẩm…</p>
         </div>
       ) : !record ? (
@@ -105,9 +145,9 @@ export default function ProductDetailPage({ product, onAddToCart, setActiveTab }
           {error}
         </div>
       ) : (
-        <div className="purchase-detail-grid">
+        <form className="purchase-detail-grid purchase-detail-layout" onSubmit={add}>
           {/* Left Column: Product Visuals & Description */}
-          <div className="purchase-card space-y-5">
+          <div className="purchase-card purchase-detail-visual space-y-5">
             <div className="relative rounded-xl overflow-hidden bg-slate-50 border border-slate-100 p-4 flex items-center justify-center min-h-[300px]">
               <img 
                 className="purchase-detail-image w-full max-h-[380px] object-contain rounded-xl" 
@@ -119,8 +159,8 @@ export default function ProductDetailPage({ product, onAddToCart, setActiveTab }
                 }}
               />
 
-              <span className="absolute top-4 left-4 bg-[#f0f7ff]/95 backdrop-blur-xs text-[#004967] text-[11px] font-bold px-3 py-1 rounded-full border border-[#c7e0f7] shadow-xs">
-                {record.brandName || 'OptiVision'}
+              <span className="absolute top-4 left-4 bg-[#f0f7ff]/95 backdrop-blur-xs text-[#253c33] text-[11px] font-bold px-3 py-1 rounded-full border border-[#c7e0f7] shadow-xs">
+                {record.brandName || 'GlassStore'}
               </span>
             </div>
 
@@ -132,11 +172,11 @@ export default function ProductDetailPage({ product, onAddToCart, setActiveTab }
 
               <div className="grid grid-cols-2 gap-3 pt-2 text-xs text-slate-600">
                 <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <ShieldCheck className="w-4 h-4 text-[#086288] shrink-0" />
+                  <ShieldCheck className="w-4 h-4 text-[#30483b] shrink-0" />
                   <span>100% Chính hãng</span>
                 </div>
                 <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <Sparkles className="w-4 h-4 text-[#086288] shrink-0" />
+                  <Sparkles className="w-4 h-4 text-[#30483b] shrink-0" />
                   <span>Bảo hành 180 ngày</span>
                 </div>
               </div>
@@ -144,24 +184,28 @@ export default function ProductDetailPage({ product, onAddToCart, setActiveTab }
           </div>
 
           {/* Right Column: Customization & Prescription Form */}
-          <form className="purchase-card space-y-6" onSubmit={add}>
-            <div className="space-y-1 pb-4 border-b border-slate-100">
+            <div className="purchase-card purchase-detail-heading space-y-1 pb-4 border-b border-slate-100">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#4D8DBA]">
-                {record.brandName || 'OptiVision Brand'}
+                {record.brandName || 'GlassStore Brand'}
               </span>
               <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">
                 {record.name}
               </h1>
-              <div className="pt-2 flex items-baseline gap-2">
-                <span className="text-2xl font-black text-[#086288]">
-                  {money(totalPrice)}
+              <div className="pt-2 flex flex-wrap items-baseline justify-between gap-2">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-black text-[#30483b]">
+                    {money(totalPrice)}
+                  </span>
+                  <span className="text-xs text-slate-400 font-medium">Đã bao gồm VAT</span>
+                </div>
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${selected && selected.stock > 0 ? (selected.stock < 5 ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200') : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                  {selected && selected.stock > 0 ? `Kho còn: ${selected.stock} sản phẩm` : 'Tạm hết hàng'}
                 </span>
-                <span className="text-xs text-slate-400 font-medium">Đã bao gồm VAT</span>
               </div>
             </div>
 
             {/* Variant & Frame Mode Options */}
-            <div className="space-y-4">
+            <div className="purchase-card purchase-detail-options space-y-4">
               <label className="purchase-field mb-0">
                 <span className="font-bold text-slate-800 text-xs uppercase tracking-wide">Chọn Biến Thể</span>
                 <select
@@ -171,8 +215,8 @@ export default function ProductDetailPage({ product, onAddToCart, setActiveTab }
                   className="mt-1 w-full max-w-full min-w-0 truncate"
                 >
                   {variants.map(v => (
-                    <option key={v.sku} value={v.sku} disabled={v.stock <= 0}>
-                      {v.name} · {money(v.price)}{v.stock <= 0 ? ' (Hết hàng)' : ''}
+                    <option key={v.sku} value={v.sku}>
+                      {v.name} · {money(v.price)} (Còn {v.stock})
                     </option>
                   ))}
                 </select>
@@ -196,15 +240,15 @@ export default function ProductDetailPage({ product, onAddToCart, setActiveTab }
 
             {/* Prescription (OD / OS) Configuration */}
             {withRx && (
-              <div className="space-y-5 pt-2 border-t border-slate-100">
+              <div className="purchase-card purchase-detail-prescription pt-2 border-t border-slate-100">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#086288]"></span>
+                    <span className="w-2 h-2 rounded-full bg-[#30483b]"></span>
                     <h3 className="font-black text-sm text-slate-900 uppercase tracking-wide">
                       Thông Số Thị Lực Khúc Xạ (Rx)
                     </h3>
                   </div>
-                  <span className="text-[11px] text-[#086288] bg-[#f0f9ff] px-2.5 py-0.5 rounded-full font-bold border border-[#97D7FF]/40">
+                  <span className="text-[11px] text-[#30483b] bg-[#f0f9ff] px-2.5 py-0.5 rounded-full font-bold border border-[#97D7FF]/40">
                     OD: Mắt Phải · OS: Mắt Trái
                   </span>
                 </div>
@@ -283,9 +327,9 @@ export default function ProductDetailPage({ product, onAddToCart, setActiveTab }
                     >
                       <option value="">-- Vui lòng chọn loại tròng --</option>
                       {sortedLenses.map(v => (
-                        <option key={v.sku} value={v.sku} disabled={v.stock <= 0}>
+                        <option key={v.sku} value={v.sku}>
                           {recommendation?.variants?.some(item => item.sku === v.sku) ? '⭐ Gợi ý · ' : ''}
-                          {v.name} · {money(v.price)}{v.stock <= 0 ? ' (Hết hàng)' : ''}
+                          {v.name} · {money(v.price)} (Còn {v.stock})
                         </option>
                       ))}
                     </select>
@@ -295,9 +339,9 @@ export default function ProductDetailPage({ product, onAddToCart, setActiveTab }
                 {/* Lens Recommendation Callout */}
                 {recommendation && (
                   <div className="p-3.5 bg-[#f0f9ff] border border-[#97D7FF] rounded-xl flex items-start gap-2.5 text-xs text-[#0369a1]">
-                    <Sparkles className="w-4 h-4 text-[#086288] shrink-0 mt-0.5" />
+                    <Sparkles className="w-4 h-4 text-[#30483b] shrink-0 mt-0.5" />
                     <p className="leading-relaxed">
-                      <strong>Gợi ý lâm sàng:</strong> Chiết suất phù hợp {recommendation.indexes?.join(' / ')}. Bác sĩ khúc xạ OptiVision sẽ kiểm tra lại toa trước khi lệnh mài tự động được thực hiện.
+                      <strong>Gợi ý lâm sàng:</strong> Chiết suất phù hợp {recommendation.indexes?.join(' / ')}. Bác sĩ khúc xạ GlassStore sẽ kiểm tra lại toa trước khi lệnh mài tự động được thực hiện.
                     </p>
                   </div>
                 )}
@@ -315,12 +359,24 @@ export default function ProductDetailPage({ product, onAddToCart, setActiveTab }
                     required 
                     checked={rx.confirmed} 
                     onChange={event => setRx({ ...rx, confirmed: event.target.checked })} 
-                    className="accent-[#086288] w-4 h-4"
+                    className="accent-[#30483b] w-4 h-4"
                   />
                   <span className="text-xs text-slate-700 font-medium">
                     Tôi xác nhận thông số thị lực đã nhập hoàn toàn chính xác với toa kính mình đang sử dụng.
                   </span>
                 </label>
+                <section className="purchase-saved-prescription" aria-label="Toa kính đã đo">
+                  <label htmlFor="product-saved-prescription">Dùng toa kính đã đo</label>
+                  <select id="product-saved-prescription" value={selectedRecordId} onChange={event=>selectSavedRecord(event.target.value)}
+                    disabled={!currentUser?.id || savedRecords.loading || savedRecords.owner !== currentUser?.id || !savedRecords.rows.length}>
+                    <option value="">{!currentUser?.id ? 'Đăng nhập để chọn toa kính của bạn' : savedRecords.loading ? 'Đang tải toa kính…' : savedRecords.rows.length ? 'Nhập thủ công / chọn một toa đã đo' : 'Chưa có toa kính đã lưu'}</option>
+                    {savedRecords.owner === currentUser?.id && savedRecords.rows.map(row=><option key={row.id} value={String(row.id)}>Toa #{row.id} · {appointmentDate(row.createdAt)} · v{row.version} · OD {row.odSph} / OS {row.osSph} · PD {row.pd} mm</option>)}
+                  </select>
+                  {selectedRecordId && <p role="status">Đã điền thông số từ toa #{selectedRecordId}. Vui lòng kiểm tra và tick xác nhận trước khi thêm vào giỏ.</p>}
+                  {!currentUser?.id && <button type="button" onClick={openAuth}>Đăng nhập để xem toa</button>}
+                  {savedRecords.error && <p role="alert">{savedRecords.error} <button type="button" onClick={()=>setRecordRetry(value=>value+1)}>Tải lại toa</button></p>}
+                  {currentUser?.id && !savedRecords.loading && !savedRecords.error && !savedRecords.rows.length && <p>Bạn có thể nhập thông số thủ công hoặc đặt lịch đo mắt tại cửa hàng.</p>}
+                </section>
               </div>
             )}
 
@@ -336,7 +392,7 @@ export default function ProductDetailPage({ product, onAddToCart, setActiveTab }
             <div className="purchase-actions pt-4 border-t border-slate-100 flex items-center justify-between">
               <div className="flex flex-col">
                 <span className="text-[11px] text-slate-400 uppercase font-bold tracking-wider">Tổng đơn kính</span>
-                <strong className="text-xl font-black text-[#086288]">{money(totalPrice)}</strong>
+                <strong className="text-xl font-black text-[#30483b]">{money(totalPrice)}</strong>
               </div>
 
               <button 
@@ -347,8 +403,7 @@ export default function ProductDetailPage({ product, onAddToCart, setActiveTab }
                 {!selected || selected.stock <= 0 ? 'Tạm hết hàng' : 'Thêm vào giỏ hàng'}
               </button>
             </div>
-          </form>
-        </div>
+        </form>
       )}
     </main>
   );

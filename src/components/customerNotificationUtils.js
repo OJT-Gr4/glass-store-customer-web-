@@ -24,6 +24,10 @@ export function categoryBadgeInfo(category) {
       return { label: 'Lịch đo khám mắt', className: 'bg-sky-50 text-sky-700 border-sky-200' };
     case 'ORDER':
       return { label: 'Đơn hàng', className: 'bg-[#e7eeff] text-[#004967] border-[#d8e3fb]' };
+    case 'WARRANTY':
+      return { label: 'Bảo hành & Hậu mãi', className: 'bg-purple-50 text-purple-700 border-purple-200' };
+    case 'LOYALTY':
+      return { label: 'Điểm thân thiết', className: 'bg-[#eceee7] text-[#253c33] border-[#dce5d9]' };
     default:
       return { label: 'Cập nhật giao dịch', className: 'bg-slate-100 text-slate-700 border-slate-200' };
   }
@@ -71,11 +75,13 @@ export function filterCustomerNotifications(items, filterKey) {
 
 export function resolveCustomerActionTab(item) {
   const tab = item?.actionTab;
-  if (['orders', 'order-hub', 'booking', 'records', 'warranty'].includes(tab)) {
+  if (['orders', 'order-hub', 'booking', 'records', 'warranty', 'vouchers'].includes(tab)) {
     return tab === 'order-hub' ? 'orders' : tab;
   }
   const cat = String(item?.category || '').toUpperCase();
   if (cat === 'APPOINTMENT') return 'booking';
+  if (cat === 'WARRANTY') return 'warranty';
+  if (cat === 'LOYALTY') return 'vouchers';
   if (cat === 'LAB_READY' || cat === 'ORDER') return 'orders';
   return 'home';
 }

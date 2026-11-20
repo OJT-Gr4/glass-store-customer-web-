@@ -132,13 +132,13 @@ export default function NotificationCenterPage({
   return (
     <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 space-y-6">
       {/* 1. Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#dee8ff]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#e4e4db]">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#e7eeff] text-[#004967] text-[11px] font-semibold mb-1">
-            <Bell className="w-3 h-3 text-[#086288]" />
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#eceee7] text-[#253c33] text-[11px] font-semibold mb-1">
+            <Bell className="w-3 h-3 text-[#30483b]" />
             Hộp thư chủ sở hữu · Đồng bộ Polling {pollSeconds}s
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-[#111c2d] tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#202924] tracking-tight">
             Trung Tâm Thông Báo Giao Dịch
           </h1>
           <p className="text-xs text-[#40484e] mt-0.5">
@@ -150,7 +150,7 @@ export default function NotificationCenterPage({
           {currentUser && unreadCount > 0 && (
             <span
               data-testid="notification-center-unread-pill"
-              className="bg-[#e7eeff] text-[#004967] text-xs font-semibold px-3 py-1.5 rounded-xl border border-[#dee8ff] flex items-center gap-1.5"
+              className="bg-[#eceee7] text-[#253c33] text-xs font-semibold px-3 py-1.5 rounded-xl border border-[#e4e4db] flex items-center gap-1.5"
             >
               <span className="w-2 h-2 rounded-full bg-rose-600 animate-pulse" />
               {unreadCount} chưa đọc
@@ -161,7 +161,7 @@ export default function NotificationCenterPage({
               <button
                 type="button"
                 onClick={() => loadInbox(false)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#dee8ff] bg-white hover:bg-[#f0f3ff] text-[#004967] text-xs font-semibold cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#e4e4db] bg-white hover:bg-[#f1f2ec] text-[#253c33] text-xs font-semibold cursor-pointer"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>Làm mới</span>
@@ -171,7 +171,7 @@ export default function NotificationCenterPage({
                 disabled={markingAll || unreadCount === 0}
                 onClick={handleMarkAllRead}
                 data-testid="customer-mark-all-read"
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#086288] hover:bg-[#004967] text-white text-xs font-bold disabled:opacity-50 cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#30483b] hover:bg-[#253c33] text-white text-xs font-bold disabled:opacity-50 cursor-pointer"
               >
                 <CheckCheck className="w-3.5 h-3.5" />
                 <span>{markingAll ? 'Đang cập nhật...' : 'Đánh dấu tất cả đã đọc'}</span>
@@ -194,13 +194,15 @@ export default function NotificationCenterPage({
 
       {/* 3. Filter Bar */}
       {currentUser && (
-        <div className="flex flex-wrap bg-[#f0f3ff] p-1 rounded-xl border border-[#dee8ff]/60 text-xs w-fit gap-1">
+        <div className="flex flex-wrap bg-[#f1f2ec] p-1 rounded-xl border border-[#e4e4db]/60 text-xs w-fit gap-1">
           {[
             { id: 'ALL', label: `Tất cả (${notifications.length})` },
             { id: 'UNREAD', label: `Chưa đọc (${unreadCount})` },
             { id: 'LAB_READY', label: 'Kính sẵn sàng (Lab)' },
             { id: 'ORDER', label: 'Đơn hàng' },
             { id: 'APPOINTMENT', label: 'Lịch đo khám mắt' },
+            { id: 'WARRANTY', label: 'Bảo hành' },
+            { id: 'LOYALTY', label: 'Điểm thân thiết' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -208,8 +210,8 @@ export default function NotificationCenterPage({
               onClick={() => setSelectedFilter(tab.id)}
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition cursor-pointer ${
                 selectedFilter === tab.id
-                  ? 'bg-[#086288] text-white font-bold shadow-xs'
-                  : 'text-[#40484e] hover:text-[#111c2d]'
+                  ? 'bg-[#30483b] text-white font-bold shadow-xs'
+                  : 'text-[#40484e] hover:text-[#202924]'
               }`}
             >
               {tab.label}
@@ -220,15 +222,15 @@ export default function NotificationCenterPage({
 
       {/* 4. Notifications Body */}
       {!currentUser ? (
-        <div className="py-16 text-center text-xs text-[#40484e] bg-white rounded-xl border border-[#dee8ff] p-8 space-y-3">
-          <Bell className="w-8 h-8 text-[#086288] mx-auto opacity-70" />
-          <p className="font-bold text-sm text-[#111c2d]">Đăng nhập để xem thông báo giao dịch cá nhân</p>
+        <div className="py-16 text-center text-xs text-[#40484e] bg-white rounded-xl border border-[#e4e4db] p-8 space-y-3">
+          <Bell className="w-8 h-8 text-[#30483b] mx-auto opacity-70" />
+          <p className="font-bold text-sm text-[#202924]">Đăng nhập để xem thông báo giao dịch cá nhân</p>
           <p>Thông báo được bảo vệ nghiêm ngặt theo chủ sở hữu tài khoản.</p>
           {openAuth && (
             <button
               type="button"
               onClick={openAuth}
-              className="px-4 py-2 rounded-xl bg-[#086288] hover:bg-[#004967] text-white text-xs font-bold cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-[#30483b] hover:bg-[#253c33] text-white text-xs font-bold cursor-pointer"
             >
               Đăng Nhập Ngay
             </button>
@@ -239,9 +241,9 @@ export default function NotificationCenterPage({
           Đang tải thông báo đã lưu từ máy chủ…
         </div>
       ) : filtered.length === 0 ? (
-        <div className="py-16 text-center text-xs text-[#40484e] bg-white rounded-xl border border-[#dee8ff] p-8 space-y-2">
+        <div className="py-16 text-center text-xs text-[#40484e] bg-white rounded-xl border border-[#e4e4db] p-8 space-y-2">
           <Bell className="w-8 h-8 text-[#40484e] mx-auto opacity-40" />
-          <p className="font-semibold text-[#111c2d]">
+          <p className="font-semibold text-[#202924]">
             {selectedFilter === 'UNREAD' ? 'Bạn đã đọc hết thông báo' : 'Chưa có thông báo giao dịch nào'}
           </p>
           <p>Thông báo kính sẵn sàng, đơn hàng và lịch đo mắt mới sẽ tự động hiển thị tại đây.</p>
@@ -260,13 +262,13 @@ export default function NotificationCenterPage({
                 data-testid={`customer-notif-card-${item.id}`}
                 data-read={String(Boolean(item.read))}
                 className={`p-4 rounded-xl border transition flex flex-col sm:flex-row sm:items-start justify-between gap-4 shadow-xs ${
-                  item.read ? 'bg-white border-[#dee8ff]' : 'bg-[#f4f9ff] border-[#086288]'
+                  item.read ? 'bg-white border-[#e4e4db]' : 'bg-[#f4f9ff] border-[#30483b]'
                 }`}
               >
                 <div className="flex items-start gap-3">
                   <div
                     className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
-                      item.read ? 'bg-[#f0f3ff] text-[#40484e]' : 'bg-[#086288] text-white'
+                      item.read ? 'bg-[#f1f2ec] text-[#40484e]' : 'bg-[#30483b] text-white'
                     }`}
                   >
                     {item.category === 'LAB_READY' ? (
@@ -284,7 +286,7 @@ export default function NotificationCenterPage({
                         {cat.label}
                       </span>
                       {item.referenceCode && (
-                        <span className="text-[10px] font-mono font-bold text-[#004967] bg-[#e7eeff] px-2 py-0.5 rounded">
+                        <span className="text-[10px] font-mono font-bold text-[#253c33] bg-[#eceee7] px-2 py-0.5 rounded">
                           {item.referenceCode}
                         </span>
                       )}
@@ -299,7 +301,7 @@ export default function NotificationCenterPage({
                       )}
                     </div>
 
-                    <h3 className="font-bold text-sm text-[#111c2d]">{item.title}</h3>
+                    <h3 className="font-bold text-sm text-[#202924]">{item.title}</h3>
                     <p className="text-xs text-[#40484e] leading-relaxed">{item.message}</p>
 
                     <div className="flex items-center gap-2 flex-wrap pt-1">
@@ -328,7 +330,7 @@ export default function NotificationCenterPage({
                         </span>
                       )}
                       <span className="text-[10px] text-[#40484e] flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-[#086288]" />
+                        <Clock className="w-3 h-3 text-[#30483b]" />
                         {formatNotificationDate(item.createdAt)}
                       </span>
                     </div>
@@ -342,7 +344,7 @@ export default function NotificationCenterPage({
                       disabled={busyId === item.id}
                       onClick={() => handleMarkAsRead(item)}
                       data-testid={`mark-read-btn-${item.id}`}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#086288] text-[#086288] hover:bg-[#e7eeff] text-xs font-bold disabled:opacity-50 cursor-pointer"
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#30483b] text-[#30483b] hover:bg-[#eceee7] text-xs font-bold disabled:opacity-50 cursor-pointer"
                     >
                       <Check className="w-3.5 h-3.5" />
                       <span>{busyId === item.id ? 'Đang lưu...' : 'Đánh dấu đã đọc'}</span>
@@ -351,7 +353,7 @@ export default function NotificationCenterPage({
                   <button
                     type="button"
                     onClick={() => handleOpenTarget(item)}
-                    className="px-3 py-1.5 rounded-lg bg-[#e7eeff] hover:bg-[#dee8ff] text-[#004967] text-xs font-bold transition cursor-pointer"
+                    className="px-3 py-1.5 rounded-lg bg-[#eceee7] hover:bg-[#e4e4db] text-[#253c33] text-xs font-bold transition cursor-pointer"
                   >
                     Xem chi tiết
                   </button>

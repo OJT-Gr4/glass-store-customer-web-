@@ -1,11 +1,25 @@
+import { DEFAULT_PRODUCT_IMAGE } from './imageUploadUtils.js';
+
 export const money = value => Number(value || 0).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
 
 export function catalogVariants(products) {
   return products.filter(p => p.status === 'ACTIVE').flatMap(p => (p.variants || [])
     .filter(v => v.status === 'ACTIVE')
-    .map(v => ({ ...v, productId: p.id, productName: p.name, productType: p.productType,
-      brandName: p.brandName, name: `${p.name}${v.name ? ` · ${v.name}` : ''}`,
-      price: Number(v.price), stock: Number(v.availableQuantity ?? v.stockQuantity ?? 0) })));
+    .map(v => {
+      const img = v.imageUrl || v.image_url || v.image || p.imageUrl || p.image_url || p.image || DEFAULT_PRODUCT_IMAGE;
+      return {
+        ...v,
+        productId: p.id,
+        productName: p.name,
+        productType: p.productType,
+        brandName: p.brandName,
+        name: `${p.name}${v.name ? ` · ${v.name}` : ''}`,
+        price: Number(v.price),
+        stock: Number(v.availableQuantity ?? v.stockQuantity ?? 0),
+        image: img,
+        imageUrl: img,
+      };
+    }));
 }
 
 export function validatePrescription(input) {
@@ -34,8 +48,9 @@ export function addSelection(cart, selection) {
     const current = next.find(line => line.sku === item.sku);
     const quantity = (current?.quantity || 0) + (item.quantity || 1);
     if (item.stock != null && quantity > item.stock) throw new Error(`Không đủ tồn kho cho ${item.name}.`);
-    if (current) Object.assign(current, { quantity, prescription: current.prescription || rx });
-    else next.push({ ...item, quantity, prescription: rx });
+    const img = item.image || item.imageUrl || item.image_url || DEFAULT_PRODUCT_IMAGE;
+    if (current) Object.assign(current, { quantity, prescription: current.prescription || rx, image: current.image || img, imageUrl: current.imageUrl || img });
+    else next.push({ ...item, image: img, imageUrl: img, quantity, prescription: rx });
   }
   return next;
 }
